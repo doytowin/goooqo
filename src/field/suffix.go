@@ -1,23 +1,22 @@
 package field
 
-import "strings"
+import "regexp"
+
+func CreateOpMap() map[string]string {
+	opMap := make(map[string]string)
+	opMap["Gt"] = ">"
+	opMap["Ge"] = ">="
+	opMap["Lt"] = "<"
+	opMap["Le"] = "<="
+	return opMap
+}
+
+var opMap = CreateOpMap()
+var regx = regexp.MustCompile(`(\w+)(Gt|Ge|Lt|Le)$`)
 
 func Process(fieldName string) string {
-	if strings.HasSuffix(fieldName, "Gt") {
-		columnName := strings.TrimSuffix(fieldName, "Gt")
-		return columnName + " > ?"
-	}
-	if strings.HasSuffix(fieldName, "Ge") {
-		columnName := strings.TrimSuffix(fieldName, "Ge")
-		return columnName + " >= ?"
-	}
-	if strings.HasSuffix(fieldName, "Lt") {
-		columnName := strings.TrimSuffix(fieldName, "Lt")
-		return columnName + " < ?"
-	}
-	if strings.HasSuffix(fieldName, "Le") {
-		columnName := strings.TrimSuffix(fieldName, "Le")
-		return columnName + " <= ?"
+	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
+		return match[1] + " " + opMap[match[2]] + " ?"
 	}
 	return fieldName + " = ?"
 }
