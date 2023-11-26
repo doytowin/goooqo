@@ -17,6 +17,8 @@ var useCases = []mapping{
 	{"idEq", "id == ?"},
 	{"idNull", "id IS NULL"},
 	{"idNotNull", "id IS NOT NULL"},
+	{"idIn", "id IN "},
+	{"idNotIn", "id NOT IN "},
 }
 
 func TestProcess(t *testing.T) {
