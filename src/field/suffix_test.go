@@ -12,6 +12,9 @@ var useCases = []mapping{
 	{"idGe", "id >= ?"},
 	{"idLt", "id < ?"},
 	{"idLe", "id <= ?"},
+	{"idNot", "id != ?"},
+	{"idNe", "id <> ?"},
+	{"idEq", "id == ?"},
 }
 
 func TestProcess(t *testing.T) {
