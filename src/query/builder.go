@@ -13,10 +13,15 @@ func BuildConditions(query interface{}) string {
 	conditions := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
-		if !rv.FieldByName(field.Name).IsNil() {
+		value := rv.FieldByName(field.Name)
+		if IsValidValue(value) {
 			conditions[cnt] = suffix.Process(field.Name)
 			cnt++
 		}
 	}
 	return strings.Join(conditions[0:cnt], " AND ")
+}
+
+func IsValidValue(value reflect.Value) bool {
+	return (value.Type().Name() == "bool" && value.Bool()) || !value.IsNil()
 }
