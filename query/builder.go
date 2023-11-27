@@ -8,11 +8,12 @@ import (
 	"strings"
 )
 
-type EntityMetadata[E any] struct {
+type EntityMetadata[E comparable] struct {
 	Type      reflect.Type
 	TableName string
 	Columns   []string
 	ColStr    string
+	zero      E
 }
 
 func IntPtr(o int) *int {
@@ -48,7 +49,7 @@ func IsValidValue(value reflect.Value) bool {
 	}
 }
 
-func BuildEntityMetadata[E any](entity interface{}) EntityMetadata[E] {
+func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {
@@ -60,6 +61,7 @@ func BuildEntityMetadata[E any](entity interface{}) EntityMetadata[E] {
 		TableName: strings.TrimSuffix(refType.Name(), "Entity"),
 		Columns:   columns,
 		ColStr:    strings.Join(columns, ", "),
+		zero:      reflect.New(refType).Elem().Interface().(E),
 	}
 }
 
@@ -73,13 +75,35 @@ func (em *EntityMetadata[E]) BuildSelect(query interface{}) (string, []any) {
 	return s, args
 }
 
-func (em *EntityMetadata[E]) Query(db *sql.DB, query interface{}) ([]E, error) {
-	sqlStr, args := em.BuildSelect(query)
+func (em *EntityMetadata[E]) BuildSelectById() string {
+	return "SELECT " + em.ColStr + " FROM " + em.TableName + " WHERE id = ?"
+}
+
+func (em *EntityMetadata[E]) Get(db *sql.DB, id interface{}) (E, error) {
+	sqlStr := em.BuildSelectById()
 	stmt, err := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()
 	}(stmt)
 
+	rows, err := em.doQuery(stmt, []any{id})
+	if len(rows) == 1 {
+		return rows[0], err
+	}
+	return em.zero, err
+}
+
+func (em *EntityMetadata[E]) Query(db *sql.DB, query interface{}) ([]E, error) {
+	sqlStr, args := em.BuildSelect(query)
+	stmt, _ := db.Prepare(sqlStr)
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
+
+	return em.doQuery(stmt, args)
+}
+
+func (em *EntityMetadata[E]) doQuery(stmt *sql.Stmt, args []any) ([]E, error) {
 	var result []E
 
 	length := len(em.Columns)
@@ -90,14 +114,17 @@ func (em *EntityMetadata[E]) Query(db *sql.DB, query interface{}) ([]E, error) {
 		pointers[i] = elem.Field(i).Addr().Interface()
 	}
 
-	rows, _ := stmt.Query(args...)
-	for rows.Next() {
+	rows, err := stmt.Query(args...)
+	for rows.Next() && err == nil {
 		err := rows.Scan(pointers...)
-		if err != nil {
-			break
+		if err == nil {
+			result = append(result, entity)
 		}
-		result = append(result, entity)
 	}
 
 	return result, err
+}
+
+func (em *EntityMetadata[E]) IsZero(entity E) bool {
+	return em.zero == entity
 }
