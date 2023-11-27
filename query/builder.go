@@ -2,8 +2,8 @@ package query
 
 import (
 	"database/sql"
-	"fmt"
 	suffix "github.com/doytowin/doyto-query-go-sql/field"
+	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
 )
@@ -69,7 +69,7 @@ func (em *EntityMetadata[E]) BuildSelect(query interface{}) (string, []any) {
 	if len(conditions) > 0 {
 		s += " WHERE " + conditions
 	}
-	fmt.Println("SQL: " + s)
+	log.Info("SQL: " + s)
 	return s, args
 }
 
