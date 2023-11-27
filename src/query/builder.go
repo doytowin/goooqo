@@ -1,15 +1,22 @@
 package query
 
 import (
-	suffix "../field"
+	"database/sql"
+	"fmt"
+	suffix "github.com/doytowin/doyto-query-go-sql/field"
 	"reflect"
 	"strings"
 )
 
-type EntityMetadata struct {
+type EntityMetadata[E any] struct {
+	Type      reflect.Type
 	TableName string
 	Columns   []string
 	ColStr    string
+}
+
+func IntPtr(o int) *int {
+	return &o
 }
 
 func BuildConditions(query interface{}) (string, []any) {
@@ -41,23 +48,55 @@ func IsValidValue(value reflect.Value) bool {
 	}
 }
 
-func BuildEntityMetadata(entity interface{}) EntityMetadata {
+func BuildEntityMetadata[E any](entity interface{}) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	conditions := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
 		conditions[i] = field.Name
 	}
-	return EntityMetadata{
+	return EntityMetadata[E]{
+		Type:      refType,
 		TableName: strings.TrimSuffix(refType.Name(), "Entity"),
 		Columns:   conditions,
 		ColStr:    strings.Join(conditions, ", "),
 	}
 }
 
-func (em *EntityMetadata) BuildSelect(query interface{}) (string, []any) {
+func (em *EntityMetadata[E]) BuildSelect(query interface{}) (string, []any) {
 	conditions, args := BuildConditions(query)
-	return "SELECT " + em.ColStr +
+	s := "SELECT " + em.ColStr +
 		" FROM " + em.TableName +
-		" WHERE " + conditions, args
+		" WHERE " + conditions
+	fmt.Println("SQL: " + s)
+	return s, args
+}
+
+func (em *EntityMetadata[E]) Query(db *sql.DB, query interface{}) ([]E, error) {
+	sqlStr, args := em.BuildSelect(query)
+	stmt, err := db.Prepare(sqlStr)
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
+
+	var result []E
+
+	length := len(em.Columns)
+	pointers := make([]interface{}, length)
+	entity := reflect.New(em.Type).Elem().Interface().(E)
+	elem := reflect.ValueOf(&entity).Elem()
+	for i := range pointers {
+		pointers[i] = elem.Field(i).Addr().Interface()
+	}
+
+	rows, _ := stmt.Query(args...)
+	for rows.Next() {
+		err := rows.Scan(pointers...)
+		if err != nil {
+			break
+		}
+		result = append(result, entity)
+	}
+
+	return result, err
 }

@@ -34,7 +34,7 @@ func TestBuild(t *testing.T) {
 	})
 
 	t.Run("Build Select Statement", func(t *testing.T) {
-		em := BuildEntityMetadata(UserEntity{})
+		em := BuildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{idGt: intPtr(5), scoreLt: intPtr(60)}
 		actual, args := em.BuildSelect(query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
