@@ -38,7 +38,10 @@ func buildWhereClause(query interface{}) (string, []any) {
 			}
 		}
 	}
-	return strings.Join(conditions[0:cnt], " AND "), args[0:argCnt]
+	if cnt == 0 {
+		return "", args[0:0]
+	}
+	return " WHERE " + strings.Join(conditions[0:cnt], " AND "), args[0:argCnt]
 }
 
 func isValidValue(value reflect.Value) bool {
@@ -66,11 +69,8 @@ func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 }
 
 func (em *EntityMetadata[E]) buildSelect(query interface{}) (string, []any) {
-	conditions, args := buildWhereClause(query)
-	s := "SELECT " + em.ColStr + " FROM " + em.TableName
-	if len(conditions) > 0 {
-		s += " WHERE " + conditions
-	}
+	whereClause, args := buildWhereClause(query)
+	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
 	log.Info("SQL: " + s)
 	return s, args
 }
@@ -141,6 +141,28 @@ func (em *EntityMetadata[E]) DeleteById(db *sql.DB, id interface{}) (int64, inte
 	}(stmt)
 
 	result, err := stmt.Exec(id)
+	if err != nil {
+		return 0, err
+	}
+	cnt, err := result.RowsAffected()
+	return cnt, err
+}
+
+func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
+	whereClause, args := buildWhereClause(query)
+	s := "DELETE FROM " + em.TableName + whereClause
+	log.Info("SQL: " + s)
+	return s, args
+}
+
+func (em *EntityMetadata[E]) Delete(db *sql.DB, query interface{}) (int64, interface{}) {
+	sqlStr, args := em.buildDelete(query)
+	stmt, _ := db.Prepare(sqlStr)
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
+
+	result, err := stmt.Exec(args...)
 	if err != nil {
 		return 0, err
 	}

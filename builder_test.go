@@ -24,9 +24,9 @@ func TestBuild(t *testing.T) {
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: intPtr(5), MemoNull: true}
 		actual, args := buildWhereClause(query)
-		expect := "id > ? AND memo IS NULL"
+		expect := " WHERE id > ? AND memo IS NULL"
 		if actual != expect {
-			t.Errorf("Expected: %s, but got %s", expect, actual)
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 		if len(args) != 1 || args[0] != int64(5) {
 			t.Errorf("Args are not expected: %s", args)

@@ -61,4 +61,15 @@ func TestSQLite(t *testing.T) {
 			t.Errorf("Delete failed. Deleted: %v", cnt)
 		}
 	})
+
+	t.Run("Delete By Query", func(t *testing.T) {
+		userQuery := UserQuery{ScoreLt: goquery.IntPtr(80)}
+		cnt, err := em.Delete(db, userQuery)
+		if err != nil {
+			t.Error("Error", err)
+		}
+		if cnt != 2 {
+			t.Errorf("Delete failed. Deleted: %v", cnt)
+		}
+	})
 }
