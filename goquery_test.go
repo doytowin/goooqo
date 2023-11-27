@@ -1,6 +1,7 @@
 package goquery
 
 import (
+	fp "github.com/doytowin/doyto-query-go-sql/field"
 	"testing"
 )
 
@@ -23,7 +24,7 @@ func intPtr(o int) *int {
 func TestBuild(t *testing.T) {
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: intPtr(5), MemoNull: true}
-		actual, args := buildWhereClause(query)
+		actual, args := fp.BuildWhereClause(query)
 		expect := " WHERE id > ? AND memo IS NULL"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)

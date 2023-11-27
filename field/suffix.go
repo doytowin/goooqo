@@ -39,5 +39,5 @@ func Process(fieldName string) string {
 		column = UnCapitalize(column)
 		return column + operator.sign + operator.placeholder
 	}
-	return fieldName + " = ?"
+	return UnCapitalize(fieldName) + " = ?"
 }

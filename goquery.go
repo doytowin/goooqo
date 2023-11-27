@@ -2,7 +2,7 @@ package goquery
 
 import (
 	"database/sql"
-	suffix "github.com/doytowin/doyto-query-go-sql/field"
+	fp "github.com/doytowin/doyto-query-go-sql/field"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
@@ -24,44 +24,12 @@ func IntPtr(o int) *int {
 	return &o
 }
 
-func buildWhereClause(query interface{}) (string, []any) {
-	refType := reflect.TypeOf(query)
-	rv := reflect.ValueOf(query)
-	cnt, argCnt := 0, 0
-	conditions := make([]string, refType.NumField())
-	args := make([]any, refType.NumField(), 2*refType.NumField())
-	for i := 0; i < refType.NumField(); i++ {
-		field := refType.Field(i)
-		value := rv.FieldByName(field.Name)
-		if isValidValue(value) {
-			conditions[cnt] = suffix.Process(field.Name)
-			cnt++
-			if value.Type().String() == "*int" {
-				args[argCnt] = reflect.Indirect(value).Int()
-				argCnt++
-			}
-		}
-	}
-	if cnt == 0 {
-		return "", args[0:0]
-	}
-	return " WHERE " + strings.Join(conditions[0:cnt], " AND "), args[0:argCnt]
-}
-
-func isValidValue(value reflect.Value) bool {
-	if value.Type().Name() == "bool" {
-		return value.Bool()
-	} else {
-		return !value.IsNil()
-	}
-}
-
 func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
-		columns[i] = suffix.UnCapitalize(field.Name)
+		columns[i] = fp.UnCapitalize(field.Name)
 	}
 	return EntityMetadata[E]{
 		Type:      refType,
@@ -73,7 +41,7 @@ func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 }
 
 func (em *EntityMetadata[E]) buildSelect(query interface{}) (string, []any) {
-	whereClause, args := buildWhereClause(query)
+	whereClause, args := fp.BuildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
 	log.Info("SQL: " + s)
 	return s, args
@@ -153,7 +121,7 @@ func (em *EntityMetadata[E]) DeleteById(db Database, id interface{}) (int64, err
 }
 
 func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
-	whereClause, args := buildWhereClause(query)
+	whereClause, args := fp.BuildWhereClause(query)
 	s := "DELETE FROM " + em.TableName + whereClause
 	log.Info("SQL: " + s)
 	return s, args
