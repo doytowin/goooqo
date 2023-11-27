@@ -65,9 +65,10 @@ func BuildEntityMetadata[E any](entity interface{}) EntityMetadata[E] {
 
 func (em *EntityMetadata[E]) BuildSelect(query interface{}) (string, []any) {
 	conditions, args := BuildConditions(query)
-	s := "SELECT " + em.ColStr +
-		" FROM " + em.TableName +
-		" WHERE " + conditions
+	s := "SELECT " + em.ColStr + " FROM " + em.TableName
+	if len(conditions) > 0 {
+		s += " WHERE " + conditions
+	}
 	fmt.Println("SQL: " + s)
 	return s, args
 }
