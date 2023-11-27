@@ -16,6 +16,10 @@ type EntityMetadata[E comparable] struct {
 	zero      E
 }
 
+type Database interface {
+	Prepare(query string) (*sql.Stmt, error)
+}
+
 func IntPtr(o int) *int {
 	return &o
 }
@@ -79,7 +83,7 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 	return "SELECT " + em.ColStr + " FROM " + em.TableName + " WHERE id = ?"
 }
 
-func (em *EntityMetadata[E]) Get(db *sql.DB, id interface{}) (E, error) {
+func (em *EntityMetadata[E]) Get(db Database, id interface{}) (E, error) {
 	sqlStr := em.buildSelectById()
 	stmt, err := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
@@ -93,7 +97,7 @@ func (em *EntityMetadata[E]) Get(db *sql.DB, id interface{}) (E, error) {
 	return em.zero, err
 }
 
-func (em *EntityMetadata[E]) Query(db *sql.DB, query interface{}) ([]E, error) {
+func (em *EntityMetadata[E]) Query(db Database, query interface{}) ([]E, error) {
 	sqlStr, args := em.buildSelect(query)
 	stmt, _ := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
@@ -133,7 +137,7 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 	return "DELETE FROM " + em.TableName + " WHERE id = ?"
 }
 
-func (em *EntityMetadata[E]) DeleteById(db *sql.DB, id interface{}) (int64, interface{}) {
+func (em *EntityMetadata[E]) DeleteById(db Database, id interface{}) (int64, error) {
 	sqlStr := em.buildDeleteById()
 	stmt, _ := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
@@ -155,7 +159,7 @@ func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
 	return s, args
 }
 
-func (em *EntityMetadata[E]) Delete(db *sql.DB, query interface{}) (int64, interface{}) {
+func (em *EntityMetadata[E]) Delete(db Database, query interface{}) (int64, error) {
 	sqlStr, args := em.buildDelete(query)
 	stmt, _ := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {

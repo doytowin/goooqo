@@ -53,23 +53,27 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Delete By Id", func(t *testing.T) {
-		cnt, err := em.DeleteById(db, 3)
+		tx, err := db.Begin()
+		cnt, err := em.DeleteById(tx, 3)
 		if err != nil {
 			t.Error("Error", err)
 		}
 		if cnt != 1 {
 			t.Errorf("Delete failed. Deleted: %v", cnt)
 		}
+		_ = tx.Rollback()
 	})
 
 	t.Run("Delete By Query", func(t *testing.T) {
+		tx, err := db.Begin()
 		userQuery := UserQuery{ScoreLt: goquery.IntPtr(80)}
-		cnt, err := em.Delete(db, userQuery)
+		cnt, err := em.Delete(tx, userQuery)
 		if err != nil {
 			t.Error("Error", err)
 		}
-		if cnt != 2 {
+		if cnt != 3 {
 			t.Errorf("Delete failed. Deleted: %v", cnt)
 		}
+		_ = tx.Rollback()
 	})
 }
