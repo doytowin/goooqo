@@ -50,16 +50,16 @@ func IsValidValue(value reflect.Value) bool {
 
 func BuildEntityMetadata[E any](entity interface{}) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
-	conditions := make([]string, refType.NumField())
+	columns := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
-		conditions[i] = field.Name
+		columns[i] = suffix.UnCapitalize(field.Name)
 	}
 	return EntityMetadata[E]{
 		Type:      refType,
 		TableName: strings.TrimSuffix(refType.Name(), "Entity"),
-		Columns:   conditions,
-		ColStr:    strings.Join(conditions, ", "),
+		Columns:   columns,
+		ColStr:    strings.Join(columns, ", "),
 	}
 }
 

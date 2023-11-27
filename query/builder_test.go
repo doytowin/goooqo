@@ -5,15 +5,15 @@ import (
 )
 
 type UserEntity struct {
-	id    int
-	score int
-	memo  string
+	Id    int
+	Score int
+	Memo  string
 }
 
 type UserQuery struct {
-	idGt     *int
-	scoreLt  *int
-	memoNull bool
+	IdGt     *int
+	ScoreLt  *int
+	MemoNull bool
 }
 
 func intPtr(o int) *int {
@@ -22,7 +22,7 @@ func intPtr(o int) *int {
 
 func TestBuild(t *testing.T) {
 	t.Run("Build Where Clause", func(t *testing.T) {
-		query := UserQuery{idGt: intPtr(5), memoNull: true}
+		query := UserQuery{IdGt: intPtr(5), MemoNull: true}
 		actual, args := BuildConditions(query)
 		expect := "id > ? AND memo IS NULL"
 		if actual != expect {
@@ -35,7 +35,7 @@ func TestBuild(t *testing.T) {
 
 	t.Run("Build Select Statement", func(t *testing.T) {
 		em := BuildEntityMetadata[UserEntity](UserEntity{})
-		query := UserQuery{idGt: intPtr(5), scoreLt: intPtr(60)}
+		query := UserQuery{IdGt: intPtr(5), ScoreLt: intPtr(60)}
 		actual, args := em.BuildSelect(query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
 		if actual != expect {

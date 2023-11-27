@@ -28,10 +28,15 @@ func CreateOpMap() map[string]operator {
 var opMap = CreateOpMap()
 var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In)$`)
 
+func UnCapitalize(s string) string {
+	return strings.ToLower(s[:1]) + s[1:]
+}
+
 func Process(fieldName string) string {
 	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
 		operator := opMap[match[1]]
-		column, _ := strings.CutSuffix(fieldName, match[1])
+		column := strings.TrimSuffix(fieldName, match[1])
+		column = UnCapitalize(column)
 		return column + operator.sign + operator.placeholder
 	}
 	return fieldName + " = ?"
