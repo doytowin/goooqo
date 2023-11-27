@@ -51,4 +51,14 @@ func TestSQLite(t *testing.T) {
 			t.Errorf("Data is not expected: %v", user)
 		}
 	})
+
+	t.Run("Delete By Id", func(t *testing.T) {
+		cnt, err := em.DeleteById(db, 3)
+		if err != nil {
+			t.Error("Error", err)
+		}
+		if cnt != 1 {
+			t.Errorf("Delete failed. Deleted: %v", cnt)
+		}
+	})
 }

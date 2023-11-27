@@ -128,3 +128,22 @@ func (em *EntityMetadata[E]) doQuery(stmt *sql.Stmt, args []any) ([]E, error) {
 func (em *EntityMetadata[E]) IsZero(entity E) bool {
 	return em.zero == entity
 }
+
+func (em *EntityMetadata[E]) buildDeleteById() string {
+	return "DELETE FROM " + em.TableName + " WHERE id = ?"
+}
+
+func (em *EntityMetadata[E]) DeleteById(db *sql.DB, id interface{}) (int64, interface{}) {
+	sqlStr := em.buildDeleteById()
+	stmt, _ := db.Prepare(sqlStr)
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
+
+	result, err := stmt.Exec(id)
+	if err != nil {
+		return 0, err
+	}
+	cnt, err := result.RowsAffected()
+	return cnt, err
+}
