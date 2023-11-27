@@ -1,4 +1,4 @@
-package query
+package goquery
 
 import (
 	"database/sql"
@@ -20,7 +20,7 @@ func IntPtr(o int) *int {
 	return &o
 }
 
-func BuildConditions(query interface{}) (string, []any) {
+func buildWhereClause(query interface{}) (string, []any) {
 	refType := reflect.TypeOf(query)
 	rv := reflect.ValueOf(query)
 	cnt, argCnt := 0, 0
@@ -29,7 +29,7 @@ func BuildConditions(query interface{}) (string, []any) {
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
 		value := rv.FieldByName(field.Name)
-		if IsValidValue(value) {
+		if isValidValue(value) {
 			conditions[cnt] = suffix.Process(field.Name)
 			cnt++
 			if value.Type().String() == "*int" {
@@ -41,7 +41,7 @@ func BuildConditions(query interface{}) (string, []any) {
 	return strings.Join(conditions[0:cnt], " AND "), args[0:argCnt]
 }
 
-func IsValidValue(value reflect.Value) bool {
+func isValidValue(value reflect.Value) bool {
 	if value.Type().Name() == "bool" {
 		return value.Bool()
 	} else {
@@ -65,8 +65,8 @@ func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 	}
 }
 
-func (em *EntityMetadata[E]) BuildSelect(query interface{}) (string, []any) {
-	conditions, args := BuildConditions(query)
+func (em *EntityMetadata[E]) buildSelect(query interface{}) (string, []any) {
+	conditions, args := buildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName
 	if len(conditions) > 0 {
 		s += " WHERE " + conditions
@@ -75,12 +75,12 @@ func (em *EntityMetadata[E]) BuildSelect(query interface{}) (string, []any) {
 	return s, args
 }
 
-func (em *EntityMetadata[E]) BuildSelectById() string {
+func (em *EntityMetadata[E]) buildSelectById() string {
 	return "SELECT " + em.ColStr + " FROM " + em.TableName + " WHERE id = ?"
 }
 
 func (em *EntityMetadata[E]) Get(db *sql.DB, id interface{}) (E, error) {
-	sqlStr := em.BuildSelectById()
+	sqlStr := em.buildSelectById()
 	stmt, err := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()
@@ -94,7 +94,7 @@ func (em *EntityMetadata[E]) Get(db *sql.DB, id interface{}) (E, error) {
 }
 
 func (em *EntityMetadata[E]) Query(db *sql.DB, query interface{}) ([]E, error) {
-	sqlStr, args := em.BuildSelect(query)
+	sqlStr, args := em.buildSelect(query)
 	stmt, _ := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()

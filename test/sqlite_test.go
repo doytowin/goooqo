@@ -2,7 +2,7 @@ package test
 
 import (
 	"database/sql"
-	q "github.com/doytowin/doyto-query-go-sql/query"
+	goquery "github.com/doytowin/doyto-query-go-sql"
 	_ "github.com/mattn/go-sqlite3"
 	"testing"
 )
@@ -16,10 +16,10 @@ func TestSQLite(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	em := q.BuildEntityMetadata[UserEntity](UserEntity{})
+	em := goquery.BuildEntityMetadata[UserEntity](UserEntity{})
 
 	t.Run("Query Entities", func(t *testing.T) {
-		userQuery := UserQuery{ScoreLt: q.IntPtr(80)}
+		userQuery := UserQuery{ScoreLt: goquery.IntPtr(80)}
 		users, err := em.Query(db, userQuery)
 
 		if err != nil {

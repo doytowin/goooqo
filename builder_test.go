@@ -1,4 +1,4 @@
-package query
+package goquery
 
 import (
 	"testing"
@@ -23,7 +23,7 @@ func intPtr(o int) *int {
 func TestBuild(t *testing.T) {
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: intPtr(5), MemoNull: true}
-		actual, args := BuildConditions(query)
+		actual, args := buildWhereClause(query)
 		expect := "id > ? AND memo IS NULL"
 		if actual != expect {
 			t.Errorf("Expected: %s, but got %s", expect, actual)
@@ -36,7 +36,7 @@ func TestBuild(t *testing.T) {
 	t.Run("Build Select Statement", func(t *testing.T) {
 		em := BuildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{IdGt: intPtr(5), ScoreLt: intPtr(60)}
-		actual, args := em.BuildSelect(query)
+		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -49,7 +49,7 @@ func TestBuild(t *testing.T) {
 	t.Run("Build Select Without Where", func(t *testing.T) {
 		em := BuildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{}
-		actual, args := em.BuildSelect(query)
+		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
