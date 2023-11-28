@@ -2,8 +2,8 @@ package test
 
 import (
 	"database/sql"
-	. "github.com/doytowin/doyto-query-go-sql"
-	. "github.com/doytowin/doyto-query-go-sql/util"
+	. "github.com/doytowin/goquery"
+	. "github.com/doytowin/goquery/util"
 	_ "github.com/mattn/go-sqlite3"
 	"testing"
 )

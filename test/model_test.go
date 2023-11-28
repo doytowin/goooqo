@@ -1,6 +1,6 @@
 package test
 
-import goquery "github.com/doytowin/doyto-query-go-sql"
+import goquery "github.com/doytowin/goquery"
 
 type UserEntity struct {
 	Id    int

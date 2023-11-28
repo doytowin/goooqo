@@ -2,7 +2,7 @@ package goquery
 
 import (
 	"database/sql"
-	fp "github.com/doytowin/doyto-query-go-sql/field"
+	fp "github.com/doytowin/goquery/field"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"

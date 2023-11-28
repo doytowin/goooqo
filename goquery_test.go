@@ -1,8 +1,8 @@
 package goquery
 
 import (
-	. "github.com/doytowin/doyto-query-go-sql/field"
-	. "github.com/doytowin/doyto-query-go-sql/util"
+	. "github.com/doytowin/goquery/field"
+	. "github.com/doytowin/goquery/util"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )

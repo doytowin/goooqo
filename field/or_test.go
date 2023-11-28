@@ -1,7 +1,7 @@
 package field
 
 import (
-	. "github.com/doytowin/doyto-query-go-sql/util"
+	. "github.com/doytowin/goquery/util"
 	"testing"
 )
 

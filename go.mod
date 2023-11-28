@@ -1,4 +1,4 @@
-module github.com/doytowin/doyto-query-go-sql
+module github.com/doytowin/goquery
 
 go 1.21.4
 
