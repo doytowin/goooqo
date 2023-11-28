@@ -13,8 +13,10 @@ func isValidValue(value reflect.Value) bool {
 		return value.String() != ""
 	} else if value.Type().Name() == "flag" {
 		return value.IsValid()
+	} else if value.Type().Name() == "PageQuery" {
+		return false
 	} else {
-		log.Debug("Type:", value.Type().Name())
+		log.Info("Type:", value.Type().Name())
 		return !value.IsNil()
 	}
 }

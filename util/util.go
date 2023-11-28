@@ -7,3 +7,7 @@ func PStr(s string) *string {
 func PBool(b bool) *bool {
 	return &b
 }
+
+func PInt(i int) *int {
+	return &i
+}
