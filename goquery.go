@@ -20,7 +20,7 @@ type connection interface {
 	Prepare(query string) (*sql.Stmt, error)
 }
 
-func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
+func buildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {

@@ -17,11 +17,11 @@ func TestSQLite(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	em := BuildEntityMetadata[UserEntity](UserEntity{})
+	userDataAccess := BuildDataAccess[UserEntity](UserEntity{})
 
 	t.Run("Query Entities", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(80)}
-		users, err := em.Query(db, userQuery)
+		users, err := userDataAccess.Query(db, userQuery)
 
 		if err != nil {
 			t.Error("Error", err)
@@ -32,7 +32,7 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Query By Id", func(t *testing.T) {
-		user, err := em.Get(db, 3)
+		user, err := userDataAccess.Get(db, 3)
 
 		if err != nil {
 			t.Error("Error", err)
@@ -43,19 +43,19 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Query By Non-Existent Id", func(t *testing.T) {
-		user, err := em.Get(db, -1)
+		user, err := userDataAccess.Get(db, -1)
 
 		if err != nil {
 			t.Error("Error", err)
 		}
-		if !em.IsZero(user) {
+		if !userDataAccess.IsZero(user) {
 			t.Errorf("Data is not expected: %v", user)
 		}
 	})
 
 	t.Run("Delete By Id", func(t *testing.T) {
 		tx, err := db.Begin()
-		cnt, err := em.DeleteById(tx, 3)
+		cnt, err := userDataAccess.DeleteById(tx, 3)
 		if err != nil {
 			t.Error("Error", err)
 		}
@@ -68,7 +68,7 @@ func TestSQLite(t *testing.T) {
 	t.Run("Delete By Query", func(t *testing.T) {
 		tx, err := db.Begin()
 		userQuery := UserQuery{ScoreLt: PInt(80)}
-		cnt, err := em.Delete(tx, userQuery)
+		cnt, err := userDataAccess.Delete(tx, userQuery)
 		if err != nil {
 			t.Error("Error", err)
 		}

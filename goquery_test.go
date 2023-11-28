@@ -23,7 +23,7 @@ func TestBuild(t *testing.T) {
 	})
 
 	t.Run("Build Select Statement", func(t *testing.T) {
-		em := BuildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{IdGt: PInt(5), ScoreLt: PInt(60)}
 		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
@@ -36,7 +36,7 @@ func TestBuild(t *testing.T) {
 	})
 
 	t.Run("Build Select Without Where", func(t *testing.T) {
-		em := BuildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{}
 		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User"
@@ -49,7 +49,7 @@ func TestBuild(t *testing.T) {
 	})
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
-		em := BuildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{PageQuery: PageQuery{PInt(1), PInt(10)}}
 		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
