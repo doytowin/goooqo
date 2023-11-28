@@ -20,6 +20,14 @@ type connection interface {
 	Prepare(query string) (*sql.Stmt, error)
 }
 
+func noError(err error) bool {
+	if err == nil {
+		return true
+	}
+	log.Error("Error occurred! ", err)
+	return false
+}
+
 func buildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
@@ -53,12 +61,7 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 
 func (em *EntityMetadata[E]) Get(conn connection, id interface{}) (E, error) {
 	sqlStr := em.buildSelectById()
-	stmt, err := conn.Prepare(sqlStr)
-	defer func(stmt *sql.Stmt) {
-		_ = stmt.Close()
-	}(stmt)
-
-	rows, err := em.doQuery(stmt, []any{id})
+	rows, err := em.doQuery(conn, sqlStr, []any{id})
 	if len(rows) == 1 {
 		return rows[0], err
 	}
@@ -67,15 +70,10 @@ func (em *EntityMetadata[E]) Get(conn connection, id interface{}) (E, error) {
 
 func (em *EntityMetadata[E]) Query(conn connection, query GoQuery) ([]E, error) {
 	sqlStr, args := em.buildSelect(query)
-	stmt, _ := conn.Prepare(sqlStr)
-	defer func(stmt *sql.Stmt) {
-		_ = stmt.Close()
-	}(stmt)
-
-	return em.doQuery(stmt, args)
+	return em.doQuery(conn, sqlStr, args)
 }
 
-func (em *EntityMetadata[E]) doQuery(stmt *sql.Stmt, args []any) ([]E, error) {
+func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any) ([]E, error) {
 	var result []E
 
 	length := len(em.Columns)
@@ -86,12 +84,17 @@ func (em *EntityMetadata[E]) doQuery(stmt *sql.Stmt, args []any) ([]E, error) {
 		pointers[i] = elem.Field(i).Addr().Interface()
 	}
 
-	rows, err := stmt.Query(args...)
-	for rows.Next() && err == nil {
-		err := rows.Scan(pointers...)
-		if err == nil {
-			result = append(result, entity)
+	stmt, err := conn.Prepare(sqlStr)
+	if noError(err) {
+		rows, err := stmt.Query(args...)
+		for noError(err) && rows.Next() {
+			err := rows.Scan(pointers...)
+			if noError(err) {
+				result = append(result, entity)
+			}
 		}
+		_ = rows.Close()
+		_ = stmt.Close()
 	}
 
 	return result, err
@@ -107,17 +110,7 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 
 func (em *EntityMetadata[E]) DeleteById(conn connection, id interface{}) (int64, error) {
 	sqlStr := em.buildDeleteById()
-	stmt, _ := conn.Prepare(sqlStr)
-	defer func(stmt *sql.Stmt) {
-		_ = stmt.Close()
-	}(stmt)
-
-	result, err := stmt.Exec(id)
-	if err != nil {
-		return 0, err
-	}
-	cnt, err := result.RowsAffected()
-	return cnt, err
+	return em.doUpdate(conn, sqlStr, []any{id})
 }
 
 func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
@@ -129,15 +122,20 @@ func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
 
 func (em *EntityMetadata[E]) Delete(conn connection, query interface{}) (int64, error) {
 	sqlStr, args := em.buildDelete(query)
-	stmt, _ := conn.Prepare(sqlStr)
-	defer func(stmt *sql.Stmt) {
-		_ = stmt.Close()
-	}(stmt)
+	return em.doUpdate(conn, sqlStr, args)
+}
 
-	result, err := stmt.Exec(args...)
-	if err != nil {
-		return 0, err
+func (em *EntityMetadata[E]) doUpdate(conn connection, sqlStr string, args []any) (int64, error) {
+	stmt, err := conn.Prepare(sqlStr)
+	if noError(err) {
+		defer func() {
+			noError(stmt.Close())
+		}()
+
+		result, err := stmt.Exec(args...)
+		if noError(err) {
+			return result.RowsAffected()
+		}
 	}
-	cnt, err := result.RowsAffected()
-	return cnt, err
+	return 0, err
 }
