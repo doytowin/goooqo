@@ -2,6 +2,7 @@ package goquery
 
 import (
 	fp "github.com/doytowin/doyto-query-go-sql/field"
+	log "github.com/sirupsen/logrus"
 	"testing"
 )
 
@@ -22,6 +23,8 @@ func intPtr(o int) *int {
 }
 
 func TestBuild(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: intPtr(5), MemoNull: true}
 		actual, args := fp.BuildWhereClause(query)
@@ -29,7 +32,7 @@ func TestBuild(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if len(args) != 1 || args[0] != int64(5) {
+		if !(len(args) == 2 && args[0] == int64(5) && args[1] == true) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
