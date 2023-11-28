@@ -88,4 +88,19 @@ func TestSQLite(t *testing.T) {
 			t.Errorf("\nExpected: %d\nBut got : %d", 2, cnt)
 		}
 	})
+
+	t.Run("Page By Query", func(t *testing.T) {
+		userQuery := UserQuery{
+			PageQuery: PageQuery{PageSize: PInt(2)},
+			ScoreLt:   PInt(80),
+		}
+		page, err := userDataAccess.Page(db, userQuery)
+		if err != nil {
+			t.Error("Error", err)
+			return
+		}
+		if !(page.Total == 3 && page.Data[0].Id == 2) {
+			t.Errorf("Got : %v", page)
+		}
+	})
 }

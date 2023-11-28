@@ -124,6 +124,15 @@ func (em *EntityMetadata[E]) Count(conn connection, query GoQuery) (int, error) 
 	return cnt, err
 }
 
+func (em *EntityMetadata[E]) Page(conn connection, query GoQuery) (PageList[E], error) {
+	var count int
+	data, err := em.Query(conn, query)
+	if noError(err) {
+		count, err = em.Count(conn, query)
+	}
+	return PageList[E]{data, count}, err
+}
+
 func (em *EntityMetadata[E]) IsZero(entity E) bool {
 	return em.zero == entity
 }
