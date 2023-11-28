@@ -16,12 +16,8 @@ type EntityMetadata[E comparable] struct {
 	zero      E
 }
 
-type Database interface {
+type connection interface {
 	Prepare(query string) (*sql.Stmt, error)
-}
-
-func IntPtr(o int) *int {
-	return &o
 }
 
 func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
@@ -55,9 +51,9 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 	return "SELECT " + em.ColStr + " FROM " + em.TableName + " WHERE id = ?"
 }
 
-func (em *EntityMetadata[E]) Get(db Database, id interface{}) (E, error) {
+func (em *EntityMetadata[E]) Get(conn connection, id interface{}) (E, error) {
 	sqlStr := em.buildSelectById()
-	stmt, err := db.Prepare(sqlStr)
+	stmt, err := conn.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()
 	}(stmt)
@@ -69,9 +65,9 @@ func (em *EntityMetadata[E]) Get(db Database, id interface{}) (E, error) {
 	return em.zero, err
 }
 
-func (em *EntityMetadata[E]) Query(db Database, query GoQuery) ([]E, error) {
+func (em *EntityMetadata[E]) Query(conn connection, query GoQuery) ([]E, error) {
 	sqlStr, args := em.buildSelect(query)
-	stmt, _ := db.Prepare(sqlStr)
+	stmt, _ := conn.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()
 	}(stmt)
@@ -109,9 +105,9 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 	return "DELETE FROM " + em.TableName + " WHERE id = ?"
 }
 
-func (em *EntityMetadata[E]) DeleteById(db Database, id interface{}) (int64, error) {
+func (em *EntityMetadata[E]) DeleteById(conn connection, id interface{}) (int64, error) {
 	sqlStr := em.buildDeleteById()
-	stmt, _ := db.Prepare(sqlStr)
+	stmt, _ := conn.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()
 	}(stmt)
@@ -131,9 +127,9 @@ func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
 	return s, args
 }
 
-func (em *EntityMetadata[E]) Delete(db Database, query interface{}) (int64, error) {
+func (em *EntityMetadata[E]) Delete(conn connection, query interface{}) (int64, error) {
 	sqlStr, args := em.buildDelete(query)
-	stmt, _ := db.Prepare(sqlStr)
+	stmt, _ := conn.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
 		_ = stmt.Close()
 	}(stmt)

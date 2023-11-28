@@ -1,22 +1,18 @@
 package goquery
 
 import (
-	fp "github.com/doytowin/doyto-query-go-sql/field"
-	"github.com/doytowin/doyto-query-go-sql/util"
+	. "github.com/doytowin/doyto-query-go-sql/field"
+	. "github.com/doytowin/doyto-query-go-sql/util"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )
-
-func intPtr(o int) *int {
-	return &o
-}
 
 func TestBuild(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	t.Run("Build Where Clause", func(t *testing.T) {
-		query := UserQuery{IdGt: intPtr(5), MemoNull: true}
-		actual, args := fp.BuildWhereClause(query)
+		query := UserQuery{IdGt: PInt(5), MemoNull: true}
+		actual, args := BuildWhereClause(query)
 		expect := " WHERE id > ? AND memo IS NULL"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -28,7 +24,7 @@ func TestBuild(t *testing.T) {
 
 	t.Run("Build Select Statement", func(t *testing.T) {
 		em := BuildEntityMetadata[UserEntity](UserEntity{})
-		query := UserQuery{IdGt: intPtr(5), ScoreLt: intPtr(60)}
+		query := UserQuery{IdGt: PInt(5), ScoreLt: PInt(60)}
 		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
 		if actual != expect {
@@ -54,10 +50,7 @@ func TestBuild(t *testing.T) {
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
 		em := BuildEntityMetadata[UserEntity](UserEntity{})
-		query := UserQuery{PageQuery: PageQuery{
-			PageNumber: util.PInt(1),
-			PageSize:   util.PInt(10),
-		}}
+		query := UserQuery{PageQuery: PageQuery{PInt(1), PInt(10)}}
 		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
 		if actual != expect {
