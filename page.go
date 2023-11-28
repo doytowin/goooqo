@@ -13,3 +13,7 @@ func (pageQuery *PageQuery) buildPageClause() string {
 
 	return fmt.Sprintf(" LIMIT %d OFFSET %d", size, offset)
 }
+
+func (pageQuery *PageQuery) needPaging() bool {
+	return pageQuery.PageSize != nil || pageQuery.PageNumber != nil
+}
