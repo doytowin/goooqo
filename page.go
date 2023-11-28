@@ -8,8 +8,16 @@ type PageQuery struct {
 }
 
 func (pageQuery *PageQuery) buildPageClause() string {
-	size := *pageQuery.PageSize
-	offset := (*pageQuery.PageNumber - 1) * *pageQuery.PageSize
+	size := 10
+	page := 0
+
+	if pageQuery.PageNumber != nil && *pageQuery.PageNumber > 1 {
+		page = *pageQuery.PageNumber - 1
+	}
+	if pageQuery.PageSize != nil && *pageQuery.PageSize > 0 {
+		size = *pageQuery.PageSize
+	}
+	offset := page * size
 
 	return fmt.Sprintf(" LIMIT %d OFFSET %d", size, offset)
 }
