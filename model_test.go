@@ -1,6 +1,4 @@
-package test
-
-import goquery "github.com/doytowin/doyto-query-go-sql"
+package goquery
 
 type UserEntity struct {
 	Id    int
@@ -9,8 +7,12 @@ type UserEntity struct {
 }
 
 type UserQuery struct {
-	goquery.PageQuery
+	PageQuery
 	IdGt     *int
 	ScoreLt  *int
 	MemoNull bool
+}
+
+func (q UserQuery) GetPageQuery() PageQuery {
+	return q.PageQuery
 }

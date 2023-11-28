@@ -2,22 +2,10 @@ package goquery
 
 import (
 	fp "github.com/doytowin/doyto-query-go-sql/field"
+	"github.com/doytowin/doyto-query-go-sql/util"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )
-
-type UserEntity struct {
-	Id    int
-	Score int
-	Memo  string
-}
-
-type UserQuery struct {
-	PageQuery
-	IdGt     *int
-	ScoreLt  *int
-	MemoNull bool
-}
 
 func intPtr(o int) *int {
 	return &o
@@ -56,6 +44,22 @@ func TestBuild(t *testing.T) {
 		query := UserQuery{}
 		actual, args := em.buildSelect(query)
 		expect := "SELECT id, score, memo FROM User"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if len(args) != 0 {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
+	t.Run("Build Select with Page Clause", func(t *testing.T) {
+		em := BuildEntityMetadata[UserEntity](UserEntity{})
+		query := UserQuery{PageQuery: PageQuery{
+			PageNumber: util.PInt(1),
+			PageSize:   util.PInt(10),
+		}}
+		actual, args := em.buildSelect(query)
+		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}

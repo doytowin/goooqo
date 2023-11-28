@@ -40,10 +40,14 @@ func BuildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 	}
 }
 
-func (em *EntityMetadata[E]) buildSelect(query interface{}) (string, []any) {
+func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 	whereClause, args := fp.BuildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
 	log.Info("SQL: " + s)
+	pageQuery := query.GetPageQuery()
+	if pageQuery.needPaging() {
+		s += pageQuery.buildPageClause()
+	}
 	return s, args
 }
 
@@ -65,7 +69,7 @@ func (em *EntityMetadata[E]) Get(db Database, id interface{}) (E, error) {
 	return em.zero, err
 }
 
-func (em *EntityMetadata[E]) Query(db Database, query interface{}) ([]E, error) {
+func (em *EntityMetadata[E]) Query(db Database, query GoQuery) ([]E, error) {
 	sqlStr, args := em.buildSelect(query)
 	stmt, _ := db.Prepare(sqlStr)
 	defer func(stmt *sql.Stmt) {
