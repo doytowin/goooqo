@@ -5,10 +5,11 @@ type GoQuery interface {
 }
 
 type DataAccess[E comparable] interface {
-	Query(conn connection, query GoQuery) ([]E, error)
 	Get(conn connection, id interface{}) (E, error)
-	Delete(conn connection, query interface{}) (int64, error)
 	DeleteById(conn connection, id interface{}) (int64, error)
+	Query(conn connection, query GoQuery) ([]E, error)
+	Count(conn connection, query GoQuery) (int, error)
+	Delete(conn connection, query interface{}) (int64, error)
 	IsZero(entity E) bool
 }
 

@@ -100,6 +100,30 @@ func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any)
 	return result, err
 }
 
+func (em *EntityMetadata[E]) buildCount(query GoQuery) (string, []any) {
+	whereClause, args := fp.BuildWhereClause(query)
+	s := "SELECT count(0) FROM " + em.TableName + whereClause
+
+	log.Debug("SQL: ", s)
+	pageQuery := query.GetPageQuery()
+	if pageQuery.needPaging() {
+		s += pageQuery.buildPageClause()
+	}
+	return s, args
+}
+
+func (em *EntityMetadata[E]) Count(conn connection, query GoQuery) (int, error) {
+	cnt := 0
+	sqlStr, args := em.buildCount(query)
+	stmt, err := conn.Prepare(sqlStr)
+	if noError(err) {
+		row := stmt.QueryRow(args...)
+		err = row.Scan(&cnt)
+		_ = stmt.Close()
+	}
+	return cnt, err
+}
+
 func (em *EntityMetadata[E]) IsZero(entity E) bool {
 	return em.zero == entity
 }

@@ -61,4 +61,17 @@ func TestBuild(t *testing.T) {
 		}
 	})
 
+	t.Run("Build Count", func(t *testing.T) {
+		em := buildEntityMetadata[UserEntity](UserEntity{})
+		query := UserQuery{ScoreLt: PInt(60)}
+		actual, args := em.buildCount(query)
+		expect := "SELECT count(0) FROM User WHERE score < ?"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if !(len(args) == 1 && args[0] != 60) {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
 }

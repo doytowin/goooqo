@@ -77,4 +77,15 @@ func TestSQLite(t *testing.T) {
 		}
 		_ = tx.Rollback()
 	})
+
+	t.Run("Count By Query", func(t *testing.T) {
+		userQuery := UserQuery{ScoreLt: PInt(60)}
+		cnt, err := userDataAccess.Count(db, userQuery)
+		if err != nil {
+			t.Error("Error", err)
+		}
+		if cnt != 2 {
+			t.Errorf("\nExpected: %d\nBut got : %d", 2, cnt)
+		}
+	})
 }
