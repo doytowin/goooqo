@@ -16,7 +16,7 @@ func isValidValue(value reflect.Value) bool {
 	} else if value.Type().Name() == "PageQuery" {
 		return false
 	} else {
-		log.Info("Type:", value.Type().Name())
+		log.Debug("Type:", value.Type().Name())
 		return !value.IsNil()
 	}
 }

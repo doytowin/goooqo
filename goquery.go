@@ -39,7 +39,7 @@ func buildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
 func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 	whereClause, args := fp.BuildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
-	log.Info("SQL: " + s)
+	log.Debug("SQL: " + s)
 	pageQuery := query.GetPageQuery()
 	if pageQuery.needPaging() {
 		s += pageQuery.buildPageClause()
@@ -123,7 +123,7 @@ func (em *EntityMetadata[E]) DeleteById(conn connection, id interface{}) (int64,
 func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
 	whereClause, args := fp.BuildWhereClause(query)
 	s := "DELETE FROM " + em.TableName + whereClause
-	log.Info("SQL: " + s)
+	log.Debug("SQL: " + s)
 	return s, args
 }
 
