@@ -3,17 +3,20 @@ package goquery
 import (
 	"database/sql"
 	fp "github.com/doytowin/goquery/field"
+	. "github.com/doytowin/goquery/util"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
 )
 
 type EntityMetadata[E comparable] struct {
-	Type      reflect.Type
-	TableName string
-	Columns   []string
-	ColStr    string
-	zero      E
+	Type            reflect.Type
+	TableName       string
+	Columns         []string
+	ColStr          string
+	fieldsWithoutId []string
+	createStr       string
+	zero            E
 }
 
 type connection interface {
@@ -31,16 +34,35 @@ func noError(err error) bool {
 func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
+	var columnsWithoutId []string
+	var fieldsWithoutId []string
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
-		columns[i] = fp.UnCapitalize(field.Name)
+		columns[i] = UnCapitalize(field.Name)
+		if field.Name != "Id" {
+			fieldsWithoutId = append(fieldsWithoutId, field.Name)
+			columnsWithoutId = append(columnsWithoutId, UnCapitalize(field.Name))
+		}
 	}
+	tableName := strings.TrimSuffix(refType.Name(), "Entity")
+
+	placeholders := "(?"
+	for i := 1; i < len(columnsWithoutId); i++ {
+		placeholders += ", ?"
+	}
+	placeholders += ")"
+	createStr := "INSERT INTO " + tableName +
+		" (" + strings.Join(columnsWithoutId, ", ") + ") " +
+		"VALUES " + placeholders
+
 	return EntityMetadata[E]{
-		Type:      refType,
-		TableName: strings.TrimSuffix(refType.Name(), "Entity"),
-		Columns:   columns,
-		ColStr:    strings.Join(columns, ", "),
-		zero:      reflect.New(refType).Elem().Interface().(E),
+		Type:            refType,
+		TableName:       tableName,
+		Columns:         columns,
+		ColStr:          strings.Join(columns, ", "),
+		fieldsWithoutId: fieldsWithoutId,
+		createStr:       createStr,
+		zero:            reflect.New(refType).Elem().Interface().(E),
 	}
 }
 
@@ -143,7 +165,11 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 
 func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) {
 	sqlStr := em.buildDeleteById()
-	return em.doUpdate(conn, sqlStr, []any{id})
+	result, err := em.doUpdate(conn, sqlStr, []any{id})
+	if noError(err) {
+		return result.RowsAffected()
+	}
+	return 0, err
 }
 
 func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
@@ -155,20 +181,44 @@ func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
 
 func (em *EntityMetadata[E]) Delete(conn connection, query any) (int64, error) {
 	sqlStr, args := em.buildDelete(query)
-	return em.doUpdate(conn, sqlStr, args)
+	result, err := em.doUpdate(conn, sqlStr, args)
+	if noError(err) {
+		return result.RowsAffected()
+	}
+	return 0, err
 }
 
-func (em *EntityMetadata[E]) doUpdate(conn connection, sqlStr string, args []any) (int64, error) {
+func (em *EntityMetadata[E]) doUpdate(conn connection, sqlStr string, args []any) (sql.Result, error) {
 	stmt, err := conn.Prepare(sqlStr)
 	if noError(err) {
 		defer func() {
 			noError(stmt.Close())
 		}()
+		return stmt.Exec(args...)
+	}
+	return nil, err
+}
 
-		result, err := stmt.Exec(args...)
-		if noError(err) {
-			return result.RowsAffected()
-		}
+func (em *EntityMetadata[E]) Create(conn connection, entity E) (int64, error) {
+	sqlStr, args := em.buildCreate(entity)
+	result, err := em.doUpdate(conn, sqlStr, args)
+	if noError(err) {
+		return result.LastInsertId()
 	}
 	return 0, err
+}
+
+func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
+	return em.createStr, em.buildArgs(entity)
+}
+
+func (em *EntityMetadata[E]) buildArgs(entity E) []any {
+	var args []any
+
+	rv := reflect.ValueOf(entity)
+	for _, col := range em.fieldsWithoutId {
+		value := rv.FieldByName(col)
+		args = append(args, ReadValue(value))
+	}
+	return args
 }

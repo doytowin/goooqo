@@ -1,6 +1,7 @@
 package field
 
 import (
+	"github.com/doytowin/goquery/util"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
@@ -48,17 +49,7 @@ func buildConditions(query any) ([]string, []any) {
 			} else {
 				conditions[cnt] = Process(field.Name)
 				cnt++
-				typeStr := value.Type().String()
-				switch typeStr {
-				case "bool", "*bool":
-					args = append(args, reflect.Indirect(value).Bool())
-				case "*int":
-					args = append(args, reflect.Indirect(value).Int())
-				case "*string":
-					args = append(args, reflect.Indirect(value).String())
-				default:
-					log.Warn("Type not support: ", typeStr)
-				}
+				args = append(args, util.ReadValue(value))
 			}
 		}
 	}

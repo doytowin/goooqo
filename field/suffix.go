@@ -1,6 +1,7 @@
 package field
 
 import (
+	. "github.com/doytowin/goquery/util"
 	"regexp"
 	"strings"
 )
@@ -27,10 +28,6 @@ func CreateOpMap() map[string]operator {
 
 var opMap = CreateOpMap()
 var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In)$`)
-
-func UnCapitalize(s string) string {
-	return strings.ToLower(s[:1]) + s[1:]
-}
 
 func Process(fieldName string) string {
 	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
