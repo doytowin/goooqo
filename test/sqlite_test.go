@@ -107,12 +107,12 @@ func TestSQLite(t *testing.T) {
 	t.Run("Create Entity", func(t *testing.T) {
 		tx, err := db.Begin()
 		entity := UserEntity{Score: 90, Memo: "Great"}
-		id, err := userDataAccess.Create(tx, entity)
+		id, err := userDataAccess.Create(tx, &entity)
 		if err != nil {
 			t.Error("Error", err)
 			return
 		}
-		if !(id == 5) {
+		if !(id == 5 && entity.Id == 5) {
 			t.Errorf("\nExpected: %d\nBut got : %d", 5, id)
 		}
 		_ = tx.Rollback()

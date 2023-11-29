@@ -17,7 +17,7 @@ type DataAccess[E comparable] interface {
 	Delete(conn connection, query any) (int64, error)
 	IsZero(entity E) bool
 	Page(conn connection, query GoQuery) (PageList[E], error)
-	Create(conn connection, entity E) (int64, error)
+	Create(conn connection, entity *E) (int64, error)
 }
 
 func BuildDataAccess[E comparable](entity any) DataAccess[E] {

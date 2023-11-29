@@ -199,11 +199,16 @@ func (em *EntityMetadata[E]) doUpdate(conn connection, sqlStr string, args []any
 	return nil, err
 }
 
-func (em *EntityMetadata[E]) Create(conn connection, entity E) (int64, error) {
-	sqlStr, args := em.buildCreate(entity)
+func (em *EntityMetadata[E]) Create(conn connection, entity *E) (int64, error) {
+	sqlStr, args := em.buildCreate(*entity)
 	result, err := em.doUpdate(conn, sqlStr, args)
 	if noError(err) {
-		return result.LastInsertId()
+		id, err := result.LastInsertId()
+		if noError(err) {
+			elem := reflect.ValueOf(entity).Elem()
+			elem.FieldByName("Id").SetInt(id)
+		}
+		return id, err
 	}
 	return 0, err
 }
