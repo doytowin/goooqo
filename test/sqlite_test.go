@@ -117,4 +117,21 @@ func TestSQLite(t *testing.T) {
 		}
 		_ = tx.Rollback()
 	})
+
+	t.Run("Update Entity", func(t *testing.T) {
+		tx, err := db.Begin()
+		entity := UserEntity{Id: 2, Score: 90, Memo: "Great"}
+		cnt, err := userDataAccess.Update(tx, entity)
+		if err != nil {
+			t.Error("Error", err)
+			return
+		}
+		userEntity, err := userDataAccess.Get(tx, 2)
+
+		if !(cnt == 1 && userEntity.Score == 90) {
+			t.Errorf("\nExpected: %d\nBut got : %d", 1, cnt)
+			t.Errorf("\nExpected: %d\nBut got : %d", 90, userEntity.Score)
+		}
+		_ = tx.Rollback()
+	})
 }

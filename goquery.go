@@ -16,6 +16,7 @@ type EntityMetadata[E comparable] struct {
 	ColStr          string
 	fieldsWithoutId []string
 	createStr       string
+	updateStr       string
 	zero            E
 }
 
@@ -30,6 +31,8 @@ func noError(err error) bool {
 	log.Error("Error occurred! ", err)
 	return false
 }
+
+var whereId = " WHERE id = ?"
 
 func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
@@ -54,6 +57,14 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	createStr := "INSERT INTO " + tableName +
 		" (" + strings.Join(columnsWithoutId, ", ") + ") " +
 		"VALUES " + placeholders
+	log.Debug("CREATE SQL: ", createStr)
+
+	set := make([]string, len(columnsWithoutId))
+	for i, col := range columnsWithoutId {
+		set[i] = col + " = ?"
+	}
+	updateStr := "UPDATE " + tableName + " SET " + strings.Join(set, ", ") + whereId
+	log.Debug("UPDATE SQL: ", updateStr)
 
 	return EntityMetadata[E]{
 		Type:            refType,
@@ -62,6 +73,7 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,
+		updateStr:       updateStr,
 		zero:            reflect.New(refType).Elem().Interface().(E),
 	}
 }
@@ -78,7 +90,7 @@ func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 }
 
 func (em *EntityMetadata[E]) buildSelectById() string {
-	return "SELECT " + em.ColStr + " FROM " + em.TableName + " WHERE id = ?"
+	return "SELECT " + em.ColStr + " FROM " + em.TableName + whereId
 }
 
 func (em *EntityMetadata[E]) Get(conn connection, id any) (E, error) {
@@ -160,7 +172,7 @@ func (em *EntityMetadata[E]) IsZero(entity E) bool {
 }
 
 func (em *EntityMetadata[E]) buildDeleteById() string {
-	return "DELETE FROM " + em.TableName + " WHERE id = ?"
+	return "DELETE FROM " + em.TableName + whereId
 }
 
 func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) {
@@ -226,4 +238,26 @@ func (em *EntityMetadata[E]) buildArgs(entity E) []any {
 		args = append(args, ReadValue(value))
 	}
 	return args
+}
+
+func (em *EntityMetadata[E]) Update(conn connection, entity E) (int64, error) {
+	sqlStr, args := em.buildUpdate(entity)
+	result, err := em.doUpdate(conn, sqlStr, args)
+	if noError(err) {
+		return result.RowsAffected()
+	}
+	return 0, err
+}
+
+func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
+	args := em.buildArgs(entity)
+	args = append(args, readId(entity))
+	return em.updateStr, args
+}
+
+func readId(entity any) any {
+	rv := reflect.ValueOf(entity)
+	value := rv.FieldByName("Id")
+	readValue := ReadValue(value)
+	return readValue
 }
