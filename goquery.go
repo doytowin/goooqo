@@ -28,7 +28,7 @@ func noError(err error) bool {
 	return false
 }
 
-func buildEntityMetadata[E comparable](entity interface{}) EntityMetadata[E] {
+func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
 	for i := 0; i < refType.NumField(); i++ {
@@ -59,7 +59,7 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 	return "SELECT " + em.ColStr + " FROM " + em.TableName + " WHERE id = ?"
 }
 
-func (em *EntityMetadata[E]) Get(conn connection, id interface{}) (E, error) {
+func (em *EntityMetadata[E]) Get(conn connection, id any) (E, error) {
 	sqlStr := em.buildSelectById()
 	rows, err := em.doQuery(conn, sqlStr, []any{id})
 	if len(rows) == 1 {
@@ -77,7 +77,7 @@ func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any)
 	var result []E
 
 	length := len(em.Columns)
-	pointers := make([]interface{}, length)
+	pointers := make([]any, length)
 	entity := reflect.New(em.Type).Elem().Interface().(E)
 	elem := reflect.ValueOf(&entity).Elem()
 	for i := range pointers {
@@ -141,19 +141,19 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 	return "DELETE FROM " + em.TableName + " WHERE id = ?"
 }
 
-func (em *EntityMetadata[E]) DeleteById(conn connection, id interface{}) (int64, error) {
+func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) {
 	sqlStr := em.buildDeleteById()
 	return em.doUpdate(conn, sqlStr, []any{id})
 }
 
-func (em *EntityMetadata[E]) buildDelete(query interface{}) (string, []any) {
+func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
 	whereClause, args := fp.BuildWhereClause(query)
 	s := "DELETE FROM " + em.TableName + whereClause
 	log.Debug("SQL: " + s)
 	return s, args
 }
 
-func (em *EntityMetadata[E]) Delete(conn connection, query interface{}) (int64, error) {
+func (em *EntityMetadata[E]) Delete(conn connection, query any) (int64, error) {
 	sqlStr, args := em.buildDelete(query)
 	return em.doUpdate(conn, sqlStr, args)
 }

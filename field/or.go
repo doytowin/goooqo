@@ -2,7 +2,7 @@ package field
 
 import "strings"
 
-func ProcessOr(or interface{}) (string, []any) {
+func ProcessOr(or any) (string, []any) {
 	conditions, args := buildConditions(or)
 	return "(" + strings.Join(conditions, " OR ") + ")", args
 }

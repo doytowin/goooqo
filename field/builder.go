@@ -21,7 +21,7 @@ func isValidValue(value reflect.Value) bool {
 	}
 }
 
-func BuildWhereClause(query interface{}) (string, []any) {
+func BuildWhereClause(query any) (string, []any) {
 	conditions, args := buildConditions(query)
 	if len(conditions) == 0 {
 		return "", []any{}
@@ -29,7 +29,7 @@ func BuildWhereClause(query interface{}) (string, []any) {
 	return " WHERE " + strings.Join(conditions, " AND "), args
 }
 
-func buildConditions(query interface{}) ([]string, []any) {
+func buildConditions(query any) ([]string, []any) {
 	refType := reflect.TypeOf(query)
 	rv := reflect.ValueOf(query)
 	cnt := 0
