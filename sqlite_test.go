@@ -1,8 +1,7 @@
-package test
+package goquery
 
 import (
 	"database/sql"
-	. "github.com/doytowin/goquery"
 	. "github.com/doytowin/goquery/util"
 	_ "github.com/mattn/go-sqlite3"
 	"testing"
