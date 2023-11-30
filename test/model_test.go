@@ -1,11 +1,11 @@
 package test
 
-import goquery "github.com/doytowin/goquery"
+import "github.com/doytowin/goquery"
 
 type UserEntity struct {
 	Id    int
-	Score int
-	Memo  string
+	Score *int
+	Memo  *string
 }
 
 type UserQuery struct {

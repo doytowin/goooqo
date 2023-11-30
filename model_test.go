@@ -2,8 +2,8 @@ package goquery
 
 type UserEntity struct {
 	Id    int
-	Score int
-	Memo  string
+	Score *int
+	Memo  *string
 }
 
 type UserQuery struct {

@@ -254,6 +254,33 @@ func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	args = append(args, readId(entity))
 	return em.updateStr, args
 }
+func (em *EntityMetadata[E]) Patch(conn connection, entity E) (int64, error) {
+	sqlStr, args := em.buildPatch(entity)
+	result, err := em.doUpdate(conn, sqlStr, args)
+	if noError(err) {
+		return result.RowsAffected()
+	}
+	return 0, err
+}
+
+func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
+	var args []any
+	sqlStr := "UPDATE " + em.TableName + " SET "
+
+	rv := reflect.ValueOf(entity)
+	for _, col := range em.fieldsWithoutId {
+		value := rv.FieldByName(col)
+		v := ReadValue(value)
+		if v != nil {
+			sqlStr += UnCapitalize(col) + " = ?, "
+			args = append(args, v)
+		}
+	}
+	sqlStr = sqlStr[0:len(sqlStr)-2] + whereId
+	args = append(args, readId(entity))
+	log.Info("UPDATE SQL: ", sqlStr)
+	return sqlStr, args
+}
 
 func readId(entity any) any {
 	rv := reflect.ValueOf(entity)

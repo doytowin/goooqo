@@ -37,7 +37,7 @@ func TestSQLite(t *testing.T) {
 		if err != nil {
 			t.Error("Error", err)
 		}
-		if !(user.Id == 3 && user.Score == 55) {
+		if !(user.Id == 3 && *user.Score == 55) {
 			t.Errorf("Data is not expected: %v", user)
 		}
 	})
@@ -106,7 +106,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Create Entity", func(t *testing.T) {
 		tx, err := db.Begin()
-		entity := UserEntity{Score: 90, Memo: "Great"}
+		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
 		id, err := userDataAccess.Create(tx, &entity)
 		if err != nil {
 			t.Error("Error", err)
@@ -120,7 +120,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Update Entity", func(t *testing.T) {
 		tx, err := db.Begin()
-		entity := UserEntity{Id: 2, Score: 90, Memo: "Great"}
+		entity := UserEntity{Id: 2, Score: PInt(90), Memo: PStr("Great")}
 		cnt, err := userDataAccess.Update(tx, entity)
 		if err != nil {
 			t.Error("Error", err)
@@ -128,9 +128,26 @@ func TestSQLite(t *testing.T) {
 		}
 		userEntity, err := userDataAccess.Get(tx, 2)
 
-		if !(cnt == 1 && userEntity.Score == 90) {
-			t.Errorf("\nExpected: %d\nBut got : %d", 1, cnt)
-			t.Errorf("\nExpected: %d\nBut got : %d", 90, userEntity.Score)
+		if !(cnt == 1 && *userEntity.Score == 90) {
+			t.Errorf("\nExpected: %d\n     Got: %d", 1, cnt)
+			t.Errorf("\nExpected: %d\n     Got: %d", 90, *userEntity.Score)
+		}
+		_ = tx.Rollback()
+	})
+
+	t.Run("Patch Entity", func(t *testing.T) {
+		tx, err := db.Begin()
+		entity := UserEntity{Id: 2, Score: PInt(90)}
+		cnt, err := userDataAccess.Patch(tx, entity)
+		if err != nil {
+			t.Error("Error", err)
+			return
+		}
+		userEntity, err := userDataAccess.Get(tx, 2)
+
+		if !(cnt == 1 && *userEntity.Score == 90 && *userEntity.Memo == "Bad") {
+			t.Errorf("\nExpected: %d %d %s\nBut got : %d %d %s",
+				2, 90, "Bad", userEntity.Id, *userEntity.Score, *userEntity.Memo)
 		}
 		_ = tx.Rollback()
 	})

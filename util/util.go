@@ -19,6 +19,9 @@ func PInt(i int) *int {
 }
 
 func ReadValue(value reflect.Value) any {
+	if value.Kind() == reflect.Ptr && !value.Elem().IsValid() {
+		return nil
+	}
 	typeStr := value.Type().String()
 	switch typeStr {
 	case "bool", "*bool":
