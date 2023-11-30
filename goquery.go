@@ -2,7 +2,6 @@ package goquery
 
 import (
 	"database/sql"
-	fp "github.com/doytowin/goquery/field"
 	. "github.com/doytowin/goquery/util"
 	log "github.com/sirupsen/logrus"
 	"reflect"
@@ -31,8 +30,6 @@ func noError(err error) bool {
 	log.Error("Error occurred! ", err)
 	return false
 }
-
-var whereId = " WHERE id = ?"
 
 func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
@@ -78,21 +75,6 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	}
 }
 
-func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
-	whereClause, args := fp.BuildWhereClause(query)
-	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
-	log.Debug("SQL: " + s)
-	pageQuery := query.GetPageQuery()
-	if pageQuery.needPaging() {
-		s += pageQuery.buildPageClause()
-	}
-	return s, args
-}
-
-func (em *EntityMetadata[E]) buildSelectById() string {
-	return "SELECT " + em.ColStr + " FROM " + em.TableName + whereId
-}
-
 func (em *EntityMetadata[E]) Get(conn connection, id any) (E, error) {
 	sqlStr := em.buildSelectById()
 	rows, err := em.doQuery(conn, sqlStr, []any{id})
@@ -134,18 +116,6 @@ func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any)
 	return result, err
 }
 
-func (em *EntityMetadata[E]) buildCount(query GoQuery) (string, []any) {
-	whereClause, args := fp.BuildWhereClause(query)
-	s := "SELECT count(0) FROM " + em.TableName + whereClause
-
-	log.Debug("SQL: ", s)
-	pageQuery := query.GetPageQuery()
-	if pageQuery.needPaging() {
-		s += pageQuery.buildPageClause()
-	}
-	return s, args
-}
-
 func (em *EntityMetadata[E]) Count(conn connection, query GoQuery) (int, error) {
 	cnt := 0
 	sqlStr, args := em.buildCount(query)
@@ -171,10 +141,6 @@ func (em *EntityMetadata[E]) IsZero(entity E) bool {
 	return em.zero == entity
 }
 
-func (em *EntityMetadata[E]) buildDeleteById() string {
-	return "DELETE FROM " + em.TableName + whereId
-}
-
 func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) {
 	sqlStr := em.buildDeleteById()
 	result, err := em.doUpdate(conn, sqlStr, []any{id})
@@ -182,13 +148,6 @@ func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) 
 		return result.RowsAffected()
 	}
 	return 0, err
-}
-
-func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
-	whereClause, args := fp.BuildWhereClause(query)
-	s := "DELETE FROM " + em.TableName + whereClause
-	log.Debug("SQL: " + s)
-	return s, args
 }
 
 func (em *EntityMetadata[E]) Delete(conn connection, query any) (int64, error) {
@@ -225,21 +184,6 @@ func (em *EntityMetadata[E]) Create(conn connection, entity *E) (int64, error) {
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
-	return em.createStr, em.buildArgs(entity)
-}
-
-func (em *EntityMetadata[E]) buildArgs(entity E) []any {
-	var args []any
-
-	rv := reflect.ValueOf(entity)
-	for _, col := range em.fieldsWithoutId {
-		value := rv.FieldByName(col)
-		args = append(args, ReadValue(value))
-	}
-	return args
-}
-
 func (em *EntityMetadata[E]) Update(conn connection, entity E) (int64, error) {
 	sqlStr, args := em.buildUpdate(entity)
 	result, err := em.doUpdate(conn, sqlStr, args)
@@ -249,11 +193,6 @@ func (em *EntityMetadata[E]) Update(conn connection, entity E) (int64, error) {
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
-	args := em.buildArgs(entity)
-	args = append(args, readId(entity))
-	return em.updateStr, args
-}
 func (em *EntityMetadata[E]) Patch(conn connection, entity E) (int64, error) {
 	sqlStr, args := em.buildPatch(entity)
 	result, err := em.doUpdate(conn, sqlStr, args)
@@ -261,30 +200,4 @@ func (em *EntityMetadata[E]) Patch(conn connection, entity E) (int64, error) {
 		return result.RowsAffected()
 	}
 	return 0, err
-}
-
-func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
-	var args []any
-	sqlStr := "UPDATE " + em.TableName + " SET "
-
-	rv := reflect.ValueOf(entity)
-	for _, col := range em.fieldsWithoutId {
-		value := rv.FieldByName(col)
-		v := ReadValue(value)
-		if v != nil {
-			sqlStr += UnCapitalize(col) + " = ?, "
-			args = append(args, v)
-		}
-	}
-	sqlStr = sqlStr[0:len(sqlStr)-2] + whereId
-	args = append(args, readId(entity))
-	log.Info("UPDATE SQL: ", sqlStr)
-	return sqlStr, args
-}
-
-func readId(entity any) any {
-	rv := reflect.ValueOf(entity)
-	value := rv.FieldByName("Id")
-	readValue := ReadValue(value)
-	return readValue
 }
