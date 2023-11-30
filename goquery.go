@@ -44,7 +44,13 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 			columnsWithoutId = append(columnsWithoutId, UnCapitalize(field.Name))
 		}
 	}
-	tableName := strings.TrimSuffix(refType.Name(), "Entity")
+	var tableName string
+	v, ok := entity.(Entity)
+	if ok {
+		tableName = v.GetTableName()
+	} else {
+		tableName = strings.TrimSuffix(refType.Name(), "Entity")
+	}
 
 	placeholders := "(?"
 	for i := 1; i < len(columnsWithoutId); i++ {

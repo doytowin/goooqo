@@ -16,3 +16,11 @@ type UserQuery struct {
 func (q UserQuery) GetPageQuery() PageQuery {
 	return q.PageQuery
 }
+
+type TestEntity struct {
+	Id int
+}
+
+func (e TestEntity) GetTableName() string {
+	return "t_user"
+}

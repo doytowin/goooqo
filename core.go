@@ -4,6 +4,10 @@ type GoQuery interface {
 	GetPageQuery() PageQuery
 }
 
+type Entity interface {
+	GetTableName() string
+}
+
 type PageList[E comparable] struct {
 	Data  []E
 	Total int
