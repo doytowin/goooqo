@@ -33,6 +33,10 @@ func BuildWhereClause(query any) (string, []any) {
 func buildConditions(query any) ([]string, []any) {
 	refType := reflect.TypeOf(query)
 	rv := reflect.ValueOf(query)
+	if refType.Kind() == reflect.Pointer {
+		refType = refType.Elem()
+		rv = rv.Elem()
+	}
 	cnt := 0
 	conditions := make([]string, refType.NumField())
 	var args []any

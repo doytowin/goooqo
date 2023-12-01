@@ -30,11 +30,11 @@ func (em *EntityMetadata[E]) buildArgs(entity E) []any {
 func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 	whereClause, args := field.BuildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
-	logrus.Debug("SQL: " + s)
 	pageQuery := query.GetPageQuery()
 	if pageQuery.needPaging() {
 		s += pageQuery.buildPageClause()
 	}
+	logrus.Debug("SQL: " + s)
 	return s, args
 }
 
@@ -47,10 +47,6 @@ func (em *EntityMetadata[E]) buildCount(query GoQuery) (string, []any) {
 	s := "SELECT count(0) FROM " + em.TableName + whereClause
 
 	logrus.Debug("SQL: ", s)
-	pageQuery := query.GetPageQuery()
-	if pageQuery.needPaging() {
-		s += pageQuery.buildPageClause()
-	}
 	return s, args
 }
 

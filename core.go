@@ -1,7 +1,7 @@
 package goquery
 
 type GoQuery interface {
-	GetPageQuery() PageQuery
+	GetPageQuery() *PageQuery
 }
 
 type Entity interface {

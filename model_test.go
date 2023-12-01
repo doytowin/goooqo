@@ -13,8 +13,8 @@ type UserQuery struct {
 	MemoNull bool
 }
 
-func (q UserQuery) GetPageQuery() PageQuery {
-	return q.PageQuery
+func (q UserQuery) GetPageQuery() *PageQuery {
+	return &q.PageQuery
 }
 
 type TestEntity struct {
