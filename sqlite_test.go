@@ -17,7 +17,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Query Entities", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(80)}
-		users, err := userDataAccess.Query(db, userQuery)
+		users, err := userDataAccess.Query(db, &userQuery)
 
 		if err != nil {
 			t.Error("Error", err)
@@ -76,7 +76,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Count By Query", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(60)}
-		cnt, err := userDataAccess.Count(db, userQuery)
+		cnt, err := userDataAccess.Count(db, &userQuery)
 		if err != nil {
 			t.Error("Error", err)
 		}
@@ -90,7 +90,7 @@ func TestSQLite(t *testing.T) {
 			PageQuery: PageQuery{PageSize: PInt(2)},
 			ScoreLt:   PInt(80),
 		}
-		page, err := userDataAccess.Page(db, userQuery)
+		page, err := userDataAccess.Page(db, &userQuery)
 		if err != nil {
 			t.Error("Error", err)
 			return

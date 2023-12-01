@@ -25,7 +25,7 @@ func TestBuildStmt(t *testing.T) {
 	t.Run("Build Select Statement", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{IdGt: PInt(5), ScoreLt: PInt(60)}
-		actual, args := em.buildSelect(query)
+		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -38,7 +38,7 @@ func TestBuildStmt(t *testing.T) {
 	t.Run("Build Select Without Where", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{}
-		actual, args := em.buildSelect(query)
+		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -51,7 +51,7 @@ func TestBuildStmt(t *testing.T) {
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{PageQuery: PageQuery{PInt(1), PInt(10)}}
-		actual, args := em.buildSelect(query)
+		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -64,7 +64,7 @@ func TestBuildStmt(t *testing.T) {
 	t.Run("Build Count", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
 		query := UserQuery{ScoreLt: PInt(60)}
-		actual, args := em.buildCount(query)
+		actual, args := em.buildCount(&query)
 		expect := "SELECT count(0) FROM User WHERE score < ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
