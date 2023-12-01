@@ -8,16 +8,17 @@ import (
 )
 
 func isValidValue(value reflect.Value) bool {
-	if value.Type().Name() == "bool" {
+	typeName := value.Type().Name()
+	if typeName == "bool" {
 		return value.Bool()
-	} else if value.Type().Name() == "string" {
+	} else if typeName == "string" {
 		return value.String() != ""
-	} else if value.Type().Name() == "flag" {
+	} else if typeName == "flag" {
 		return value.IsValid()
-	} else if value.Type().Name() == "PageQuery" {
+	} else if typeName == "PageQuery" {
 		return false
 	} else {
-		log.Debug("Type:", value.Type().Name())
+		log.Debug("Type:", typeName)
 		return !value.IsNil()
 	}
 }
@@ -31,31 +32,32 @@ func BuildWhereClause(query any) (string, []any) {
 }
 
 func buildConditions(query any) ([]string, []any) {
-	refType := reflect.TypeOf(query)
-	rv := reflect.ValueOf(query)
-	if refType.Kind() == reflect.Pointer {
-		refType = refType.Elem()
-		rv = rv.Elem()
+	var (
+		args       []any
+		conditions []string
+		rtype      = reflect.TypeOf(query)
+		rvalue     = reflect.ValueOf(query)
+	)
+	if rtype.Kind() == reflect.Pointer {
+		rtype = rtype.Elem()
+		rvalue = rvalue.Elem()
 	}
-	cnt := 0
-	conditions := make([]string, refType.NumField())
-	var args []any
 
-	for i := 0; i < refType.NumField(); i++ {
-		field := refType.Field(i)
-		value := rv.FieldByName(field.Name)
+	for i := 0; i < rtype.NumField(); i++ {
+		field := rtype.Field(i)
+		fieldName := field.Name
+		value := rvalue.FieldByName(fieldName)
 		if isValidValue(value) {
-			if strings.HasSuffix(field.Name, "Or") {
-				var arr []any
-				conditions[cnt], arr = ProcessOr(value.Elem().Interface())
-				cnt++
+			if strings.HasSuffix(fieldName, "Or") {
+				condition, arr := ProcessOr(value.Elem().Interface())
+				conditions = append(conditions, condition)
 				args = append(args, arr...)
 			} else {
-				conditions[cnt] = Process(field.Name)
-				cnt++
+				condition := Process(fieldName)
+				conditions = append(conditions, condition)
 				args = append(args, util.ReadValue(value))
 			}
 		}
 	}
-	return conditions[0:cnt], args
+	return conditions, args
 }
