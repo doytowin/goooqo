@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -15,9 +16,14 @@ func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	for name, v := range queryMap {
 		field := reflect.ValueOf(query).Elem().FieldByName(name)
 		if field.IsValid() {
-			integer, err := strconv.Atoi(v[0])
-			if noError(err) {
-				field.Set(reflect.ValueOf(&integer))
+			if field.Kind() == reflect.Bool {
+				v0 := strings.EqualFold(v[0], "TRue")
+				field.Set(reflect.ValueOf(v0))
+			} else {
+				v0, err := strconv.Atoi(v[0])
+				if noError(err) {
+					field.Set(reflect.ValueOf(&v0))
+				}
 			}
 		}
 	}

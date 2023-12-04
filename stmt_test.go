@@ -17,7 +17,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == int64(5) && args[1] == true) {
+		if !(len(args) == 1 && args[0] == int64(5)) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})

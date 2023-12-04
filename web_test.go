@@ -36,7 +36,20 @@ func TestWeb(t *testing.T) {
 		service.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":[{"Id":2,"Score":40,"Memo":"Bad"},{"Id":3,"Score":55,"Memo":"Bad"}],"Total":2}`
+		expect := `{"Data":[{"Id":2,"Score":40,"Memo":"Bad"},{"Id":3,"Score":55,"Memo":null}],"Total":2}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
+	t.Run("Get /user/ ", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&MemoNull=true", nil)
+
+		service.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"Data":[{"Id":3,"Score":55,"Memo":null}],"Total":1}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}

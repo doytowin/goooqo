@@ -55,7 +55,9 @@ func buildConditions(query any) ([]string, []any) {
 			} else {
 				condition := Process(fieldName)
 				conditions = append(conditions, condition)
-				args = append(args, util.ReadValue(value))
+				if !strings.HasSuffix(fieldName, "Null") {
+					args = append(args, util.ReadValue(value))
+				}
 			}
 		}
 	}
