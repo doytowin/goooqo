@@ -9,6 +9,7 @@ type UserEntity struct {
 type UserQuery struct {
 	PageQuery
 	IdGt     *int
+	IdIn     *[]int
 	ScoreLt  *int
 	MemoNull bool
 	MemoLike *string

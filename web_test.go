@@ -80,4 +80,17 @@ func TestWeb(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
+
+	t.Run("Get /user/?IdIn=1,4", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/?IdIn=1,4", nil)
+
+		service.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"Data":[{"Id":1,"Score":85,"Memo":"Good"},{"Id":4,"Score":62,"Memo":"Well"}],"Total":2}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
 }

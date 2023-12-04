@@ -30,16 +30,30 @@ func resolveQuery(queryMap url.Values, query any) {
 			v0 := strings.EqualFold(v[0], "TRue")
 			field.Set(reflect.ValueOf(v0))
 		} else if field.Kind() == reflect.Pointer {
-			log.Debug("field.Type: ", field.Type())
-			if field.Type().String() == "*int" {
-				v0, err := strconv.Atoi(v[0])
-				if noError(err) {
-					field.Set(reflect.ValueOf(&v0))
-				}
-			} else {
-				field.Set(reflect.ValueOf(&v[0]))
+			resolvePointer(field, v)
+		}
+	}
+}
+
+func resolvePointer(field reflect.Value, v []string) {
+	log.Debug("field.Type: ", field.Type())
+	if field.Type().String() == "*[]int" {
+		strArr := strings.Split(v[0], ",")
+		var v0 []int
+		for _, s := range strArr {
+			num, err := strconv.Atoi(s)
+			if noError(err) {
+				v0 = append(v0, num)
 			}
 		}
+		field.Set(reflect.ValueOf(&v0))
+	} else if field.Type().String() == "*int" {
+		v0, err := strconv.Atoi(v[0])
+		if noError(err) {
+			field.Set(reflect.ValueOf(&v0))
+		}
+	} else {
+		field.Set(reflect.ValueOf(&v[0]))
 	}
 }
 
