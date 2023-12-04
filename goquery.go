@@ -96,7 +96,7 @@ func (em *EntityMetadata[E]) Query(conn connection, query GoQuery) ([]E, error) 
 }
 
 func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any) ([]E, error) {
-	var result []E
+	result := []E{}
 
 	length := len(em.Columns)
 	pointers := make([]any, length)

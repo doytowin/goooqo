@@ -29,6 +29,19 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
+	t.Run("Should return empty array instead of null when no data found.", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/?PageNumber=10", nil)
+
+		service.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"Data":[],"Total":4}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
 	t.Run("Get /user/", func(t *testing.T) {
 		writer := httptest.NewRecorder()
 		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&test=test", nil)
