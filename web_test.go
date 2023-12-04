@@ -7,7 +7,11 @@ import (
 
 func TestWeb(t *testing.T) {
 	db := initDB()
-	service := BuildController[UserEntity, *UserQuery]("/user/", db, UserEntity{}, &UserQuery{})
+	service := BuildController[UserEntity, *UserQuery](
+		"/user/", db,
+		func() UserEntity { return UserEntity{} },
+		func() *UserQuery { return &UserQuery{} },
+	)
 
 	t.Run("Get /user/", func(t *testing.T) {
 		writer := httptest.NewRecorder()

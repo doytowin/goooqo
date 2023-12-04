@@ -2,7 +2,6 @@ package goquery
 
 import (
 	"database/sql"
-	"reflect"
 )
 
 type RestAPI[E comparable, Q GoQuery] interface {
@@ -10,32 +9,30 @@ type RestAPI[E comparable, Q GoQuery] interface {
 }
 
 type Service[E comparable, Q GoQuery] struct {
-	db         *sql.DB
-	prefix     string
-	dataAccess DataAccess[E]
-	queryType  reflect.Type
-	entityType reflect.Type
-}
-
-func createModel[T any](t reflect.Type) T {
-	if t.Kind() == reflect.Pointer {
-		return reflect.New(t.Elem()).Interface().(T)
-	}
-	return reflect.New(t).Elem().Interface().(T)
+	db           *sql.DB
+	prefix       string
+	dataAccess   DataAccess[E]
+	createQuery  func() Q
+	createEntity func() E
 }
 
 func (s *Service[E, Q]) Page(q Q) (PageList[E], error) {
 	return s.dataAccess.Page(s.db, q)
 }
 
-func BuildController[E comparable, Q GoQuery](prefix string, db *sql.DB, e E, q Q) *Service[E, Q] {
-	dataAccess := BuildDataAccess[E](e)
+func BuildController[E comparable, Q GoQuery](
+	prefix string,
+	db *sql.DB,
+	createEntity func() E,
+	createQuery func() Q,
+) *Service[E, Q] {
+	dataAccess := BuildDataAccess[E](createEntity())
 	rc := &Service[E, Q]{
-		db:         db,
-		prefix:     prefix,
-		dataAccess: dataAccess,
-		queryType:  reflect.TypeOf(q),
-		entityType: reflect.TypeOf(e),
+		db:           db,
+		prefix:       prefix,
+		dataAccess:   dataAccess,
+		createQuery:  createQuery,
+		createEntity: createEntity,
 	}
 	return rc
 }

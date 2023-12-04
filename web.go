@@ -9,7 +9,7 @@ import (
 
 func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var err error
-	query := createModel[Q](s.queryType)
+	query := s.createQuery()
 	queryMap := request.URL.Query()
 	pageQuery := query.GetPageQuery()
 

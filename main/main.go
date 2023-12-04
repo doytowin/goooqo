@@ -23,7 +23,11 @@ func main() {
 		_ = db.Close()
 	}()
 
-	rc := goquery.BuildController[UserEntity, *UserQuery]("/user/", db, UserEntity{}, &UserQuery{})
+	rc := goquery.BuildController[UserEntity, *UserQuery](
+		"/user/", db,
+		func() UserEntity { return UserEntity{} },
+		func() *UserQuery { return &UserQuery{} },
+	)
 	http.Handle("/user/", rc)
 
 	err := http.ListenAndServe(":9090", nil)
