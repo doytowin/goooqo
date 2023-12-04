@@ -34,7 +34,8 @@ func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 	if pageQuery.needPaging() {
 		s += pageQuery.buildPageClause()
 	}
-	logrus.Debug("SQL: " + s)
+	logrus.Debug("SQL: ", s)
+	logrus.Debug("ARG: ", args)
 	return s, args
 }
 

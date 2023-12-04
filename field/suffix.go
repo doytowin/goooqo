@@ -23,11 +23,12 @@ func CreateOpMap() map[string]operator {
 	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", ""}
 	opMap["In"] = operator{"In", " IN ", ""}
 	opMap["NotIn"] = operator{"NotIn", " NOT IN ", ""}
+	opMap["Like"] = operator{"Like", " LIKE ", "?"}
 	return opMap
 }
 
 var opMap = CreateOpMap()
-var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In)$`)
+var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like)$`)
 
 func Process(fieldName string) string {
 	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {

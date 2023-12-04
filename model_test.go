@@ -11,6 +11,7 @@ type UserQuery struct {
 	IdGt     *int
 	ScoreLt  *int
 	MemoNull bool
+	MemoLike *string
 }
 
 func (q *UserQuery) GetPageQuery() *PageQuery {
