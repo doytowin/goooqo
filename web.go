@@ -4,24 +4,22 @@ import (
 	"encoding/json"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
 func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	var err error
 	query := s.createQuery()
 	queryMap := request.URL.Query()
-	pageQuery := query.GetPageQuery()
 
-	sizeStr := queryMap.Get("size")
-	size, err := strconv.Atoi(sizeStr)
-	if noError(err) {
-		pageQuery.PageSize = &size
-	}
-	pageStr := queryMap.Get("page")
-	page, err := strconv.Atoi(pageStr)
-	if noError(err) {
-		pageQuery.PageNumber = &page
+	for name, v := range queryMap {
+		field := reflect.ValueOf(query).Elem().FieldByName(name)
+		if field.IsValid() {
+			integer, err := strconv.Atoi(v[0])
+			if noError(err) {
+				field.Set(reflect.ValueOf(&integer))
+			}
+		}
 	}
 
 	pageList, err := s.Page(query)
