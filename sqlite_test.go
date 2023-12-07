@@ -95,7 +95,7 @@ func TestSQLite(t *testing.T) {
 			t.Error("Error", err)
 			return
 		}
-		if !(page.Total == 3 && page.Data[0].Id == 2) {
+		if !(page.Total == 3 && page.List[0].Id == 2) {
 			t.Errorf("Got : %v", page)
 		}
 	})

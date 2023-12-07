@@ -12,6 +12,13 @@ import (
 )
 
 func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	match := s.idRgx.FindStringSubmatch(request.URL.Path)
+	if len(match) > 0 {
+		id := match[1]
+		data, err := s.Get(id)
+		writeResult(writer, err, data)
+		return
+	}
 	query := s.createQuery()
 	queryMap := request.URL.Query()
 	resolveQuery(queryMap, query)
@@ -57,12 +64,11 @@ func resolvePointer(field reflect.Value, v []string) {
 	}
 }
 
-func writeResult(writer http.ResponseWriter, err error, pageList any) {
+func writeResult(writer http.ResponseWriter, err error, data any) {
+	response := Response{Data: data, Success: err == nil, Error: err}
+	marshal, err := json.Marshal(response)
 	if noError(err) {
-		marshal, err := json.Marshal(pageList)
-		if noError(err) {
-			writer.Header().Set("Content-Type", "application/json")
-			_, _ = writer.Write(marshal)
-		}
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write(marshal)
 	}
 }

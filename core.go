@@ -9,7 +9,7 @@ type Entity interface {
 }
 
 type PageList[E comparable] struct {
-	Data  []E
+	List  []E
 	Total int
 }
 
@@ -24,6 +24,12 @@ type DataAccess[E comparable] interface {
 	Create(conn connection, entity *E) (int64, error)
 	Update(conn connection, entity E) (int64, error)
 	Patch(conn connection, entity E) (int64, error)
+}
+
+type Response struct {
+	Data    any
+	Success bool
+	Error   error
 }
 
 func BuildDataAccess[E comparable](entity any) DataAccess[E] {

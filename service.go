@@ -2,10 +2,12 @@ package goquery
 
 import (
 	"database/sql"
+	"regexp"
 )
 
 type RestAPI[E comparable, Q GoQuery] interface {
 	Page(q Q) (PageList[E], error)
+	Get(id any) (E, error)
 }
 
 type Service[E comparable, Q GoQuery] struct {
@@ -14,10 +16,15 @@ type Service[E comparable, Q GoQuery] struct {
 	dataAccess   DataAccess[E]
 	createQuery  func() Q
 	createEntity func() E
+	idRgx        *regexp.Regexp
 }
 
 func (s *Service[E, Q]) Page(q Q) (PageList[E], error) {
 	return s.dataAccess.Page(s.db, q)
+}
+
+func (s *Service[E, Q]) Get(id any) (E, error) {
+	return s.dataAccess.Get(s.db, id)
 }
 
 func BuildController[E comparable, Q GoQuery](
@@ -33,6 +40,7 @@ func BuildController[E comparable, Q GoQuery](
 		dataAccess:   dataAccess,
 		createQuery:  createQuery,
 		createEntity: createEntity,
+		idRgx:        regexp.MustCompile(prefix + `(\d+)$`),
 	}
 	return rc
 }
