@@ -2,6 +2,7 @@ package goquery
 
 import (
 	"encoding/json"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -16,7 +17,11 @@ func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	if len(match) > 0 {
 		id := match[1]
 		data, err := s.Get(id)
-		writeResult(writer, err, data)
+		if s.dataAccess.IsZero(data) {
+			writeResult(writer, fmt.Errorf("record not found. id: %s", id), nil)
+		} else {
+			writeResult(writer, err, data)
+		}
 		return
 	}
 	query := s.createQuery()
@@ -65,7 +70,7 @@ func resolvePointer(field reflect.Value, v []string) {
 }
 
 func writeResult(writer http.ResponseWriter, err error, data any) {
-	response := Response{Data: data, Success: err == nil, Error: err}
+	response := Response{Data: data, Success: err == nil, Error: err.Error()}
 	marshal, err := json.Marshal(response)
 	if noError(err) {
 		writer.Header().Set("Content-Type", "application/json")

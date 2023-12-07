@@ -106,4 +106,17 @@ func TestWeb(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
+
+	t.Run("Get /user/100", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/100", nil)
+
+		service.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"Data":null,"Success":false,"Error":"record not found. id: 100"}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
 }
