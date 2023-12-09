@@ -3,6 +3,7 @@ package goquery
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/doytowin/goquery/util"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -70,7 +71,7 @@ func resolvePointer(field reflect.Value, v []string) {
 }
 
 func writeResult(writer http.ResponseWriter, err error, data any) {
-	response := Response{Data: data, Success: err == nil, Error: err.Error()}
+	response := Response{Data: data, Success: noError(err), Error: util.ReadError(err)}
 	marshal, err := json.Marshal(response)
 	if noError(err) {
 		writer.Header().Set("Content-Type", "application/json")

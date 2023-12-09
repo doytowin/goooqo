@@ -29,7 +29,7 @@ type DataAccess[E comparable] interface {
 type Response struct {
 	Data    any
 	Success bool
-	Error   string
+	Error   *string
 }
 
 func BuildDataAccess[E comparable](entity any) DataAccess[E] {

@@ -39,3 +39,10 @@ func ReadValue(value reflect.Value) any {
 func UnCapitalize(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
 }
+
+func ReadError(err error) *string {
+	if err == nil {
+		return nil
+	}
+	return PStr(err.Error())
+}
