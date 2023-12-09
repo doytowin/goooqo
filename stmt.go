@@ -85,8 +85,24 @@ func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
 			args = append(args, v)
 		}
 	}
-	sqlStr = sqlStr[0:len(sqlStr)-2] + whereId
+	return sqlStr[0 : len(sqlStr)-2], args
+}
+
+func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
+	sqlStr, args := em.buildPatch(entity)
+	sqlStr = sqlStr + whereId
 	args = append(args, readId(entity))
-	logrus.Info("UPDATE SQL: ", sqlStr)
+	logrus.Info("PATCH SQL: ", sqlStr)
 	return sqlStr, args
+}
+
+func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query GoQuery) ([]any, string) {
+	patchClause, argsE := em.buildPatch(entity)
+	whereClause, argsQ := field.BuildWhereClause(query)
+
+	args := append(argsE, argsQ...)
+	sqlStr := patchClause + whereClause
+
+	logrus.Debug("PATCH SQL: ", sqlStr)
+	return args, sqlStr
 }

@@ -103,7 +103,7 @@ func TestBuildStmt(t *testing.T) {
 	t.Run("Build Patch Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
 		entity := UserEntity{Id: 2, Memo: PStr("Great")}
-		actual, args := em.buildPatch(entity)
+		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)

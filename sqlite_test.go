@@ -147,6 +147,23 @@ func TestSQLite(t *testing.T) {
 		}
 		_ = tx.Rollback()
 	})
+
+	t.Run("Patch Entity By Query", func(t *testing.T) {
+		tx, err := db.Begin()
+		entity := UserEntity{Memo: PStr("Add Memo")}
+		query := UserQuery{MemoNull: true}
+		cnt, err := userDataAccess.PatchByQuery(tx, entity, &query)
+
+		if cnt != 1 {
+			t.Errorf("\nExpected: %d\nBut got : %d", 1, err)
+		}
+		count, err := userDataAccess.Count(tx, &query)
+
+		if count != 0 {
+			t.Errorf("\nExpected: %d\nBut got : %d", 0, count)
+		}
+		_ = tx.Rollback()
+	})
 }
 
 func initDB() *sql.DB {

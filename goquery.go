@@ -200,7 +200,16 @@ func (em *EntityMetadata[E]) Update(conn connection, entity E) (int64, error) {
 }
 
 func (em *EntityMetadata[E]) Patch(conn connection, entity E) (int64, error) {
-	sqlStr, args := em.buildPatch(entity)
+	sqlStr, args := em.buildPatchById(entity)
+	result, err := em.doUpdate(conn, sqlStr, args)
+	if noError(err) {
+		return result.RowsAffected()
+	}
+	return 0, err
+}
+
+func (em *EntityMetadata[E]) PatchByQuery(conn connection, entity E, query GoQuery) (int64, error) {
+	args, sqlStr := em.buildPatchByQuery(entity, query)
 	result, err := em.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		return result.RowsAffected()
