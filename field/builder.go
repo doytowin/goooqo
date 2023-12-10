@@ -1,7 +1,6 @@
 package field
 
 import (
-	"github.com/doytowin/goquery/util"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
@@ -52,31 +51,12 @@ func buildConditions(query any) ([]string, []any) {
 				condition, arr := ProcessOr(value.Elem().Interface())
 				conditions = append(conditions, condition)
 				args = append(args, arr...)
-			} else if strings.HasSuffix(fieldName, "In") {
-				conditions, args = resolveIn(conditions, args, fieldName, reflect.Indirect(value))
 			} else {
-				conditions = append(conditions, Process(fieldName))
-				if !strings.HasSuffix(fieldName, "Null") {
-					args = append(args, util.ReadValue(value))
-				}
+				condition, arg := Process(fieldName, value)
+				conditions = append(conditions, condition)
+				args = append(args, arg...)
 			}
 		}
 	}
-	return conditions, args
-}
-
-func resolveIn(conditions []string, args []any, fieldName string, arg reflect.Value) ([]string, []any) {
-	condition := Process(fieldName)
-	ph := "("
-	for i := 0; i < arg.Len(); i++ {
-		args = append(args, arg.Index(i).Int())
-		ph += "?"
-		if i < arg.Len()-1 {
-			ph += ", "
-		}
-	}
-	ph += ")"
-	condition += ph
-	conditions = append(conditions, condition)
 	return conditions, args
 }
