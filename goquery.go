@@ -147,7 +147,7 @@ func (em *EntityMetadata[E]) IsZero(entity E) bool {
 	return em.zero == entity
 }
 
-func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) {
+func (em *EntityMetadata[E]) Delete(conn connection, id any) (int64, error) {
 	sqlStr := em.buildDeleteById()
 	result, err := em.doUpdate(conn, sqlStr, []any{id})
 	if noError(err) {
@@ -156,7 +156,7 @@ func (em *EntityMetadata[E]) DeleteById(conn connection, id any) (int64, error) 
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) Delete(conn connection, query any) (int64, error) {
+func (em *EntityMetadata[E]) DeleteByQuery(conn connection, query any) (int64, error) {
 	sqlStr, args := em.buildDelete(query)
 	result, err := em.doUpdate(conn, sqlStr, args)
 	if noError(err) {

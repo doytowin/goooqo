@@ -15,10 +15,10 @@ type PageList[E comparable] struct {
 
 type DataAccess[E comparable] interface {
 	Get(conn connection, id any) (E, error)
-	DeleteById(conn connection, id any) (int64, error)
+	Delete(conn connection, id any) (int64, error)
 	Query(conn connection, query GoQuery) ([]E, error)
 	Count(conn connection, query GoQuery) (int, error)
-	Delete(conn connection, query any) (int64, error)
+	DeleteByQuery(conn connection, query any) (int64, error)
 	IsZero(entity E) bool
 	Page(conn connection, query GoQuery) (PageList[E], error)
 	Create(conn connection, entity *E) (int64, error)

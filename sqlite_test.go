@@ -51,7 +51,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Delete By Id", func(t *testing.T) {
 		tx, err := db.Begin()
-		cnt, err := userDataAccess.DeleteById(tx, 3)
+		cnt, err := userDataAccess.Delete(tx, 3)
 		if err != nil {
 			t.Error("Error", err)
 		}
@@ -64,7 +64,7 @@ func TestSQLite(t *testing.T) {
 	t.Run("Delete By Query", func(t *testing.T) {
 		tx, err := db.Begin()
 		userQuery := UserQuery{ScoreLt: PInt(80)}
-		cnt, err := userDataAccess.Delete(tx, userQuery)
+		cnt, err := userDataAccess.DeleteByQuery(tx, userQuery)
 		if err != nil {
 			t.Error("Error", err)
 		}
