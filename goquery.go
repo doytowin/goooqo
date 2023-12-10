@@ -14,6 +14,7 @@ type EntityMetadata[E comparable] struct {
 	Columns         []string
 	ColStr          string
 	fieldsWithoutId []string
+	placeholders    string
 	createStr       string
 	updateStr       string
 	zero            E
@@ -76,6 +77,7 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,
+		placeholders:    placeholders,
 		updateStr:       updateStr,
 		zero:            reflect.New(refType).Elem().Interface().(E),
 	}
@@ -186,6 +188,16 @@ func (em *EntityMetadata[E]) Create(conn connection, entity *E) (int64, error) {
 			elem.FieldByName("Id").SetInt(id)
 		}
 		return id, err
+	}
+	return 0, err
+}
+
+func (em *EntityMetadata[E]) CreateMulti(conn connection, entities []E) (int64, error) {
+	sqlStr, args := em.buildCreateMulti(entities)
+	log.Debug("CREATE SQL: ", sqlStr)
+	result, err := em.doUpdate(conn, sqlStr, args)
+	if noError(err) {
+		return result.RowsAffected()
 	}
 	return 0, err
 }

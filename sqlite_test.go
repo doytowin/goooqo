@@ -114,6 +114,20 @@ func TestSQLite(t *testing.T) {
 		_ = tx.Rollback()
 	})
 
+	t.Run("Create Entities", func(t *testing.T) {
+		tx, err := db.Begin()
+		entities := []UserEntity{{Score: PInt(90), Memo: PStr("Great")}, {Score: PInt(55), Memo: PStr("Bad")}}
+		cnt, err := userDataAccess.CreateMulti(tx, entities)
+		if err != nil {
+			t.Error("Error", err)
+			return
+		}
+		if !(cnt == 2) {
+			t.Errorf("\nExpected: %d\nBut got : %d", 2, cnt)
+		}
+		_ = tx.Rollback()
+	})
+
 	t.Run("Update Entity", func(t *testing.T) {
 		tx, err := db.Begin()
 		entity := UserEntity{Id: 2, Score: PInt(90), Memo: PStr("Great")}

@@ -66,6 +66,18 @@ func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
 	return em.createStr, em.buildArgs(entity)
 }
 
+func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
+	var args []any
+	for _, entity := range entities {
+		args = append(args, em.buildArgs(entity)...)
+	}
+	createStr := em.createStr
+	for i := 1; i < len(entities); i++ {
+		createStr += ", " + em.placeholders
+	}
+	return createStr, args
+}
+
 func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	args := em.buildArgs(entity)
 	args = append(args, readId(entity))

@@ -22,6 +22,7 @@ type DataAccess[E comparable] interface {
 	IsZero(entity E) bool
 	Page(conn connection, query GoQuery) (PageList[E], error)
 	Create(conn connection, entity *E) (int64, error)
+	CreateMulti(conn connection, entities []E) (int64, error)
 	Update(conn connection, entity E) (int64, error)
 	Patch(conn connection, entity E) (int64, error)
 	PatchByQuery(conn connection, entity E, query GoQuery) (int64, error)
