@@ -193,6 +193,9 @@ func (em *EntityMetadata[E]) Create(conn connection, entity *E) (int64, error) {
 }
 
 func (em *EntityMetadata[E]) CreateMulti(conn connection, entities []E) (int64, error) {
+	if len(entities) == 0 {
+		return 0, nil
+	}
 	sqlStr, args := em.buildCreateMulti(entities)
 	log.Debug("CREATE SQL: ", sqlStr)
 	result, err := em.doUpdate(conn, sqlStr, args)
