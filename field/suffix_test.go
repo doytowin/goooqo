@@ -29,6 +29,7 @@ var useCases = []mapping{
 	{"MemoNotContain", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("at")},
 	{"MemoStart", "memo LIKE ?", "[at%]", reflect.ValueOf("at")},
 	{"MemoNotStart", "memo NOT LIKE ?", "[at%]", reflect.ValueOf("at")},
+	{"MemoEnd", "memo LIKE ?", "[%at]", reflect.ValueOf("at")},
 }
 
 func TestProcess(t *testing.T) {
