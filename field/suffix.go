@@ -35,6 +35,7 @@ func EmptyValue(reflect.Value) (string, []any) {
 }
 
 func CreateOpMap() map[string]operator {
+	const LIKE = " LIKE "
 	opMap := make(map[string]operator)
 	opMap["Gt"] = operator{"Gt", " > ", ReadValueToArray}
 	opMap["Ge"] = operator{"Ge", " >= ", ReadValueToArray}
@@ -47,18 +48,21 @@ func CreateOpMap() map[string]operator {
 	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", EmptyValue}
 	opMap["In"] = operator{"In", " IN ", ReadValueForIn}
 	opMap["NotIn"] = operator{"NotIn", " NOT IN ", ReadValueForIn}
-	opMap["Like"] = operator{"Like", " LIKE ", ReadValueToArray}
-	opMap["Contain"] = operator{"Contain", " LIKE ", func(value reflect.Value) (string, []any) {
+	opMap["Like"] = operator{"Like", LIKE, ReadValueToArray}
+	opMap["Contain"] = operator{"Contain", LIKE, func(value reflect.Value) (string, []any) {
 		return "?", []any{"%" + ReadValue(value).(string) + "%"}
 	}}
 	opMap["NotContain"] = operator{"NotContain", " NOT LIKE ", func(value reflect.Value) (string, []any) {
 		return "?", []any{"%" + ReadValue(value).(string) + "%"}
 	}}
+	opMap["Start"] = operator{"Start", LIKE, func(value reflect.Value) (string, []any) {
+		return "?", []any{ReadValue(value).(string) + "%"}
+	}}
 	return opMap
 }
 
 var opMap = CreateOpMap()
-var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|Contain|NotContain)$`)
+var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|Contain|NotContain|Start)$`)
 
 func Process(fieldName string, value reflect.Value) (string, []any) {
 	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
