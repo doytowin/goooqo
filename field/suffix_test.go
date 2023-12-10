@@ -26,6 +26,7 @@ var useCases = []mapping{
 	{"idIn", "id IN (?, ?, ?)", []int64{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
 	{"idNotIn", "id NOT IN (?, ?, ?)", []int{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
 	{"MemoContain", "memo LIKE ?", "[%at%]", reflect.ValueOf("at")},
+	{"MemoNotContain", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("at")},
 }
 
 func TestProcess(t *testing.T) {

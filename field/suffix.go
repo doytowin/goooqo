@@ -51,11 +51,14 @@ func CreateOpMap() map[string]operator {
 	opMap["Contain"] = operator{"Contain", " LIKE ", func(value reflect.Value) (string, []any) {
 		return "?", []any{"%" + ReadValue(value).(string) + "%"}
 	}}
+	opMap["NotContain"] = operator{"NotContain", " NOT LIKE ", func(value reflect.Value) (string, []any) {
+		return "?", []any{"%" + ReadValue(value).(string) + "%"}
+	}}
 	return opMap
 }
 
 var opMap = CreateOpMap()
-var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|Contain)$`)
+var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|Contain|NotContain)$`)
 
 func Process(fieldName string, value reflect.Value) (string, []any) {
 	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
