@@ -26,11 +26,13 @@ var useCases = []mapping{
 	{"idIn", "id IN (?, ?, ?)", []int64{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
 	{"idNotIn", "id NOT IN (?, ?, ?)", []int{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
 	{"MemoContain", "memo LIKE ?", "[%at%]", reflect.ValueOf("at")},
+	{"MemoContain", "memo LIKE ? ESCAPE '\\'", "[%a\\_\\%t%]", reflect.ValueOf("a_%t")},
 	{"MemoNotContain", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("at")},
 	{"MemoStart", "memo LIKE ?", "[at%]", reflect.ValueOf("at")},
 	{"MemoNotStart", "memo NOT LIKE ?", "[at%]", reflect.ValueOf("at")},
 	{"MemoEnd", "memo LIKE ?", "[%at]", reflect.ValueOf("at")},
 	{"MemoNotEnd", "memo NOT LIKE ?", "[%at]", reflect.ValueOf("at")},
+	{"MemoLike", "memo LIKE ? ESCAPE '\\'", "[%\\_at%]", reflect.ValueOf("%\\_at%")},
 	{"MemoNotLike", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("%at%")},
 }
 

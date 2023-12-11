@@ -34,6 +34,13 @@ func EmptyValue(reflect.Value) (string, []any) {
 	return "", []any{}
 }
 
+var escapePtn = regexp.MustCompile("[\\\\_%]")
+
+func ReadLikeValue(value reflect.Value) string {
+	s := ReadValue(value).(string)
+	return escapePtn.ReplaceAllString(s, "\\$0")
+}
+
 func CreateOpMap() map[string]operator {
 	const Like = " LIKE "
 	const NotLike = " NOT LIKE "
@@ -49,29 +56,55 @@ func CreateOpMap() map[string]operator {
 	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", EmptyValue}
 	opMap["In"] = operator{"In", " IN ", ReadValueForIn}
 	opMap["NotIn"] = operator{"NotIn", " NOT IN ", ReadValueForIn}
-	opMap["Like"] = operator{"Like", Like, ReadValueToArray}
+	opMap["Like"] = operator{"Like", Like, func(value reflect.Value) (string, []any) {
+		s := ReadValue(value).(string)
+		ph := resolvePlaceHolder(s)
+		return ph, []any{s}
+	}}
 	opMap["NotLike"] = operator{"NotLike", NotLike, func(value reflect.Value) (string, []any) {
-		return "?", []any{ReadValue(value).(string)}
+		s := ReadValue(value).(string)
+		ph := resolvePlaceHolder(s)
+		return ph, []any{s}
 	}}
 	opMap["Contain"] = operator{"Contain", Like, func(value reflect.Value) (string, []any) {
-		return "?", []any{"%" + ReadValue(value).(string) + "%"}
+		escape := ReadLikeValue(value)
+		ph := resolvePlaceHolder(escape)
+		return ph, []any{"%" + escape + "%"}
 	}}
 	opMap["NotContain"] = operator{"NotContain", NotLike, func(value reflect.Value) (string, []any) {
-		return "?", []any{"%" + ReadValue(value).(string) + "%"}
+		escape := ReadLikeValue(value)
+		ph := resolvePlaceHolder(escape)
+		return ph, []any{"%" + escape + "%"}
 	}}
 	opMap["Start"] = operator{"Start", Like, func(value reflect.Value) (string, []any) {
-		return "?", []any{ReadValue(value).(string) + "%"}
+		escape := ReadLikeValue(value)
+		ph := resolvePlaceHolder(escape)
+		return ph, []any{escape + "%"}
 	}}
 	opMap["NotStart"] = operator{"NotStart", NotLike, func(value reflect.Value) (string, []any) {
-		return "?", []any{ReadValue(value).(string) + "%"}
+		escape := ReadLikeValue(value)
+		ph := resolvePlaceHolder(escape)
+		return ph, []any{escape + "%"}
 	}}
 	opMap["End"] = operator{"End", Like, func(value reflect.Value) (string, []any) {
-		return "?", []any{"%" + ReadValue(value).(string)}
+		escape := ReadLikeValue(value)
+		ph := resolvePlaceHolder(escape)
+		return ph, []any{"%" + escape}
 	}}
 	opMap["NotEnd"] = operator{"End", NotLike, func(value reflect.Value) (string, []any) {
-		return "?", []any{"%" + ReadValue(value).(string)}
+		escape := ReadLikeValue(value)
+		ph := resolvePlaceHolder(escape)
+		return ph, []any{"%" + escape}
 	}}
 	return opMap
+}
+
+func resolvePlaceHolder(arg string) string {
+	ph := "?"
+	if strings.Contains(arg, "\\") {
+		ph = ph + " ESCAPE '\\'"
+	}
+	return ph
 }
 
 var opMap = CreateOpMap()
