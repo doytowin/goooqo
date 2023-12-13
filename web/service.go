@@ -15,7 +15,7 @@ type RestAPI[E any, Q GoQuery] interface {
 type Service[E any, Q GoQuery] struct {
 	db           *sql.DB
 	prefix       string
-	dataAccess   DataAccess[E]
+	dataAccess   DataAccess[Connection, E]
 	createQuery  func() Q
 	createEntity func() E
 	idRgx        *regexp.Regexp
@@ -35,14 +35,13 @@ func BuildService[E any, Q GoQuery](
 	createEntity func() E,
 	createQuery func() Q,
 ) *Service[E, Q] {
-	dataAccess := rdb.BuildDataAccess[E](createEntity)
 	rc := &Service[E, Q]{
 		db:           db,
 		prefix:       prefix,
-		dataAccess:   dataAccess,
 		createQuery:  createQuery,
 		createEntity: createEntity,
 		idRgx:        regexp.MustCompile(prefix + `(\d+)$`),
 	}
+	rc.dataAccess = rdb.BuildDataAccess[E](createEntity)
 	return rc
 }

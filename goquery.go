@@ -11,7 +11,7 @@ type GoQuery = core.GoQuery
 
 type PageQuery = core.PageQuery
 
-type DataAccess[E any] core.DataAccess[E]
+type DataAccess[C core.Connection, E any] core.DataAccess[C, E]
 
 func BuildController[E any, Q GoQuery](
 	prefix string,
@@ -24,6 +24,6 @@ func BuildController[E any, Q GoQuery](
 	}
 }
 
-func BuildDataAccess[E any](createEntity func() E) DataAccess[E] {
+func BuildDataAccess[E any](createEntity func() E) DataAccess[core.Connection, E] {
 	return rdb.BuildDataAccess[E](createEntity)
 }

@@ -14,7 +14,7 @@ func main() {
 		_ = db.Close()
 	}()
 
-	rc := goquery.BuildController[UserEntity, *UserQuery](
+	rc := goquery.BuildController(
 		"/user/", db,
 		func() UserEntity { return UserEntity{} },
 		func() *UserQuery { return &UserQuery{} },
