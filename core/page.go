@@ -1,4 +1,4 @@
-package goquery
+package core
 
 import "fmt"
 
@@ -7,7 +7,7 @@ type PageQuery struct {
 	PageSize   *int
 }
 
-func (pageQuery *PageQuery) buildPageClause() string {
+func (pageQuery *PageQuery) BuildPageClause() string {
 	size := 10
 	page := 0
 
@@ -22,6 +22,6 @@ func (pageQuery *PageQuery) buildPageClause() string {
 	return fmt.Sprintf(" LIMIT %d OFFSET %d", size, offset)
 }
 
-func (pageQuery *PageQuery) needPaging() bool {
+func (pageQuery *PageQuery) NeedPaging() bool {
 	return pageQuery.PageSize != nil || pageQuery.PageNumber != nil
 }

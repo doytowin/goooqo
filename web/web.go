@@ -1,10 +1,9 @@
-package goquery
+package web
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/doytowin/goquery/util"
-	_ "github.com/mattn/go-sqlite3"
+	. "github.com/doytowin/goquery/core"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
@@ -55,14 +54,14 @@ func resolvePointer(field reflect.Value, v []string) {
 		var v0 []int
 		for _, s := range strArr {
 			num, err := strconv.Atoi(s)
-			if noError(err) {
+			if NoError(err) {
 				v0 = append(v0, num)
 			}
 		}
 		field.Set(reflect.ValueOf(&v0))
 	} else if field.Type().String() == "*int" {
 		v0, err := strconv.Atoi(v[0])
-		if noError(err) {
+		if NoError(err) {
 			field.Set(reflect.ValueOf(&v0))
 		}
 	} else {
@@ -71,9 +70,9 @@ func resolvePointer(field reflect.Value, v []string) {
 }
 
 func writeResult(writer http.ResponseWriter, err error, data any) {
-	response := Response{Data: data, Success: noError(err), Error: util.ReadError(err)}
+	response := Response{Data: data, Success: NoError(err), Error: ReadError(err)}
 	marshal, err := json.Marshal(response)
-	if noError(err) {
+	if NoError(err) {
 		writer.Header().Set("Content-Type", "application/json")
 		_, _ = writer.Write(marshal)
 	}

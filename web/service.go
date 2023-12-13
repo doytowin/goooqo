@@ -1,7 +1,9 @@
-package goquery
+package web
 
 import (
 	"database/sql"
+	. "github.com/doytowin/goquery/core"
+	"github.com/doytowin/goquery/rdb"
 	"regexp"
 )
 
@@ -33,7 +35,7 @@ func BuildController[E any, Q GoQuery](
 	createEntity func() E,
 	createQuery func() Q,
 ) *Service[E, Q] {
-	dataAccess := BuildDataAccess[E](createEntity)
+	dataAccess := rdb.BuildDataAccess[E](createEntity)
 	rc := &Service[E, Q]{
 		db:           db,
 		prefix:       prefix,

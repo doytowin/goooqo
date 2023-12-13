@@ -1,4 +1,6 @@
-package goquery
+package core
+
+import "database/sql"
 
 type GoQuery interface {
 	GetPageQuery() *PageQuery
@@ -12,6 +14,12 @@ type PageList[E any] struct {
 	List  []E
 	Total int
 }
+
+type connection interface {
+	Prepare(query string) (*sql.Stmt, error)
+}
+
+type Connection = connection
 
 type DataAccess[E any] interface {
 	Get(conn connection, id any) (*E, error)
@@ -31,9 +39,4 @@ type Response struct {
 	Data    any
 	Success bool
 	Error   *string
-}
-
-func BuildDataAccess[E any](createEntity func() E) DataAccess[E] {
-	e := buildRelationalDataAccess[E](createEntity)
-	return &e
 }

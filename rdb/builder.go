@@ -1,4 +1,4 @@
-package field
+package rdb
 
 import (
 	log "github.com/sirupsen/logrus"

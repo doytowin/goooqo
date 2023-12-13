@@ -1,8 +1,8 @@
-package goquery
+package rdb
 
 import (
-	"github.com/doytowin/goquery/field"
-	. "github.com/doytowin/goquery/util"
+	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )
@@ -10,9 +10,18 @@ import (
 func TestBuildStmt(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
+	t.Run("Build with Custom Table Name", func(t *testing.T) {
+		em := buildEntityMetadata[TestEntity](TestEntity{})
+		actual := em.TableName
+		expect := "t_user"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\n     Got: %s", expect, actual)
+		}
+	})
+
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: PInt(5), MemoNull: true}
-		actual, args := field.BuildWhereClause(query)
+		actual, args := BuildWhereClause(query)
 		expect := " WHERE id > ? AND memo IS NULL"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)

@@ -1,29 +1,20 @@
 package main
 
 import (
-	"database/sql"
-	"github.com/doytowin/goquery"
+	. "github.com/doytowin/goquery/test"
+	"github.com/doytowin/goquery/web"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
-func initDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./test.db")
-	_, _ = db.Exec("drop table User")
-	_, _ = db.Exec("create table User(id integer constraint user_pk primary key autoincrement, score int, memo varchar(255))")
-	_, _ = db.Exec("insert into User(score, memo) values (85, 'Good'), (40, 'Bad'), (55, null), (62, 'Well')")
-
-	return db, err
-}
-
 func main() {
 	log.SetLevel(log.DebugLevel)
-	var db, _ = initDB()
+	db := InitDB()
 	defer func() {
 		_ = db.Close()
 	}()
 
-	rc := goquery.BuildController[UserEntity, *UserQuery](
+	rc := web.BuildController[UserEntity, *UserQuery](
 		"/user/", db,
 		func() UserEntity { return UserEntity{} },
 		func() *UserQuery { return &UserQuery{} },

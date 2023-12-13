@@ -1,4 +1,6 @@
-package goquery
+package test
+
+import . "github.com/doytowin/goquery/core"
 
 type UserEntity struct {
 	Id    int
@@ -6,13 +8,21 @@ type UserEntity struct {
 	Memo  *string
 }
 
+type AccountOr struct {
+	Username *string
+	Email    *string
+	Mobile   *string
+}
+
 type UserQuery struct {
 	PageQuery
-	IdGt     *int
-	IdIn     *[]int
-	ScoreLt  *int
-	MemoNull bool
-	MemoLike *string
+	IdGt      *int
+	IdIn      *[]int
+	ScoreLt   *int
+	MemoNull  bool
+	MemoLike  *string
+	AccountOr *AccountOr
+	Deleted   *bool
 }
 
 func (q *UserQuery) GetPageQuery() *PageQuery {

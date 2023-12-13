@@ -1,11 +1,10 @@
-package goquery
+package rdb
 
 import (
 	"database/sql"
-	. "github.com/doytowin/goquery/util"
+	. "github.com/doytowin/goquery/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
-	"strings"
 )
 
 type RelationalDataAccess[E any] struct {
@@ -13,9 +12,7 @@ type RelationalDataAccess[E any] struct {
 	create func() E
 }
 
-type connection interface {
-	Prepare(query string) (*sql.Stmt, error)
-}
+type connection = Connection
 
 func noError(err error) bool {
 	if err == nil {
@@ -24,60 +21,16 @@ func noError(err error) bool {
 	log.Error("Error occurred! ", err)
 	return false
 }
+func BuildDataAccess[E any](createEntity func() E) DataAccess[E] {
+	e := buildRelationalDataAccess[E](createEntity)
+	return &e
+}
 
 func buildRelationalDataAccess[E any](createEntity func() E) RelationalDataAccess[E] {
 	em := buildEntityMetadata[E](createEntity())
 	return RelationalDataAccess[E]{
 		em:     em,
 		create: createEntity,
-	}
-}
-
-func buildEntityMetadata[E any](entity any) EntityMetadata[E] {
-	refType := reflect.TypeOf(entity)
-	columns := make([]string, refType.NumField())
-	var columnsWithoutId []string
-	var fieldsWithoutId []string
-	for i := 0; i < refType.NumField(); i++ {
-		field := refType.Field(i)
-		columns[i] = UnCapitalize(field.Name)
-		if field.Name != "Id" {
-			fieldsWithoutId = append(fieldsWithoutId, field.Name)
-			columnsWithoutId = append(columnsWithoutId, UnCapitalize(field.Name))
-		}
-	}
-	var tableName string
-	v, ok := entity.(Entity)
-	if ok {
-		tableName = v.GetTableName()
-	} else {
-		tableName = strings.TrimSuffix(refType.Name(), "Entity")
-	}
-
-	placeholders := "(?"
-	for i := 1; i < len(columnsWithoutId); i++ {
-		placeholders += ", ?"
-	}
-	placeholders += ")"
-	createStr := "INSERT INTO " + tableName +
-		" (" + strings.Join(columnsWithoutId, ", ") + ") " +
-		"VALUES " + placeholders
-	log.Debug("CREATE SQL: ", createStr)
-
-	set := make([]string, len(columnsWithoutId))
-	for i, col := range columnsWithoutId {
-		set[i] = col + " = ?"
-	}
-	updateStr := "UPDATE " + tableName + " SET " + strings.Join(set, ", ") + whereId
-	log.Debug("UPDATE SQL: ", updateStr)
-
-	return EntityMetadata[E]{
-		TableName:       tableName,
-		ColStr:          strings.Join(columns, ", "),
-		fieldsWithoutId: fieldsWithoutId,
-		createStr:       createStr,
-		placeholders:    placeholders,
-		updateStr:       updateStr,
 	}
 }
 

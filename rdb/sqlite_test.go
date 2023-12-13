@@ -1,14 +1,13 @@
-package goquery
+package rdb
 
 import (
-	"database/sql"
-	. "github.com/doytowin/goquery/util"
-	_ "github.com/mattn/go-sqlite3"
+	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/goquery/test"
 	"testing"
 )
 
 func TestSQLite(t *testing.T) {
-	db := initDB()
+	db := InitDB()
 	defer func() {
 		_ = db.Close()
 	}()
@@ -192,12 +191,4 @@ func TestSQLite(t *testing.T) {
 		}
 		_ = tx.Rollback()
 	})
-}
-
-func initDB() *sql.DB {
-	db, _ := sql.Open("sqlite3", "./test.db")
-	_, _ = db.Exec("drop table User")
-	_, _ = db.Exec("create table User(id integer constraint user_pk primary key autoincrement, score int, memo varchar(255))")
-	_, _ = db.Exec("insert into User(score, memo) values (85, 'Good'), (40, 'Bad'), (55, null), (62, 'Well')")
-	return db
 }

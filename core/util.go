@@ -1,4 +1,4 @@
-package util
+package core
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -45,4 +45,11 @@ func ReadError(err error) *string {
 		return nil
 	}
 	return PStr(err.Error())
+}
+
+func NoError(err error) bool {
+	if err != nil {
+		log.Error("Error occurred! ", err)
+	}
+	return err == nil
 }

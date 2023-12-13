@@ -1,7 +1,7 @@
-package field
+package rdb
 
 import (
-	. "github.com/doytowin/goquery/util"
+	. "github.com/doytowin/goquery/core"
 	"reflect"
 	"regexp"
 	"strings"

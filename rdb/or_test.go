@@ -1,20 +1,10 @@
-package field
+package rdb
 
 import (
-	. "github.com/doytowin/goquery/util"
+	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/goquery/test"
 	"testing"
 )
-
-type AccountOr struct {
-	Username *string
-	Email    *string
-	Mobile   *string
-}
-
-type UserQuery struct {
-	AccountOr *AccountOr
-	Deleted   *bool
-}
 
 func TestOr(t *testing.T) {
 

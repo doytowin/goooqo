@@ -1,6 +1,7 @@
-package goquery
+package web
 
 import (
+	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
 	"net/http/httptest"
 	"testing"
@@ -9,7 +10,7 @@ import (
 func TestWeb(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
-	db := initDB()
+	db := InitDB()
 	service := BuildController[UserEntity, *UserQuery](
 		"/user/", db,
 		func() UserEntity { return UserEntity{} },
