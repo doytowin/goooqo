@@ -34,7 +34,7 @@ type Response struct {
 	Error   *string
 }
 
-func BuildDataAccess[E comparable](entity any) DataAccess[E] {
-	e := buildRelationalDataAccess[E](entity)
+func BuildDataAccess[E comparable](createEntity func() E) DataAccess[E] {
+	e := buildRelationalDataAccess[E](createEntity)
 	return &e
 }

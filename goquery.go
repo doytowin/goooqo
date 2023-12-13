@@ -9,9 +9,9 @@ import (
 )
 
 type RelationalDataAccess[E comparable] struct {
-	em   EntityMetadata[E]
-	Type reflect.Type
-	zero E
+	em     EntityMetadata[E]
+	create func() E
+	zero   E
 }
 
 type connection interface {
@@ -26,12 +26,12 @@ func noError(err error) bool {
 	return false
 }
 
-func buildRelationalDataAccess[E comparable](entity any) RelationalDataAccess[E] {
-	em := buildEntityMetadata[E](entity)
+func buildRelationalDataAccess[E comparable](createEntity func() E) RelationalDataAccess[E] {
+	em := buildEntityMetadata[E](createEntity())
 	return RelationalDataAccess[E]{
-		em:   em,
-		Type: reflect.TypeOf(entity),
-		zero: reflect.New(reflect.TypeOf(entity)).Elem().Interface().(E),
+		em:     em,
+		create: createEntity,
+		zero:   createEntity(),
 	}
 }
 
@@ -100,7 +100,7 @@ func (da *RelationalDataAccess[E]) Query(conn connection, query GoQuery) ([]E, e
 func (da *RelationalDataAccess[E]) doQuery(conn connection, sqlStr string, args []any) ([]E, error) {
 	result := []E{}
 
-	entity := reflect.New(da.Type).Elem().Interface().(E)
+	entity := da.create()
 	elem := reflect.ValueOf(&entity).Elem()
 	length := elem.NumField()
 	pointers := make([]any, length)

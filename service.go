@@ -33,7 +33,7 @@ func BuildController[E comparable, Q GoQuery](
 	createEntity func() E,
 	createQuery func() Q,
 ) *Service[E, Q] {
-	dataAccess := BuildDataAccess[E](createEntity())
+	dataAccess := BuildDataAccess[E](createEntity)
 	rc := &Service[E, Q]{
 		db:           db,
 		prefix:       prefix,

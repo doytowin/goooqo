@@ -13,7 +13,7 @@ func TestSQLite(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	userDataAccess := BuildDataAccess[UserEntity](UserEntity{})
+	userDataAccess := BuildDataAccess[UserEntity](func() UserEntity { return UserEntity{} })
 
 	t.Run("Query Entities", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(80)}
