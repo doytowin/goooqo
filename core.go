@@ -35,6 +35,6 @@ type Response struct {
 }
 
 func BuildDataAccess[E comparable](entity any) DataAccess[E] {
-	e := buildEntityMetadata[E](entity)
+	e := buildRelationalDataAccess[E](entity)
 	return &e
 }

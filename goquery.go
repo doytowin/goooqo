@@ -8,16 +8,10 @@ import (
 	"strings"
 )
 
-type EntityMetadata[E comparable] struct {
-	Type            reflect.Type
-	TableName       string
-	Columns         []string
-	ColStr          string
-	fieldsWithoutId []string
-	placeholders    string
-	createStr       string
-	updateStr       string
-	zero            E
+type RelationalDataAccess[E comparable] struct {
+	em   EntityMetadata[E]
+	Type reflect.Type
+	zero E
 }
 
 type connection interface {
@@ -30,6 +24,15 @@ func noError(err error) bool {
 	}
 	log.Error("Error occurred! ", err)
 	return false
+}
+
+func buildRelationalDataAccess[E comparable](entity any) RelationalDataAccess[E] {
+	em := buildEntityMetadata[E](entity)
+	return RelationalDataAccess[E]{
+		em:   em,
+		Type: reflect.TypeOf(entity),
+		zero: reflect.New(reflect.TypeOf(entity)).Elem().Interface().(E),
+	}
 }
 
 func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
@@ -71,39 +74,36 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	log.Debug("UPDATE SQL: ", updateStr)
 
 	return EntityMetadata[E]{
-		Type:            refType,
 		TableName:       tableName,
-		Columns:         columns,
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,
 		placeholders:    placeholders,
 		updateStr:       updateStr,
-		zero:            reflect.New(refType).Elem().Interface().(E),
 	}
 }
 
-func (em *EntityMetadata[E]) Get(conn connection, id any) (E, error) {
-	sqlStr := em.buildSelectById()
-	rows, err := em.doQuery(conn, sqlStr, []any{id})
+func (da *RelationalDataAccess[E]) Get(conn connection, id any) (E, error) {
+	sqlStr := da.em.buildSelectById()
+	rows, err := da.doQuery(conn, sqlStr, []any{id})
 	if len(rows) == 1 {
 		return rows[0], err
 	}
-	return em.zero, err
+	return da.zero, err
 }
 
-func (em *EntityMetadata[E]) Query(conn connection, query GoQuery) ([]E, error) {
-	sqlStr, args := em.buildSelect(query)
-	return em.doQuery(conn, sqlStr, args)
+func (da *RelationalDataAccess[E]) Query(conn connection, query GoQuery) ([]E, error) {
+	sqlStr, args := da.em.buildSelect(query)
+	return da.doQuery(conn, sqlStr, args)
 }
 
-func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any) ([]E, error) {
+func (da *RelationalDataAccess[E]) doQuery(conn connection, sqlStr string, args []any) ([]E, error) {
 	result := []E{}
 
-	length := len(em.Columns)
-	pointers := make([]any, length)
-	entity := reflect.New(em.Type).Elem().Interface().(E)
+	entity := reflect.New(da.Type).Elem().Interface().(E)
 	elem := reflect.ValueOf(&entity).Elem()
+	length := elem.NumField()
+	pointers := make([]any, length)
 	for i := range pointers {
 		pointers[i] = elem.Field(i).Addr().Interface()
 	}
@@ -124,9 +124,9 @@ func (em *EntityMetadata[E]) doQuery(conn connection, sqlStr string, args []any)
 	return result, err
 }
 
-func (em *EntityMetadata[E]) Count(conn connection, query GoQuery) (int, error) {
+func (da *RelationalDataAccess[E]) Count(conn connection, query GoQuery) (int, error) {
 	cnt := 0
-	sqlStr, args := em.buildCount(query)
+	sqlStr, args := da.em.buildCount(query)
 	stmt, err := conn.Prepare(sqlStr)
 	if noError(err) {
 		row := stmt.QueryRow(args...)
@@ -136,38 +136,38 @@ func (em *EntityMetadata[E]) Count(conn connection, query GoQuery) (int, error) 
 	return cnt, err
 }
 
-func (em *EntityMetadata[E]) Page(conn connection, query GoQuery) (PageList[E], error) {
+func (da *RelationalDataAccess[E]) Page(conn connection, query GoQuery) (PageList[E], error) {
 	var count int
-	data, err := em.Query(conn, query)
+	data, err := da.Query(conn, query)
 	if noError(err) {
-		count, err = em.Count(conn, query)
+		count, err = da.Count(conn, query)
 	}
 	return PageList[E]{data, count}, err
 }
 
-func (em *EntityMetadata[E]) IsZero(entity E) bool {
-	return em.zero == entity
+func (da *RelationalDataAccess[E]) IsZero(entity E) bool {
+	return da.zero == entity
 }
 
-func (em *EntityMetadata[E]) Delete(conn connection, id any) (int64, error) {
-	sqlStr := em.buildDeleteById()
-	result, err := em.doUpdate(conn, sqlStr, []any{id})
+func (da *RelationalDataAccess[E]) Delete(conn connection, id any) (int64, error) {
+	sqlStr := da.em.buildDeleteById()
+	result, err := da.doUpdate(conn, sqlStr, []any{id})
 	if noError(err) {
 		return result.RowsAffected()
 	}
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) DeleteByQuery(conn connection, query any) (int64, error) {
-	sqlStr, args := em.buildDelete(query)
-	result, err := em.doUpdate(conn, sqlStr, args)
+func (da *RelationalDataAccess[E]) DeleteByQuery(conn connection, query any) (int64, error) {
+	sqlStr, args := da.em.buildDelete(query)
+	result, err := da.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		return result.RowsAffected()
 	}
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) doUpdate(conn connection, sqlStr string, args []any) (sql.Result, error) {
+func (da *RelationalDataAccess[E]) doUpdate(conn connection, sqlStr string, args []any) (sql.Result, error) {
 	stmt, err := conn.Prepare(sqlStr)
 	if noError(err) {
 		defer func() {
@@ -178,9 +178,9 @@ func (em *EntityMetadata[E]) doUpdate(conn connection, sqlStr string, args []any
 	return nil, err
 }
 
-func (em *EntityMetadata[E]) Create(conn connection, entity *E) (int64, error) {
-	sqlStr, args := em.buildCreate(*entity)
-	result, err := em.doUpdate(conn, sqlStr, args)
+func (da *RelationalDataAccess[E]) Create(conn connection, entity *E) (int64, error) {
+	sqlStr, args := da.em.buildCreate(*entity)
+	result, err := da.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		id, err := result.LastInsertId()
 		if noError(err) {
@@ -192,40 +192,40 @@ func (em *EntityMetadata[E]) Create(conn connection, entity *E) (int64, error) {
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) CreateMulti(conn connection, entities []E) (int64, error) {
+func (da *RelationalDataAccess[E]) CreateMulti(conn connection, entities []E) (int64, error) {
 	if len(entities) == 0 {
 		return 0, nil
 	}
-	sqlStr, args := em.buildCreateMulti(entities)
+	sqlStr, args := da.em.buildCreateMulti(entities)
 	log.Debug("CREATE SQL: ", sqlStr)
-	result, err := em.doUpdate(conn, sqlStr, args)
+	result, err := da.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		return result.RowsAffected()
 	}
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) Update(conn connection, entity E) (int64, error) {
-	sqlStr, args := em.buildUpdate(entity)
-	result, err := em.doUpdate(conn, sqlStr, args)
+func (da *RelationalDataAccess[E]) Update(conn connection, entity E) (int64, error) {
+	sqlStr, args := da.em.buildUpdate(entity)
+	result, err := da.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		return result.RowsAffected()
 	}
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) Patch(conn connection, entity E) (int64, error) {
-	sqlStr, args := em.buildPatchById(entity)
-	result, err := em.doUpdate(conn, sqlStr, args)
+func (da *RelationalDataAccess[E]) Patch(conn connection, entity E) (int64, error) {
+	sqlStr, args := da.em.buildPatchById(entity)
+	result, err := da.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		return result.RowsAffected()
 	}
 	return 0, err
 }
 
-func (em *EntityMetadata[E]) PatchByQuery(conn connection, entity E, query GoQuery) (int64, error) {
-	args, sqlStr := em.buildPatchByQuery(entity, query)
-	result, err := em.doUpdate(conn, sqlStr, args)
+func (da *RelationalDataAccess[E]) PatchByQuery(conn connection, entity E, query GoQuery) (int64, error) {
+	args, sqlStr := da.em.buildPatchByQuery(entity, query)
+	result, err := da.doUpdate(conn, sqlStr, args)
 	if noError(err) {
 		return result.RowsAffected()
 	}

@@ -9,6 +9,15 @@ import (
 
 var whereId = " WHERE id = ?"
 
+type EntityMetadata[E comparable] struct {
+	TableName       string
+	ColStr          string
+	fieldsWithoutId []string
+	createStr       string
+	placeholders    string
+	updateStr       string
+}
+
 func readId(entity any) any {
 	rv := reflect.ValueOf(entity)
 	value := rv.FieldByName("Id")
