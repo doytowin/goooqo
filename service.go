@@ -5,12 +5,12 @@ import (
 	"regexp"
 )
 
-type RestAPI[E comparable, Q GoQuery] interface {
+type RestAPI[E any, Q GoQuery] interface {
 	Page(q Q) (PageList[E], error)
-	Get(id any) (E, error)
+	Get(id any) (*E, error)
 }
 
-type Service[E comparable, Q GoQuery] struct {
+type Service[E any, Q GoQuery] struct {
 	db           *sql.DB
 	prefix       string
 	dataAccess   DataAccess[E]
@@ -23,11 +23,11 @@ func (s *Service[E, Q]) Page(q Q) (PageList[E], error) {
 	return s.dataAccess.Page(s.db, q)
 }
 
-func (s *Service[E, Q]) Get(id any) (E, error) {
+func (s *Service[E, Q]) Get(id any) (*E, error) {
 	return s.dataAccess.Get(s.db, id)
 }
 
-func BuildController[E comparable, Q GoQuery](
+func BuildController[E any, Q GoQuery](
 	prefix string,
 	db *sql.DB,
 	createEntity func() E,

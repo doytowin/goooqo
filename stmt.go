@@ -9,7 +9,7 @@ import (
 
 var whereId = " WHERE id = ?"
 
-type EntityMetadata[E comparable] struct {
+type EntityMetadata[E any] struct {
 	TableName       string
 	ColStr          string
 	fieldsWithoutId []string

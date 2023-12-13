@@ -8,10 +8,9 @@ import (
 	"strings"
 )
 
-type RelationalDataAccess[E comparable] struct {
+type RelationalDataAccess[E any] struct {
 	em     EntityMetadata[E]
 	create func() E
-	zero   E
 }
 
 type connection interface {
@@ -26,16 +25,15 @@ func noError(err error) bool {
 	return false
 }
 
-func buildRelationalDataAccess[E comparable](createEntity func() E) RelationalDataAccess[E] {
+func buildRelationalDataAccess[E any](createEntity func() E) RelationalDataAccess[E] {
 	em := buildEntityMetadata[E](createEntity())
 	return RelationalDataAccess[E]{
 		em:     em,
 		create: createEntity,
-		zero:   createEntity(),
 	}
 }
 
-func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
+func buildEntityMetadata[E any](entity any) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
 	var columnsWithoutId []string
@@ -83,13 +81,13 @@ func buildEntityMetadata[E comparable](entity any) EntityMetadata[E] {
 	}
 }
 
-func (da *RelationalDataAccess[E]) Get(conn connection, id any) (E, error) {
+func (da *RelationalDataAccess[E]) Get(conn connection, id any) (*E, error) {
 	sqlStr := da.em.buildSelectById()
 	rows, err := da.doQuery(conn, sqlStr, []any{id})
 	if len(rows) == 1 {
-		return rows[0], err
+		return &rows[0], err
 	}
-	return da.zero, err
+	return nil, err
 }
 
 func (da *RelationalDataAccess[E]) Query(conn connection, query GoQuery) ([]E, error) {
@@ -143,10 +141,6 @@ func (da *RelationalDataAccess[E]) Page(conn connection, query GoQuery) (PageLis
 		count, err = da.Count(conn, query)
 	}
 	return PageList[E]{data, count}, err
-}
-
-func (da *RelationalDataAccess[E]) IsZero(entity E) bool {
-	return da.zero == entity
 }
 
 func (da *RelationalDataAccess[E]) Delete(conn connection, id any) (int64, error) {

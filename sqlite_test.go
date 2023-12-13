@@ -44,8 +44,8 @@ func TestSQLite(t *testing.T) {
 		if err != nil {
 			t.Error("Error", err)
 		}
-		if !userDataAccess.IsZero(user) {
-			t.Errorf("Data is not expected: %v", user)
+		if user != nil {
+			t.Errorf("Data is not expected: %v", &user)
 		}
 	})
 

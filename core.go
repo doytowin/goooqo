@@ -8,18 +8,17 @@ type Entity interface {
 	GetTableName() string
 }
 
-type PageList[E comparable] struct {
+type PageList[E any] struct {
 	List  []E
 	Total int
 }
 
-type DataAccess[E comparable] interface {
-	Get(conn connection, id any) (E, error)
+type DataAccess[E any] interface {
+	Get(conn connection, id any) (*E, error)
 	Delete(conn connection, id any) (int64, error)
 	Query(conn connection, query GoQuery) ([]E, error)
 	Count(conn connection, query GoQuery) (int, error)
 	DeleteByQuery(conn connection, query any) (int64, error)
-	IsZero(entity E) bool
 	Page(conn connection, query GoQuery) (PageList[E], error)
 	Create(conn connection, entity *E) (int64, error)
 	CreateMulti(conn connection, entities []E) (int64, error)
@@ -34,7 +33,7 @@ type Response struct {
 	Error   *string
 }
 
-func BuildDataAccess[E comparable](createEntity func() E) DataAccess[E] {
+func BuildDataAccess[E any](createEntity func() E) DataAccess[E] {
 	e := buildRelationalDataAccess[E](createEntity)
 	return &e
 }

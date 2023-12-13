@@ -18,10 +18,10 @@ func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	if len(match) > 0 {
 		id := match[1]
 		data, err := s.Get(id)
-		if s.dataAccess.IsZero(data) {
+		if data == nil {
 			writeResult(writer, fmt.Errorf("record not found. id: %s", id), nil)
 		} else {
-			writeResult(writer, err, data)
+			writeResult(writer, err, *data)
 		}
 		return
 	}
