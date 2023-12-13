@@ -12,7 +12,11 @@ import (
 	"strings"
 )
 
-func (s *Service[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+type RestService[E any, Q GoQuery] struct {
+	*Service[E, Q]
+}
+
+func (s *RestService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
 	if len(match) > 0 {
 		id := match[1]

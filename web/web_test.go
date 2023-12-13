@@ -11,11 +11,12 @@ func TestWeb(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	db := InitDB()
-	service := BuildController[UserEntity, *UserQuery](
+	s := BuildService(
 		"/user/", db,
 		func() UserEntity { return UserEntity{} },
 		func() *UserQuery { return &UserQuery{} },
 	)
+	service := &RestService[UserEntity, *UserQuery]{s}
 
 	t.Run("Page /user/", func(t *testing.T) {
 		writer := httptest.NewRecorder()

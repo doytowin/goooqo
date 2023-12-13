@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/doytowin/goquery"
 	. "github.com/doytowin/goquery/test"
-	"github.com/doytowin/goquery/web"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -14,7 +14,7 @@ func main() {
 		_ = db.Close()
 	}()
 
-	rc := web.BuildController[UserEntity, *UserQuery](
+	rc := goquery.BuildController[UserEntity, *UserQuery](
 		"/user/", db,
 		func() UserEntity { return UserEntity{} },
 		func() *UserQuery { return &UserQuery{} },

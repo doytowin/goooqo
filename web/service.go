@@ -29,7 +29,7 @@ func (s *Service[E, Q]) Get(id any) (*E, error) {
 	return s.dataAccess.Get(s.db, id)
 }
 
-func BuildController[E any, Q GoQuery](
+func BuildService[E any, Q GoQuery](
 	prefix string,
 	db *sql.DB,
 	createEntity func() E,
