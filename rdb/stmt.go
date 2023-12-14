@@ -2,7 +2,7 @@ package rdb
 
 import (
 	. "github.com/doytowin/goquery/core"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
 )
@@ -42,8 +42,6 @@ func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 	if query.NeedPaging() {
 		s += query.BuildPageClause()
 	}
-	logrus.Debug("SQL: ", s)
-	logrus.Debug("ARG: ", args)
 	return s, args
 }
 
@@ -53,10 +51,11 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 
 func (em *EntityMetadata[E]) buildCount(query GoQuery) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
-	s := "SELECT count(0) FROM " + em.TableName + whereClause
+	sqlStr := "SELECT count(0) FROM " + em.TableName + whereClause
 
-	logrus.Debug("SQL: ", s)
-	return s, args
+	log.Debug("SQL: ", sqlStr)
+	log.Debug("ARG: ", args)
+	return sqlStr, args
 }
 
 func (em *EntityMetadata[E]) buildDeleteById() string {
@@ -65,13 +64,17 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 
 func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
-	s := "DELETE FROM " + em.TableName + whereClause
-	logrus.Debug("SQL: " + s)
-	return s, args
+	sqlStr := "DELETE FROM " + em.TableName + whereClause
+	log.Debug("SQL: ", sqlStr)
+	log.Debug("ARG: ", args)
+	return sqlStr, args
 }
 
 func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
-	return em.createStr, em.buildArgs(entity)
+	args := em.buildArgs(entity)
+	log.Debug("SQL: ", em.createStr)
+	log.Debug("ARG: ", args)
+	return em.createStr, args
 }
 
 func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
@@ -83,12 +86,16 @@ func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
 	for i := 1; i < len(entities); i++ {
 		createStr += ", " + em.placeholders
 	}
+	log.Debug("SQL: ", createStr)
+	log.Debug("ARG: ", args)
 	return createStr, args
 }
 
 func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	args := em.buildArgs(entity)
 	args = append(args, readId(entity))
+	log.Debug("SQL: ", em.updateStr)
+	log.Debug("ARG: ", args)
 	return em.updateStr, args
 }
 
@@ -112,7 +119,8 @@ func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
 	sqlStr, args := em.buildPatch(entity)
 	sqlStr = sqlStr + whereId
 	args = append(args, readId(entity))
-	logrus.Info("PATCH SQL: ", sqlStr)
+	log.Debug("SQL: ", sqlStr)
+	log.Debug("ARG: ", args)
 	return sqlStr, args
 }
 
@@ -123,7 +131,8 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query GoQuery) ([]any, 
 	args := append(argsE, argsQ...)
 	sqlStr := patchClause + whereClause
 
-	logrus.Debug("PATCH SQL: ", sqlStr)
+	log.Debug("SQL: ", sqlStr)
+	log.Debug("ARG: ", args)
 	return args, sqlStr
 }
 
@@ -156,14 +165,12 @@ func buildEntityMetadata[E any](entity any) EntityMetadata[E] {
 	createStr := "INSERT INTO " + tableName +
 		" (" + strings.Join(columnsWithoutId, ", ") + ") " +
 		"VALUES " + placeholders
-	logrus.Debug("CREATE SQL: ", createStr)
 
 	set := make([]string, len(columnsWithoutId))
 	for i, col := range columnsWithoutId {
 		set[i] = col + " = ?"
 	}
 	updateStr := "UPDATE " + tableName + " SET " + strings.Join(set, ", ") + whereId
-	logrus.Debug("UPDATE SQL: ", updateStr)
 
 	return EntityMetadata[E]{
 		TableName:       tableName,

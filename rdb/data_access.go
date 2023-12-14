@@ -44,6 +44,9 @@ func (da *RelationalDataAccess[C, E]) Query(conn C, query GoQuery) ([]E, error) 
 }
 
 func (da *RelationalDataAccess[C, E]) doQuery(conn C, sqlStr string, args []any) ([]E, error) {
+	log.Debug("SQL: ", sqlStr)
+	log.Debug("ARG: ", args)
+
 	result := []E{}
 
 	entity := da.create()
@@ -139,7 +142,6 @@ func (da *RelationalDataAccess[C, E]) CreateMulti(conn C, entities []E) (int64, 
 		return 0, nil
 	}
 	sqlStr, args := da.em.buildCreateMulti(entities)
-	log.Debug("CREATE SQL: ", sqlStr)
 	result, err := da.doUpdate(conn, sqlStr, args)
 	if NoError(err) {
 		return result.RowsAffected()
