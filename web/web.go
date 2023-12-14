@@ -12,11 +12,12 @@ import (
 	"strings"
 )
 
-type RestService[E any, Q GoQuery] struct {
-	*Service[E, Q]
+type RestService[C any, E any, Q GoQuery] struct {
+	*Service[C, E, Q]
+	Prefix string
 }
 
-func (s *RestService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
 	if len(match) > 0 {
 		id := match[1]
