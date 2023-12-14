@@ -25,10 +25,6 @@ type UserQuery struct {
 	Deleted   *bool
 }
 
-func (q *UserQuery) GetPageQuery() *PageQuery {
-	return &q.PageQuery
-}
-
 type TestEntity struct {
 	Id int
 }

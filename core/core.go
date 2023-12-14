@@ -3,7 +3,8 @@ package core
 import "database/sql"
 
 type GoQuery interface {
-	GetPageQuery() *PageQuery
+	NeedPaging() bool
+	BuildPageClause() string
 }
 
 type Entity interface {
