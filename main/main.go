@@ -17,9 +17,9 @@ func main() {
 
 	createUserEntity := func() UserEntity { return UserEntity{} }
 	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)
-	userController := goquery.BuildController[rdb.Connection, UserEntity, *UserQuery](
+	userController := goquery.BuildController[rdb.Connection, UserEntity, UserQuery](
 		"/user/", db, userDataAccess, createUserEntity,
-		func() *UserQuery { return &UserQuery{} },
+		func() UserQuery { return UserQuery{} },
 	)
 	http.Handle(userController.Prefix, userController)
 

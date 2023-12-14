@@ -14,12 +14,12 @@ func TestWeb(t *testing.T) {
 	db := InitDB()
 	createUserEntity := func() UserEntity { return UserEntity{} }
 	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)
-	service := BuildService[rdb.Connection, UserEntity, *UserQuery](
+	service := BuildService[rdb.Connection, UserEntity, UserQuery](
 		"/user/", db, userDataAccess,
 		createUserEntity,
-		func() *UserQuery { return &UserQuery{} },
+		func() UserQuery { return UserQuery{} },
 	)
-	rs := &RestService[rdb.Connection, UserEntity, *UserQuery]{Service: service}
+	rs := &RestService[rdb.Connection, UserEntity, UserQuery]{Service: service}
 
 	t.Run("Page /user/", func(t *testing.T) {
 		writer := httptest.NewRecorder()

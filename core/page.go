@@ -7,7 +7,7 @@ type PageQuery struct {
 	PageSize   *int
 }
 
-func (pageQuery *PageQuery) BuildPageClause() string {
+func (pageQuery PageQuery) BuildPageClause() string {
 	size := 10
 	page := 0
 
@@ -22,6 +22,6 @@ func (pageQuery *PageQuery) BuildPageClause() string {
 	return fmt.Sprintf(" LIMIT %d OFFSET %d", size, offset)
 }
 
-func (pageQuery *PageQuery) NeedPaging() bool {
+func (pageQuery PageQuery) NeedPaging() bool {
 	return pageQuery.PageSize != nil || pageQuery.PageNumber != nil
 }

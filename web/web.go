@@ -31,14 +31,15 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 	}
 	query := s.createQuery()
 	queryMap := request.URL.Query()
-	resolveQuery(queryMap, query)
+	resolveQuery(queryMap, &query)
 	pageList, err := s.Page(query)
 	writeResult(writer, err, pageList)
 }
 
 func resolveQuery(queryMap url.Values, query any) {
+	elem := reflect.ValueOf(query).Elem()
 	for name, v := range queryMap {
-		field := reflect.ValueOf(query).Elem().FieldByName(name)
+		field := elem.FieldByName(name)
 		if !field.IsValid() {
 			continue
 		}
