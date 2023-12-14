@@ -7,6 +7,10 @@ import (
 	"reflect"
 )
 
+type Connection interface {
+	Prepare(query string) (*sql.Stmt, error)
+}
+
 type RelationalDataAccess[C Connection, E any] struct {
 	em     EntityMetadata[E]
 	create func() E

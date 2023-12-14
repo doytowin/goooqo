@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/doytowin/goquery"
-	"github.com/doytowin/goquery/core"
+	"github.com/doytowin/goquery/rdb"
 	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -16,8 +16,8 @@ func main() {
 	}()
 
 	createUserEntity := func() UserEntity { return UserEntity{} }
-	userDataAccess := goquery.BuildRelationalDataAccess[UserEntity](createUserEntity)
-	userController := goquery.BuildController[core.Connection, UserEntity, *UserQuery](
+	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)
+	userController := goquery.BuildController[rdb.Connection, UserEntity, *UserQuery](
 		"/user/", db, userDataAccess, createUserEntity,
 		func() *UserQuery { return &UserQuery{} },
 	)

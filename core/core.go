@@ -1,7 +1,5 @@
 package core
 
-import "database/sql"
-
 type GoQuery interface {
 	NeedPaging() bool
 	BuildPageClause() string
@@ -14,10 +12,6 @@ type Entity interface {
 type PageList[E any] struct {
 	List  []E
 	Total int
-}
-
-type Connection interface {
-	Prepare(query string) (*sql.Stmt, error)
 }
 
 type DataAccess[C any, E any] interface {
