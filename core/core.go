@@ -11,14 +11,14 @@ type Entity interface {
 
 type PageList[E any] struct {
 	List  []E
-	Total int
+	Total int64
 }
 
 type DataAccess[C any, E any] interface {
 	Get(conn C, id any) (*E, error)
 	Delete(conn C, id any) (int64, error)
 	Query(conn C, query GoQuery) ([]E, error)
-	Count(conn C, query GoQuery) (int, error)
+	Count(conn C, query GoQuery) (int64, error)
 	DeleteByQuery(conn C, query any) (int64, error)
 	Page(conn C, query GoQuery) (PageList[E], error)
 	Create(conn C, entity *E) (int64, error)

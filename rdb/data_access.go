@@ -73,8 +73,8 @@ func (da *RelationalDataAccess[C, E]) doQuery(conn C, sqlStr string, args []any)
 	return result, err
 }
 
-func (da *RelationalDataAccess[C, E]) Count(conn C, query GoQuery) (int, error) {
-	cnt := 0
+func (da *RelationalDataAccess[C, E]) Count(conn C, query GoQuery) (int64, error) {
+	var cnt int64
 	sqlStr, args := da.em.buildCount(query)
 	stmt, err := conn.Prepare(sqlStr)
 	if NoError(err) {
@@ -86,7 +86,7 @@ func (da *RelationalDataAccess[C, E]) Count(conn C, query GoQuery) (int, error) 
 }
 
 func (da *RelationalDataAccess[C, E]) Page(conn C, query GoQuery) (PageList[E], error) {
-	var count int
+	var count int64
 	data, err := da.Query(conn, query)
 	if NoError(err) {
 		count, err = da.Count(conn, query)
