@@ -1,0 +1,34 @@
+package mongodb
+
+import (
+	"context"
+	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"os"
+	"time"
+)
+
+func Connect(ctx context.Context, filenames ...string) *mongo.Client {
+	if err := godotenv.Load(filenames...); err != nil {
+		log.Error(err)
+	}
+
+	uri := os.Getenv("mongodb_uri")
+	if uri == "" {
+		log.Fatal("You must set your 'mongodb_uri' environment variable.")
+	}
+	clientOptions := options.Client().ApplyURI(uri).SetTimeout(time.Second)
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
+func Disconnect(client *mongo.Client, ctx context.Context) {
+	if err := client.Disconnect(ctx); err != nil {
+		panic(err)
+	}
+}
