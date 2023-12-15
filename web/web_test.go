@@ -11,7 +11,10 @@ import (
 func TestWeb(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
-	db := InitDB()
+	db := rdb.Connect("app.properties")
+	InitDB(db)
+	defer rdb.Disconnect(db)
+
 	createUserEntity := func() UserEntity { return UserEntity{} }
 	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)
 	service := BuildService[rdb.Connection, UserEntity, UserQuery](

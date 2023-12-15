@@ -10,10 +10,9 @@ import (
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-	db := InitDB()
-	defer func() {
-		_ = db.Close()
-	}()
+	db := rdb.Connect("local.properties")
+	InitDB(db)
+	defer rdb.Disconnect(db)
 
 	createUserEntity := func() UserEntity { return UserEntity{} }
 	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)

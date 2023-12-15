@@ -3,3 +3,4 @@
 pkg/
 test.db
 local/
+local.*

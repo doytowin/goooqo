@@ -7,10 +7,9 @@ import (
 )
 
 func TestSQLite(t *testing.T) {
-	db := InitDB()
-	defer func() {
-		_ = db.Close()
-	}()
+	db := Connect()
+	InitDB(db)
+	defer Disconnect(db)
 
 	userDataAccess := BuildRelationalDataAccess[UserEntity](func() UserEntity { return UserEntity{} })
 
