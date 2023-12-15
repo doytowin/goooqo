@@ -3,9 +3,9 @@ package test
 import . "github.com/doytowin/goquery/core"
 
 type UserEntity struct {
-	Id    int
-	Score *int
-	Memo  *string
+	Id    int     `json:"id"`
+	Score *int    `json:"score"`
+	Memo  *string `json:"memo"`
 }
 
 func (u UserEntity) GetTableName() string {

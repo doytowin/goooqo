@@ -3,8 +3,8 @@ package core
 import "fmt"
 
 type PageQuery struct {
-	PageNumber *int
-	PageSize   *int
+	PageNumber *int `json:"page,omitempty"`
+	PageSize   *int `json:"size,omitempty"`
 }
 
 func (pageQuery PageQuery) BuildPageClause() string {

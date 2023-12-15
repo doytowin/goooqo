@@ -10,8 +10,8 @@ type Entity interface {
 }
 
 type PageList[E any] struct {
-	List  []E
-	Total int64
+	List  []E   `json:"list"`
+	Total int64 `json:"total"`
 }
 
 type DataAccess[C any, E any] interface {
@@ -29,7 +29,7 @@ type DataAccess[C any, E any] interface {
 }
 
 type Response struct {
-	Data    any
-	Success bool
-	Error   *string
+	Data    any     `json:"data,omitempty"`
+	Success bool    `json:"success"`
+	Error   *string `json:"error,omitempty"`
 }

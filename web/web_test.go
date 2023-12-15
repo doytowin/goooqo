@@ -31,7 +31,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"List":[{"Id":1,"Score":85,"Memo":"Good"},{"Id":2,"Score":40,"Memo":"Bad"}],"Total":4},"Success":true,"Error":null}`
+		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":2,"score":40,"memo":"Bad"}],"total":4},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -44,7 +44,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"List":[],"Total":4},"Success":true,"Error":null}`
+		expect := `{"data":{"list":[],"total":4},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -57,7 +57,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"List":[{"Id":2,"Score":40,"Memo":"Bad"},{"Id":3,"Score":55,"Memo":null}],"Total":2},"Success":true,"Error":null}`
+		expect := `{"data":{"list":[{"id":2,"score":40,"memo":"Bad"},{"id":3,"score":55,"memo":null}],"total":2},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -70,7 +70,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"List":[{"Id":3,"Score":55,"Memo":null}],"Total":1},"Success":true,"Error":null}`
+		expect := `{"data":{"list":[{"id":3,"score":55,"memo":null}],"total":1},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -83,7 +83,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"List":[{"Id":1,"Score":85,"Memo":"Good"}],"Total":1},"Success":true,"Error":null}`
+		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"}],"total":1},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -96,7 +96,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"List":[{"Id":1,"Score":85,"Memo":"Good"},{"Id":4,"Score":62,"Memo":"Well"}],"Total":2},"Success":true,"Error":null}`
+		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -109,7 +109,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":{"Id":1,"Score":85,"Memo":"Good"},"Success":true,"Error":null}`
+		expect := `{"data":{"id":1,"score":85,"memo":"Good"},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -122,7 +122,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual := writer.Body.String()
-		expect := `{"Data":null,"Success":false,"Error":"record not found. id: 100"}`
+		expect := `{"success":false,"error":"record not found. id: 100"}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
