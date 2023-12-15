@@ -136,7 +136,7 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query GoQuery) ([]any, 
 	return args, sqlStr
 }
 
-func buildEntityMetadata[E any](entity any) EntityMetadata[E] {
+func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 	refType := reflect.TypeOf(entity)
 	columns := make([]string, refType.NumField())
 	var columnsWithoutId []string
@@ -149,13 +149,8 @@ func buildEntityMetadata[E any](entity any) EntityMetadata[E] {
 			columnsWithoutId = append(columnsWithoutId, UnCapitalize(field.Name))
 		}
 	}
-	var tableName string
-	v, ok := entity.(Entity)
-	if ok {
-		tableName = v.GetTableName()
-	} else {
-		tableName = strings.TrimSuffix(refType.Name(), "Entity")
-	}
+
+	var tableName = entity.GetTableName()
 
 	placeholders := "(?"
 	for i := 1; i < len(columnsWithoutId); i++ {

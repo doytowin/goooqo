@@ -8,6 +8,10 @@ type UserEntity struct {
 	Memo  *string
 }
 
+func (u UserEntity) GetTableName() string {
+	return "User"
+}
+
 type AccountOr struct {
 	Username *string
 	Email    *string

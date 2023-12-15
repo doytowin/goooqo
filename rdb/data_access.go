@@ -16,12 +16,12 @@ type RelationalDataAccess[C Connection, E any] struct {
 	create func() E
 }
 
-func BuildRelationalDataAccess[E any](createEntity func() E) DataAccess[Connection, E] {
+func BuildRelationalDataAccess[E Entity](createEntity func() E) DataAccess[Connection, E] {
 	e := buildRelationalDataAccess[E](createEntity)
 	return &e
 }
 
-func buildRelationalDataAccess[E any](createEntity func() E) RelationalDataAccess[Connection, E] {
+func buildRelationalDataAccess[E Entity](createEntity func() E) RelationalDataAccess[Connection, E] {
 	em := buildEntityMetadata[E](createEntity())
 	return RelationalDataAccess[Connection, E]{
 		em:     em,
