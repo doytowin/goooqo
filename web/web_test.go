@@ -2,6 +2,8 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
+	"github.com/doytowin/goquery/core"
 	"github.com/doytowin/goquery/rdb"
 	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
@@ -152,6 +154,30 @@ func TestWeb(t *testing.T) {
 		expect = `{"data":{"id":1,"score":90,"memo":"Great"},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
+	t.Run("DELETE /user/{id}", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("DELETE", "/user/3", nil)
+
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":1,"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+
+		writer = httptest.NewRecorder()
+		request = httptest.NewRequest("GET", "/user/", nil)
+		rs.ServeHTTP(writer, request)
+
+		pageList := core.PageList[UserEntity]{}
+		response := core.Response{Data: &pageList}
+		_ = json.Unmarshal(writer.Body.Bytes(), &response)
+		if pageList.Total != 3 {
+			t.Errorf("\nExpected: %d\nBut got : %v", 3, pageList.Total)
 		}
 	})
 }

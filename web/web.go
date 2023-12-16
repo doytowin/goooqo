@@ -32,6 +32,8 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 			if NoError(err) {
 				data, err = s.Update(entity)
 			}
+		case "DELETE":
+			data, err = s.Delete(id)
 		default:
 			var entity *E
 			entity, err = s.Get(id)
