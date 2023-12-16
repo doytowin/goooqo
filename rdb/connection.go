@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"database/sql"
+	"github.com/doytowin/goquery/core"
 	"github.com/joho/godotenv"
 	"io"
 	"os"
@@ -31,6 +32,7 @@ func Connect(filenames ...string) *sql.DB {
 	return db
 
 }
-func Disconnect(db io.Closer) {
-	_ = db.Close()
+
+func Disconnect(c io.Closer) {
+	core.Close(c)
 }
