@@ -5,6 +5,7 @@ import (
 	"fmt"
 	. "github.com/doytowin/goquery/core"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -19,14 +20,28 @@ type RestService[C any, E any, Q GoQuery] struct {
 
 func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
+	var data any
+	var err error
 	if len(match) > 0 {
 		id := match[1]
-		data, err := s.Get(id)
-		if data == nil {
-			writeResult(writer, fmt.Errorf("record not found. id: %s", id), nil)
-		} else {
-			writeResult(writer, err, *data)
+		switch request.Method {
+		case "PUT":
+			body, _ := io.ReadAll(request.Body)
+			entity := s.createEntity()
+			err = json.Unmarshal(body, &entity)
+			if NoError(err) {
+				data, err = s.Update(entity)
+			}
+		default:
+			var entity *E
+			entity, err = s.Get(id)
+			if entity == nil && NoError(err) {
+				err = fmt.Errorf("record not found. id: %s", id)
+			} else {
+				data = entity
+			}
 		}
+		writeResult(writer, err, data)
 		return
 	}
 	query := s.createQuery()

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"github.com/doytowin/goquery/rdb"
 	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
@@ -123,6 +124,32 @@ func TestWeb(t *testing.T) {
 
 		actual := writer.Body.String()
 		expect := `{"success":false,"error":"record not found. id: 100"}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
+	t.Run("PUT /user/1", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		body := bytes.NewBufferString(`{"id":1,"score":90,"memo":"Great"}`)
+		request := httptest.NewRequest("PUT", "/user/1", body)
+
+		request.Header.Set("content-type", "application/json; charset=utf-8")
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":1,"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+
+		writer = httptest.NewRecorder()
+		request = httptest.NewRequest("GET", "/user/1", nil)
+
+		rs.ServeHTTP(writer, request)
+
+		actual = writer.Body.String()
+		expect = `{"data":{"id":1,"score":90,"memo":"Great"},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}

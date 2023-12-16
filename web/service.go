@@ -6,8 +6,9 @@ import (
 )
 
 type RestAPI[E any, Q GoQuery] interface {
-	Page(q Q) (PageList[E], error)
+	Page(Q) (PageList[E], error)
 	Get(id any) (*E, error)
+	Update(E) (int64, error)
 }
 
 type Service[C any, E any, Q GoQuery] struct {
@@ -24,6 +25,10 @@ func (s *Service[C, E, Q]) Page(q Q) (PageList[E], error) {
 
 func (s *Service[C, E, Q]) Get(id any) (*E, error) {
 	return s.dataAccess.Get(s.c, id)
+}
+
+func (s *Service[C, E, Q]) Update(entity E) (int64, error) {
+	return s.dataAccess.Update(s.c, entity)
 }
 
 func BuildService[C any, E any, Q GoQuery](
