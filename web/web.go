@@ -30,7 +30,16 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 			entity := s.createEntity()
 			err = json.Unmarshal(body, &entity)
 			if NoError(err) {
+				writeId(&entity, id)
 				data, err = s.Update(entity)
+			}
+		case "PATCH":
+			body, _ := io.ReadAll(request.Body)
+			entity := s.createEntity()
+			err = json.Unmarshal(body, &entity)
+			if NoError(err) {
+				writeId(&entity, id)
+				data, err = s.Patch(entity)
 			}
 		case "DELETE":
 			data, err = s.Delete(id)
@@ -53,6 +62,14 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 	writeResult(writer, err, pageList)
 }
 
+func writeId(entity any, id string) {
+	rv := reflect.ValueOf(entity).Elem()
+	field := rv.FieldByName("Id")
+	if field.IsValid() {
+		resolvePointer(field, []string{id})
+	}
+}
+
 func resolveQuery(queryMap url.Values, query any) {
 	elem := reflect.ValueOf(query).Elem()
 	for name, v := range queryMap {
@@ -72,7 +89,8 @@ func resolveQuery(queryMap url.Values, query any) {
 
 func resolvePointer(field reflect.Value, v []string) {
 	log.Debug("field.Type: ", field.Type())
-	if field.Type().String() == "*[]int" {
+	fieldType := field.Type().String()
+	if fieldType == "*[]int" {
 		strArr := strings.Split(v[0], ",")
 		var v0 []int
 		for _, s := range strArr {
@@ -82,10 +100,15 @@ func resolvePointer(field reflect.Value, v []string) {
 			}
 		}
 		field.Set(reflect.ValueOf(&v0))
-	} else if field.Type().String() == "*int" {
+	} else if fieldType == "*int" {
 		v0, err := strconv.Atoi(v[0])
 		if NoError(err) {
 			field.Set(reflect.ValueOf(&v0))
+		}
+	} else if fieldType == "int" {
+		v0, err := strconv.Atoi(v[0])
+		if NoError(err) {
+			field.Set(reflect.ValueOf(v0))
 		}
 	} else {
 		field.Set(reflect.ValueOf(&v[0]))

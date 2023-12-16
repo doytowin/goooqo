@@ -133,7 +133,7 @@ func TestWeb(t *testing.T) {
 
 	t.Run("PUT /user/1", func(t *testing.T) {
 		writer := httptest.NewRecorder()
-		body := bytes.NewBufferString(`{"id":1,"score":90,"memo":"Great"}`)
+		body := bytes.NewBufferString(`{"score":90}`)
 		request := httptest.NewRequest("PUT", "/user/1", body)
 
 		request.Header.Set("content-type", "application/json; charset=utf-8")
@@ -151,7 +151,7 @@ func TestWeb(t *testing.T) {
 		rs.ServeHTTP(writer, request)
 
 		actual = writer.Body.String()
-		expect = `{"data":{"id":1,"score":90,"memo":"Great"},"success":true}`
+		expect = `{"data":{"id":1,"score":90,"memo":null},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
@@ -178,6 +178,31 @@ func TestWeb(t *testing.T) {
 		_ = json.Unmarshal(writer.Body.Bytes(), &response)
 		if pageList.Total != 3 {
 			t.Errorf("\nExpected: %d\nBut got : %v", 3, pageList.Total)
+		}
+	})
+
+	t.Run("PATCH /user/{id}", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		body := bytes.NewBufferString(`{"score":60}`)
+		request := httptest.NewRequest("PATCH", "/user/2", body)
+		request.Header.Set("content-type", "application/json; charset=utf-8")
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":1,"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+
+		writer = httptest.NewRecorder()
+		request = httptest.NewRequest("GET", "/user/2", nil)
+		rs.ServeHTTP(writer, request)
+
+		actual = writer.Body.String()
+		expect = `{"data":{"id":2,"score":60,"memo":"Bad"},"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
 }
