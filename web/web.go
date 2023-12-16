@@ -24,42 +24,60 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 	var err error
 	if len(match) > 0 {
 		id := match[1]
-		switch request.Method {
-		case "PUT":
-			body, _ := io.ReadAll(request.Body)
-			entity := s.createEntity()
-			err = json.Unmarshal(body, &entity)
-			if NoError(err) {
-				writeId(&entity, id)
-				data, err = s.Update(entity)
-			}
-		case "PATCH":
-			body, _ := io.ReadAll(request.Body)
-			entity := s.createEntity()
-			err = json.Unmarshal(body, &entity)
-			if NoError(err) {
-				writeId(&entity, id)
-				data, err = s.Patch(entity)
-			}
-		case "DELETE":
-			data, err = s.Delete(id)
-		default:
-			var entity *E
-			entity, err = s.Get(id)
-			if entity == nil && NoError(err) {
-				err = fmt.Errorf("record not found. id: %s", id)
-			} else {
-				data = entity
-			}
+		data, err = s.process(request, id)
+		writeResult(writer, err, data)
+		return
+	}
+	if request.Method == "POST" {
+		body, _ := io.ReadAll(request.Body)
+		var entity []E
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			data, err = s.CreateMulti(entity)
 		}
 		writeResult(writer, err, data)
 		return
 	}
+
 	query := s.createQuery()
 	queryMap := request.URL.Query()
 	resolveQuery(queryMap, &query)
 	pageList, err := s.Page(query)
 	writeResult(writer, err, pageList)
+}
+
+func (s *RestService[C, E, Q]) process(request *http.Request, id string) (any, error) {
+	var err error
+	var data any
+	switch request.Method {
+	case "PUT":
+		body, _ := io.ReadAll(request.Body)
+		entity := s.createEntity()
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			writeId(&entity, id)
+			return s.Update(entity)
+		}
+	case "PATCH":
+		body, _ := io.ReadAll(request.Body)
+		entity := s.createEntity()
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			writeId(&entity, id)
+			return s.Patch(entity)
+		}
+	case "DELETE":
+		return s.Delete(id)
+	default:
+		var entity *E
+		entity, err = s.Get(id)
+		if entity == nil && NoError(err) {
+			err = fmt.Errorf("record not found. id: %s", id)
+		} else {
+			data = entity
+		}
+	}
+	return data, err
 }
 
 func writeId(entity any, id string) {

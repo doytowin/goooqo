@@ -205,4 +205,29 @@ func TestWeb(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
+
+	t.Run("POST /user/", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		body := bytes.NewBufferString(`[{"score":60, "memo":"Well"}]`)
+		request := httptest.NewRequest("POST", "/user/", body)
+		request.Header.Set("content-type", "application/json; charset=utf-8")
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":1,"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+
+		writer = httptest.NewRecorder()
+		request = httptest.NewRequest("GET", "/user/5", nil)
+		rs.ServeHTTP(writer, request)
+
+		actual = writer.Body.String()
+		expect = `{"data":{"id":5,"score":60,"memo":"Well"},"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
 }

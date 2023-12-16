@@ -8,6 +8,7 @@ import (
 type RestAPI[E any, Q GoQuery] interface {
 	Page(Q) (PageList[E], error)
 	Get(id any) (*E, error)
+	CreateMulti([]E) (int64, error)
 	Update(E) (int64, error)
 	Patch(E) (int64, error)
 	Delete(id string) (any, error)
@@ -27,6 +28,10 @@ func (s *Service[C, E, Q]) Page(q Q) (PageList[E], error) {
 
 func (s *Service[C, E, Q]) Get(id any) (*E, error) {
 	return s.dataAccess.Get(s.c, id)
+}
+
+func (s *Service[C, E, Q]) CreateMulti(entities []E) (int64, error) {
+	return s.dataAccess.CreateMulti(s.c, entities)
 }
 
 func (s *Service[C, E, Q]) Update(entity E) (int64, error) {
