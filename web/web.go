@@ -137,7 +137,7 @@ func writeResult(writer http.ResponseWriter, err error, data any) {
 	response := Response{Data: data, Success: NoError(err), Error: ReadError(err)}
 	marshal, err := json.Marshal(response)
 	if NoError(err) {
-		writer.Header().Set("Content-Type", "application/json")
+		writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_, _ = writer.Write(marshal)
 	}
 }
