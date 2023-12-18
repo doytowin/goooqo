@@ -1,6 +1,7 @@
 package goquery
 
 import (
+	"context"
 	"github.com/doytowin/goquery/core"
 	"github.com/doytowin/goquery/web"
 )
@@ -13,14 +14,14 @@ type Entity = core.Entity
 
 type DataAccess[C any, E any] core.DataAccess[C, E]
 
-func BuildController[C any, E any, Q GoQuery](
-	prefix string, c C,
-	dataAccess DataAccess[C, E],
+func BuildController[E any, Q GoQuery](
+	prefix string,
+	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,
 	createQuery func() Q,
-) *web.RestService[C, E, Q] {
-	return &web.RestService[C, E, Q]{
-		Service: web.BuildService[C, E, Q](prefix, c, dataAccess, createEntity, createQuery),
+) *web.RestService[E, Q] {
+	return &web.RestService[E, Q]{
+		Service: web.BuildService[E, Q](prefix, dataAccess, createEntity, createQuery),
 		Prefix:  prefix,
 	}
 }

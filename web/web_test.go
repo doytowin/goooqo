@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/doytowin/goquery/core"
 	"github.com/doytowin/goquery/rdb"
@@ -18,14 +19,17 @@ func TestWeb(t *testing.T) {
 	InitDB(db)
 	defer rdb.Disconnect(db)
 
+	ctx := context.Background()
+	tm := rdb.NewTransactionManager(db)
+
 	createUserEntity := func() UserEntity { return UserEntity{} }
-	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)
-	service := BuildService[rdb.Connection, UserEntity, UserQuery](
-		"/user/", db, userDataAccess,
+	userDataAccess := rdb.NewTxDataAccess[UserEntity](db, createUserEntity)
+	service := BuildService[UserEntity, UserQuery](
+		"/user/", userDataAccess,
 		createUserEntity,
 		func() UserQuery { return UserQuery{} },
 	)
-	rs := &RestService[rdb.Connection, UserEntity, UserQuery]{Service: service}
+	rs := &RestService[UserEntity, UserQuery]{Service: service}
 
 	t.Run("Page /user/", func(t *testing.T) {
 		writer := httptest.NewRecorder()
@@ -132,9 +136,12 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("PUT /user/1", func(t *testing.T) {
+		tc := tm.StartTransaction(ctx)
+		defer tc.Rollback()
+
 		writer := httptest.NewRecorder()
 		body := bytes.NewBufferString(`{"score":90}`)
-		request := httptest.NewRequest("PUT", "/user/1", body)
+		request := httptest.NewRequest("PUT", "/user/1", body).WithContext(tc)
 
 		request.Header.Set("content-type", "application/json; charset=utf-8")
 		rs.ServeHTTP(writer, request)
@@ -146,7 +153,7 @@ func TestWeb(t *testing.T) {
 		}
 
 		writer = httptest.NewRecorder()
-		request = httptest.NewRequest("GET", "/user/1", nil)
+		request = httptest.NewRequest("GET", "/user/1", nil).WithContext(tc)
 
 		rs.ServeHTTP(writer, request)
 
@@ -158,8 +165,10 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("DELETE /user/{id}", func(t *testing.T) {
+		tc := tm.StartTransaction(ctx)
+		defer tc.Rollback()
 		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("DELETE", "/user/3", nil)
+		request := httptest.NewRequest("DELETE", "/user/1", nil).WithContext(tc)
 
 		rs.ServeHTTP(writer, request)
 
@@ -170,7 +179,7 @@ func TestWeb(t *testing.T) {
 		}
 
 		writer = httptest.NewRecorder()
-		request = httptest.NewRequest("GET", "/user/", nil)
+		request = httptest.NewRequest("GET", "/user/", nil).WithContext(tc)
 		rs.ServeHTTP(writer, request)
 
 		pageList := core.PageList[UserEntity]{}
@@ -182,9 +191,12 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("PATCH /user/{id}", func(t *testing.T) {
+		tc := tm.StartTransaction(ctx)
+		defer tc.Rollback()
+
 		writer := httptest.NewRecorder()
-		body := bytes.NewBufferString(`{"score":60}`)
-		request := httptest.NewRequest("PATCH", "/user/2", body)
+		body := bytes.NewBufferString(`{"score":33}`)
+		request := httptest.NewRequest("PATCH", "/user/1", body).WithContext(tc)
 		request.Header.Set("content-type", "application/json; charset=utf-8")
 		rs.ServeHTTP(writer, request)
 
@@ -196,20 +208,22 @@ func TestWeb(t *testing.T) {
 		}
 
 		writer = httptest.NewRecorder()
-		request = httptest.NewRequest("GET", "/user/2", nil)
+		request = httptest.NewRequest("GET", "/user/1", nil).WithContext(tc)
 		rs.ServeHTTP(writer, request)
 
 		actual = writer.Body.String()
-		expect = `{"data":{"id":2,"score":60,"memo":"Bad"},"success":true}`
+		expect = `{"data":{"id":1,"score":33,"memo":"Good"},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
 
 	t.Run("POST /user/", func(t *testing.T) {
+		tc := tm.StartTransaction(ctx)
+		defer tc.Rollback()
 		writer := httptest.NewRecorder()
 		body := bytes.NewBufferString(`[{"score":60, "memo":"Well"}]`)
-		request := httptest.NewRequest("POST", "/user/", body)
+		request := httptest.NewRequest("POST", "/user/", body).WithContext(tc)
 		request.Header.Set("content-type", "application/json; charset=utf-8")
 		rs.ServeHTTP(writer, request)
 
@@ -221,7 +235,7 @@ func TestWeb(t *testing.T) {
 		}
 
 		writer = httptest.NewRecorder()
-		request = httptest.NewRequest("GET", "/user/5", nil)
+		request = httptest.NewRequest("GET", "/user/5", nil).WithContext(tc)
 		rs.ServeHTTP(writer, request)
 
 		actual = writer.Body.String()

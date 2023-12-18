@@ -1,59 +1,58 @@
 package web
 
 import (
+	"context"
 	. "github.com/doytowin/goquery/core"
 	"regexp"
 )
 
 type RestAPI[E any, Q GoQuery] interface {
-	Page(Q) (PageList[E], error)
-	Get(id any) (*E, error)
-	CreateMulti([]E) (int64, error)
-	Update(E) (int64, error)
-	Patch(E) (int64, error)
-	Delete(id string) (any, error)
+	Page(ctx context.Context, query Q) (PageList[E], error)
+	Get(ctx context.Context, id any) (*E, error)
+	CreateMulti(ctx context.Context, entities []E) (int64, error)
+	Update(ctx context.Context, e E) (int64, error)
+	Patch(ctx context.Context, e E) (int64, error)
+	Delete(ctx context.Context, id string) (any, error)
 }
 
-type Service[C any, E any, Q GoQuery] struct {
-	c            C
-	dataAccess   DataAccess[C, E]
+type Service[E any, Q GoQuery] struct {
+	dataAccess   DataAccess[context.Context, E]
 	createQuery  func() Q
 	createEntity func() E
 	idRgx        *regexp.Regexp
 }
 
-func (s *Service[C, E, Q]) Page(q Q) (PageList[E], error) {
-	return s.dataAccess.Page(s.c, q)
+func (s *Service[E, Q]) Page(ctx context.Context, query Q) (PageList[E], error) {
+	return s.dataAccess.Page(ctx, query)
 }
 
-func (s *Service[C, E, Q]) Get(id any) (*E, error) {
-	return s.dataAccess.Get(s.c, id)
+func (s *Service[E, Q]) Get(ctx context.Context, id any) (*E, error) {
+	return s.dataAccess.Get(ctx, id)
 }
 
-func (s *Service[C, E, Q]) CreateMulti(entities []E) (int64, error) {
-	return s.dataAccess.CreateMulti(s.c, entities)
+func (s *Service[E, Q]) CreateMulti(ctx context.Context, entities []E) (int64, error) {
+	return s.dataAccess.CreateMulti(ctx, entities)
 }
 
-func (s *Service[C, E, Q]) Update(entity E) (int64, error) {
-	return s.dataAccess.Update(s.c, entity)
+func (s *Service[E, Q]) Update(ctx context.Context, entity E) (int64, error) {
+	return s.dataAccess.Update(ctx, entity)
 }
 
-func (s *Service[C, E, Q]) Patch(entity E) (int64, error) {
-	return s.dataAccess.Patch(s.c, entity)
+func (s *Service[E, Q]) Patch(ctx context.Context, entity E) (int64, error) {
+	return s.dataAccess.Patch(ctx, entity)
 }
 
-func (s *Service[C, E, Q]) Delete(id string) (any, error) {
-	return s.dataAccess.Delete(s.c, id)
+func (s *Service[E, Q]) Delete(ctx context.Context, id string) (any, error) {
+	return s.dataAccess.Delete(ctx, id)
 }
 
-func BuildService[C any, E any, Q GoQuery](
-	prefix string, c C,
-	dataAccess DataAccess[C, E],
+func BuildService[E any, Q GoQuery](
+	prefix string,
+	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,
 	createQuery func() Q,
-) *Service[C, E, Q] {
-	return &Service[C, E, Q]{
-		c:            c,
+) *Service[E, Q] {
+	return &Service[E, Q]{
 		dataAccess:   dataAccess,
 		createQuery:  createQuery,
 		createEntity: createEntity,

@@ -13,12 +13,12 @@ import (
 	"strings"
 )
 
-type RestService[C any, E any, Q GoQuery] struct {
-	*Service[C, E, Q]
+type RestService[E any, Q GoQuery] struct {
+	*Service[E, Q]
 	Prefix string
 }
 
-func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (s *RestService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
 	var data any
 	var err error
@@ -33,7 +33,7 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 		var entity []E
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			data, err = s.CreateMulti(entity)
+			data, err = s.CreateMulti(request.Context(), entity)
 		}
 		writeResult(writer, err, data)
 		return
@@ -42,11 +42,11 @@ func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *ht
 	query := s.createQuery()
 	queryMap := request.URL.Query()
 	resolveQuery(queryMap, &query)
-	pageList, err := s.Page(query)
+	pageList, err := s.Page(request.Context(), query)
 	writeResult(writer, err, pageList)
 }
 
-func (s *RestService[C, E, Q]) process(request *http.Request, id string) (any, error) {
+func (s *RestService[E, Q]) process(request *http.Request, id string) (any, error) {
 	var err error
 	var data any
 	switch request.Method {
@@ -56,7 +56,7 @@ func (s *RestService[C, E, Q]) process(request *http.Request, id string) (any, e
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
 			writeId(&entity, id)
-			return s.Update(entity)
+			return s.Update(request.Context(), entity)
 		}
 	case "PATCH":
 		body, _ := io.ReadAll(request.Body)
@@ -64,13 +64,13 @@ func (s *RestService[C, E, Q]) process(request *http.Request, id string) (any, e
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
 			writeId(&entity, id)
-			return s.Patch(entity)
+			return s.Patch(request.Context(), entity)
 		}
 	case "DELETE":
-		return s.Delete(id)
+		return s.Delete(request.Context(), id)
 	default:
 		var entity *E
-		entity, err = s.Get(id)
+		entity, err = s.Get(request.Context(), id)
 		if entity == nil && NoError(err) {
 			err = fmt.Errorf("record not found. id: %s", id)
 		} else {

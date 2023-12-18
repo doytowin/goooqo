@@ -1,5 +1,10 @@
 package core
 
+import (
+	"context"
+	"database/sql/driver"
+)
+
 type GoQuery interface {
 	NeedPaging() bool
 	BuildPageClause() string
@@ -32,4 +37,13 @@ type Response struct {
 	Data    any     `json:"data,omitempty"`
 	Success bool    `json:"success"`
 	Error   *string `json:"error,omitempty"`
+}
+
+type TransactionManager interface {
+	StartTransaction(ctx context.Context) TransactionContext
+}
+
+type TransactionContext interface {
+	context.Context
+	driver.Tx
 }

@@ -14,9 +14,9 @@ func TestBuild(t *testing.T) {
 
 	t.Run("Export Interface", func(t *testing.T) {
 		var db *sql.DB
-		dataAccess := rdb.BuildRelationalDataAccess[UserEntity](func() UserEntity { return UserEntity{} })
-		rc := BuildController[rdb.Connection, UserEntity, UserQuery](
-			"/user/", db, dataAccess,
+		dataAccess := rdb.NewTxDataAccess[UserEntity](db, func() UserEntity { return UserEntity{} })
+		rc := BuildController[UserEntity, UserQuery](
+			"/user/", dataAccess,
 			func() UserEntity { return UserEntity{} },
 			func() UserQuery { return UserQuery{} },
 		)
