@@ -15,6 +15,8 @@ type Entity = core.Entity
 
 type DataAccess[C any, E any] core.DataAccess[C, E]
 
+type TransactionManager = core.TransactionManager
+
 func BuildRestService[E any, Q GoQuery](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],

@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/doytowin/goquery"
-	"github.com/doytowin/goquery/core"
 	"github.com/doytowin/goquery/rdb"
 	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
@@ -17,7 +16,7 @@ func main() {
 
 	tm := rdb.NewTransactionManager(db)
 
-	buildUserRestService(tm)
+	buildUserModule(tm)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
@@ -25,7 +24,7 @@ func main() {
 	}
 }
 
-func buildUserRestService(tm core.TransactionManager) {
+func buildUserModule(tm goquery.TransactionManager) {
 	createUserEntity := func() UserEntity { return UserEntity{} }
 	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm, createUserEntity)
 	goquery.BuildRestService[UserEntity, UserQuery](
