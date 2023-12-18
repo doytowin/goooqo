@@ -5,6 +5,17 @@ import (
 	"database/sql/driver"
 )
 
+type PageList[E any] struct {
+	List  []E   `json:"list"`
+	Total int64 `json:"total"`
+}
+
+type Response struct {
+	Data    any     `json:"data,omitempty"`
+	Success bool    `json:"success"`
+	Error   *string `json:"error,omitempty"`
+}
+
 type GoQuery interface {
 	NeedPaging() bool
 	BuildPageClause() string
@@ -12,11 +23,6 @@ type GoQuery interface {
 
 type Entity interface {
 	GetTableName() string
-}
-
-type PageList[E any] struct {
-	List  []E   `json:"list"`
-	Total int64 `json:"total"`
 }
 
 type DataAccess[C any, E any] interface {
@@ -33,17 +39,17 @@ type DataAccess[C any, E any] interface {
 	PatchByQuery(conn C, entity E, query GoQuery) (int64, error)
 }
 
-type Response struct {
-	Data    any     `json:"data,omitempty"`
-	Success bool    `json:"success"`
-	Error   *string `json:"error,omitempty"`
-}
-
 type TransactionManager interface {
+	GetClient() any
 	StartTransaction(ctx context.Context) TransactionContext
 }
 
 type TransactionContext interface {
 	context.Context
 	driver.Tx
+}
+
+type TxDataAccess[E any, Q GoQuery] interface {
+	TransactionManager
+	DataAccess[context.Context, E]
 }

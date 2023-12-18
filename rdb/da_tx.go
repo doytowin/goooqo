@@ -11,14 +11,16 @@ type Ck struct {
 var connKey = Ck{}
 
 type txDataAccess[C context.Context, E any] struct {
+	TransactionManager
 	conn     Connection
 	delegate DataAccess[Connection, E]
 }
 
-func NewTxDataAccess[E Entity](conn Connection, createEntity func() E) DataAccess[context.Context, E] {
+func NewTxDataAccess[E Entity](tm TransactionManager, createEntity func() E) DataAccess[context.Context, E] {
 	return &txDataAccess[context.Context, E]{
-		conn:     conn,
-		delegate: BuildRelationalDataAccess[E](createEntity),
+		TransactionManager: tm,
+		conn:               tm.GetClient().(Connection),
+		delegate:           newRelationalDataAccess[E](createEntity),
 	}
 }
 

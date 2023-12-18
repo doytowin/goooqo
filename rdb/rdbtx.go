@@ -10,6 +10,10 @@ type rdbTransactionManager struct {
 	db *sql.DB
 }
 
+func (t *rdbTransactionManager) GetClient() any {
+	return t.db
+}
+
 func NewTransactionManager(db *sql.DB) TransactionManager {
 	return &rdbTransactionManager{db: db}
 }
@@ -21,7 +25,7 @@ func getTx(ctx context.Context) *sql.Tx {
 	return nil
 }
 
-func (t rdbTransactionManager) StartTransaction(ctx context.Context) TransactionContext {
+func (t *rdbTransactionManager) StartTransaction(ctx context.Context) TransactionContext {
 	var err error
 	tx := getTx(ctx)
 	txCtx := ctx

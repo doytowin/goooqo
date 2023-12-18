@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/doytowin/goquery/core"
 	"github.com/doytowin/goquery/web"
+	"net/http"
 )
 
 type GoQuery = core.GoQuery
@@ -14,14 +15,12 @@ type Entity = core.Entity
 
 type DataAccess[C any, E any] core.DataAccess[C, E]
 
-func BuildController[E any, Q GoQuery](
+func BuildRestService[E any, Q GoQuery](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,
 	createQuery func() Q,
-) *web.RestService[E, Q] {
-	return &web.RestService[E, Q]{
-		Service: web.BuildService[E, Q](prefix, dataAccess, createEntity, createQuery),
-		Prefix:  prefix,
-	}
+) {
+	s := web.NewRestService[E, Q](prefix, dataAccess, createEntity, createQuery)
+	http.Handle(prefix, s)
 }

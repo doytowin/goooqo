@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	. "github.com/doytowin/goquery/core"
@@ -9,16 +10,33 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
-type RestService[E any, Q GoQuery] struct {
-	*Service[E, Q]
-	Prefix string
+type restService[E any, Q GoQuery] struct {
+	DataAccess[context.Context, E]
+	createQuery  func() Q
+	createEntity func() E
+	idRgx        *regexp.Regexp
 }
 
-func (s *RestService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func NewRestService[E any, Q GoQuery](
+	prefix string,
+	dataAccess DataAccess[context.Context, E],
+	createEntity func() E,
+	createQuery func() Q,
+) http.Handler {
+	return &restService[E, Q]{
+		DataAccess:   dataAccess,
+		createQuery:  createQuery,
+		createEntity: createEntity,
+		idRgx:        regexp.MustCompile(prefix + `(\d+)$`),
+	}
+}
+
+func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
 	var data any
 	var err error
@@ -46,7 +64,7 @@ func (s *RestService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 	writeResult(writer, err, pageList)
 }
 
-func (s *RestService[E, Q]) process(request *http.Request, id string) (any, error) {
+func (s *restService[E, Q]) process(request *http.Request, id string) (any, error) {
 	var err error
 	var data any
 	switch request.Method {
