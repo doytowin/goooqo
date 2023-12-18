@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"github.com/doytowin/goquery"
 	"github.com/doytowin/goquery/mongodb"
 	"github.com/doytowin/goquery/rdb"
@@ -17,14 +16,15 @@ func main() {
 	db := rdb.Connect("local.properties")
 	InitDB(db)
 	defer rdb.Disconnect(db)
+	tm := rdb.NewTransactionManager(db)
 
-	buildUserModule(db)
+	buildUserModule(tm)
 
 	ctx := context.Background()
 	var client = mongodb.Connect(ctx, "local.properties")
 	defer mongodb.Disconnect(client, ctx)
 
-	buildInventoryModule(client, ctx)
+	buildInventoryModule(client)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
@@ -32,22 +32,22 @@ func main() {
 	}
 }
 
-func buildUserModule(db *sql.DB) {
+func buildUserModule(tm goquery.TransactionManager) {
 	createUserEntity := func() UserEntity { return UserEntity{} }
-	userDataAccess := rdb.BuildRelationalDataAccess[UserEntity](createUserEntity)
-	userController := goquery.BuildController[rdb.Connection, UserEntity, UserQuery](
-		"/user/", db, userDataAccess, createUserEntity,
+	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm, createUserEntity)
+	goquery.BuildRestService[UserEntity, UserQuery](
+		"/user/",
+		userDataAccess,
+		createUserEntity,
 		func() UserQuery { return UserQuery{} },
 	)
-	http.Handle(userController.Prefix, userController)
 }
 
-func buildInventoryModule(client *mongo.Client, ctx context.Context) {
+func buildInventoryModule(client *mongo.Client) {
 	mongoDataAccess := mongodb.BuildMongoDataAccess[context.Context, InventoryEntity](client, func() InventoryEntity { return InventoryEntity{} })
 	createInventoryEntity := func() InventoryEntity { return InventoryEntity{} }
-	roleController := goquery.BuildController[context.Context, InventoryEntity, InventoryQuery](
-		"/inventory/", ctx, mongoDataAccess, createInventoryEntity,
+	goquery.BuildRestService[InventoryEntity, InventoryQuery](
+		"/inventory/", mongoDataAccess, createInventoryEntity,
 		func() InventoryQuery { return InventoryQuery{} },
 	)
-	http.Handle(roleController.Prefix, roleController)
 }

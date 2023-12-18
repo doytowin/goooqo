@@ -1,39 +1,109 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	. "github.com/doytowin/goquery/core"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
-type RestService[C any, E any, Q GoQuery] struct {
-	*Service[C, E, Q]
-	Prefix string
+type restService[E any, Q GoQuery] struct {
+	DataAccess[context.Context, E]
+	createQuery  func() Q
+	createEntity func() E
+	idRgx        *regexp.Regexp
 }
 
-func (s *RestService[C, E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func NewRestService[E any, Q GoQuery](
+	prefix string,
+	dataAccess DataAccess[context.Context, E],
+	createEntity func() E,
+	createQuery func() Q,
+) http.Handler {
+	return &restService[E, Q]{
+		DataAccess:   dataAccess,
+		createQuery:  createQuery,
+		createEntity: createEntity,
+		idRgx:        regexp.MustCompile(prefix + `(\d+)$`),
+	}
+}
+
+func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
+	var data any
+	var err error
 	if len(match) > 0 {
 		id := match[1]
-		data, err := s.Get(id)
-		if data == nil {
-			writeResult(writer, fmt.Errorf("record not found. id: %s", id), nil)
-		} else {
-			writeResult(writer, err, *data)
-		}
+		data, err = s.process(request, id)
+		writeResult(writer, err, data)
 		return
 	}
+	if request.Method == "POST" {
+		body, _ := io.ReadAll(request.Body)
+		var entity []E
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			data, err = s.CreateMulti(request.Context(), entity)
+		}
+		writeResult(writer, err, data)
+		return
+	}
+
 	query := s.createQuery()
 	queryMap := request.URL.Query()
 	resolveQuery(queryMap, &query)
-	pageList, err := s.Page(query)
+	pageList, err := s.Page(request.Context(), query)
 	writeResult(writer, err, pageList)
+}
+
+func (s *restService[E, Q]) process(request *http.Request, id string) (any, error) {
+	var err error
+	var data any
+	switch request.Method {
+	case "PUT":
+		body, _ := io.ReadAll(request.Body)
+		entity := s.createEntity()
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			writeId(&entity, id)
+			return s.Update(request.Context(), entity)
+		}
+	case "PATCH":
+		body, _ := io.ReadAll(request.Body)
+		entity := s.createEntity()
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			writeId(&entity, id)
+			return s.Patch(request.Context(), entity)
+		}
+	case "DELETE":
+		return s.Delete(request.Context(), id)
+	default:
+		var entity *E
+		entity, err = s.Get(request.Context(), id)
+		if entity == nil && NoError(err) {
+			err = fmt.Errorf("record not found. id: %s", id)
+		} else {
+			data = entity
+		}
+	}
+	return data, err
+}
+
+func writeId(entity any, id string) {
+	rv := reflect.ValueOf(entity).Elem()
+	field := rv.FieldByName("Id")
+	if field.IsValid() {
+		resolvePointer(field, []string{id})
+	}
 }
 
 func resolveQuery(queryMap url.Values, query any) {
@@ -55,7 +125,8 @@ func resolveQuery(queryMap url.Values, query any) {
 
 func resolvePointer(field reflect.Value, v []string) {
 	log.Debug("field.Type: ", field.Type())
-	if field.Type().String() == "*[]int" {
+	fieldType := field.Type().String()
+	if fieldType == "*[]int" {
 		strArr := strings.Split(v[0], ",")
 		var v0 []int
 		for _, s := range strArr {
@@ -65,10 +136,15 @@ func resolvePointer(field reflect.Value, v []string) {
 			}
 		}
 		field.Set(reflect.ValueOf(&v0))
-	} else if field.Type().String() == "*int" {
+	} else if fieldType == "*int" {
 		v0, err := strconv.Atoi(v[0])
 		if NoError(err) {
 			field.Set(reflect.ValueOf(&v0))
+		}
+	} else if fieldType == "int" {
+		v0, err := strconv.Atoi(v[0])
+		if NoError(err) {
+			field.Set(reflect.ValueOf(v0))
 		}
 	} else {
 		field.Set(reflect.ValueOf(&v[0]))
@@ -79,7 +155,7 @@ func writeResult(writer http.ResponseWriter, err error, data any) {
 	response := Response{Data: data, Success: NoError(err), Error: ReadError(err)}
 	marshal, err := json.Marshal(response)
 	if NoError(err) {
-		writer.Header().Set("Content-Type", "application/json")
+		writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_, _ = writer.Write(marshal)
 	}
 }

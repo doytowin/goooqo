@@ -2,6 +2,7 @@ package core
 
 import (
 	log "github.com/sirupsen/logrus"
+	"io"
 	"reflect"
 	"strings"
 )
@@ -52,4 +53,8 @@ func NoError(err error) bool {
 		log.Error("Error occurred! ", err)
 	}
 	return err == nil
+}
+
+func Close(db io.Closer) {
+	NoError(db.Close())
 }

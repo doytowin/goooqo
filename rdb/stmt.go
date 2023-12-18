@@ -21,17 +21,15 @@ type EntityMetadata[E any] struct {
 func readId(entity any) any {
 	rv := reflect.ValueOf(entity)
 	value := rv.FieldByName("Id")
-	readValue := ReadValue(value)
-	return readValue
+	return ReadValue(value)
 }
 
 func (em *EntityMetadata[E]) buildArgs(entity E) []any {
-	var args []any
-
+	args := make([]any, len(em.fieldsWithoutId))
 	rv := reflect.ValueOf(entity)
-	for _, col := range em.fieldsWithoutId {
+	for i, col := range em.fieldsWithoutId {
 		value := rv.FieldByName(col)
-		args = append(args, ReadValue(value))
+		args[i] = ReadValue(value)
 	}
 	return args
 }
