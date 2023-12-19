@@ -2,8 +2,8 @@ package goquery
 
 import (
 	"database/sql"
-	"github.com/doytowin/goquery/rdb"
-	. "github.com/doytowin/goquery/test"
+	"github.com/doytowin/go-query/rdb"
+	. "github.com/doytowin/go-query/test"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )

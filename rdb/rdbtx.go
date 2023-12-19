@@ -3,7 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
-	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/go-query/core"
 )
 
 type rdbTransactionManager struct {

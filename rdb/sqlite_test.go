@@ -1,8 +1,8 @@
 package rdb
 
 import (
-	. "github.com/doytowin/goquery/core"
-	. "github.com/doytowin/goquery/test"
+	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/go-query/test"
 	"testing"
 )
 

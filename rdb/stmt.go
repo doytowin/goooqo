@@ -1,7 +1,7 @@
 package rdb
 
 import (
-	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/go-query/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"

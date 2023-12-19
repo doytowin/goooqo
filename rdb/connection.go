@@ -2,7 +2,7 @@ package rdb
 
 import (
 	"database/sql"
-	"github.com/doytowin/goquery/core"
+	"github.com/doytowin/go-query/core"
 	"github.com/joho/godotenv"
 	"io"
 	"os"
