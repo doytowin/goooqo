@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/doytowin/goquery"
-	"github.com/doytowin/goquery/mongodb"
-	"github.com/doytowin/goquery/rdb"
-	. "github.com/doytowin/goquery/test"
+	"github.com/doytowin/go-query"
+	"github.com/doytowin/go-query/mongodb"
+	"github.com/doytowin/go-query/rdb"
+	. "github.com/doytowin/go-query/test"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )

@@ -2,7 +2,7 @@ package rdb
 
 import (
 	"context"
-	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/go-query/core"
 )
 
 type Ck struct {

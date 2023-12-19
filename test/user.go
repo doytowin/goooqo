@@ -1,6 +1,6 @@
 package test
 
-import . "github.com/doytowin/goquery/core"
+import . "github.com/doytowin/go-query/core"
 
 type UserEntity struct {
 	Id    int     `json:"id"`

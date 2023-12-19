@@ -2,8 +2,8 @@ package goquery
 
 import (
 	"context"
-	"github.com/doytowin/goquery/core"
-	"github.com/doytowin/goquery/web"
+	"github.com/doytowin/go-query/core"
+	"github.com/doytowin/go-query/web"
 	"net/http"
 )
 
