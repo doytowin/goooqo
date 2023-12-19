@@ -1,7 +1,7 @@
 package mongodb
 
 import (
-	"github.com/doytowin/goquery"
+	goquery "github.com/doytowin/go-query"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

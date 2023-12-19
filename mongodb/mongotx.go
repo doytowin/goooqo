@@ -2,7 +2,7 @@ package mongodb
 
 import (
 	"context"
-	. "github.com/doytowin/goquery/core"
+	. "github.com/doytowin/go-query/core"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
