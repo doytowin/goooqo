@@ -7,7 +7,6 @@ import (
 	"github.com/doytowin/goquery/rdb"
 	. "github.com/doytowin/goquery/test"
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 )
 
@@ -24,7 +23,8 @@ func main() {
 	var client = mongodb.Connect(ctx, "local.properties")
 	defer mongodb.Disconnect(client, ctx)
 
-	buildInventoryModule(client)
+	mtm := mongodb.NewMongoTransactionManager(client)
+	buildInventoryModule(mtm)
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
@@ -43,9 +43,9 @@ func buildUserModule(tm goquery.TransactionManager) {
 	)
 }
 
-func buildInventoryModule(client *mongo.Client) {
-	mongoDataAccess := mongodb.BuildMongoDataAccess[context.Context, InventoryEntity](client, func() InventoryEntity { return InventoryEntity{} })
+func buildInventoryModule(tm goquery.TransactionManager) {
 	createInventoryEntity := func() InventoryEntity { return InventoryEntity{} }
+	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm, createInventoryEntity)
 	goquery.BuildRestService[InventoryEntity, InventoryQuery](
 		"/inventory/", mongoDataAccess, createInventoryEntity,
 		func() InventoryQuery { return InventoryQuery{} },

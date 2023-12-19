@@ -1,0 +1,107 @@
+version: "3.8"
+services:
+#  mongo:
+#    container_name: mongo
+#    image: bitnami/mongodb:5.0
+#    ports:
+#      - "27017:27017"
+#    environment:
+#      MONGODB_REPLICA_SET_MODE: primary
+#      ALLOW_EMPTY_PASSWORD: 'yes'
+
+  mongo1:
+    container_name: mongo1
+    image: mongo
+    ports:
+      - "27018:27018"
+    restart: always
+    command: --port 27018 --bind_ip_all --replSet rs0
+
+  mongo2:
+    container_name: mongo2
+    image: mongo
+    ports:
+      - "27019:27019"
+    restart: always
+    command: --port 27019 --bind_ip_all --replSet rs0
+
+  mongo3:
+    container_name: mongo3
+    image: mongo
+    ports:
+      - "27020:27020"
+    restart: always
+    command: --port 27020 --bind_ip_all --replSet rs0
+    healthcheck:
+      test: mongosh --eval 'db.runCommand("ping").ok' localhost:27020/test --quiet
+      interval: 3s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+
+  mongo-init-repl:
+    image: mongo
+    restart: "no"
+    depends_on:
+      mongo3:
+        condition: service_healthy
+    command: >
+      mongosh mongo3:27020 --eval
+      '
+      rs.initiate({
+        _id: "rs0",
+        members: [
+          {_id: 0, host: "mongo1:27018"},
+          {_id: 1, host: "mongo2:27019"},
+          {_id: 2, host: "mongo3:27020"}
+        ]
+      })
+      '
+
+  mongo-init-data:
+    image: mongo
+    restart: "no"
+    depends_on:
+      mongo-init-repl:
+        condition: service_completed_successfully
+    command: >
+      mongosh mongodb://mongo1:27018,mongo2:27019,mongo3:27020/doytowin?replicaSet=rs0 --eval
+      '
+      db.inventory.insertMany([
+        {
+            "_id": ObjectId("657bbb49675e5c32a2b8af72"),
+            "item": "journal",
+            "qty": 25,
+            "size": { "h": 14.0, "w": 21.0, "uom": "cm" },
+            "status": "A"
+        },
+        {
+            "_id": ObjectId("657bbb49675e5c32a2b8af73"),
+            "item": "notebook",
+            "qty": 50,
+            "size": { "h": 8.5, "w": 11.0, "uom": "in" },
+            "status": "A"
+        },
+        {
+            "_id": ObjectId("657bbb49675e5c32a2b8af74"),
+            "item": "paper",
+            "qty": 100,
+            "size": { "h": 8.5, "w": 11.0, "uom": "in" },
+            "status": "D"
+        },
+        {
+            "_id": ObjectId("657bbb49675e5c32a2b8af75"),
+            "item": "planner",
+            "qty": 75,
+            "size": { "h": 22.85, "w": 30.0, "uom": "cm" },
+            "status": "D"
+        },
+        {
+            "_id": ObjectId("657bbb49675e5c32a2b8af76"),
+            "item": "postcard",
+            "qty": 45,
+            "size": { "h": 10.0, "w": 15.25, "uom": "cm" },
+            "status": "A"
+        }
+      ])
+      '

@@ -8,28 +8,31 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const v = "implement me"
+const msg = "implement me"
 
 type MongoEntity interface {
 	Database() string
 	Collection() string
 }
 
-type MongoDataAccess[C context.Context, E MongoEntity] struct {
+type mongoDataAccess[C context.Context, E MongoEntity] struct {
+	TransactionManager
 	collection *mongo.Collection
 	create     func() E
 }
 
-func BuildMongoDataAccess[C context.Context, E MongoEntity](client *mongo.Client, createEntity func() E) DataAccess[C, E] {
+func NewMongoDataAccess[E MongoEntity](tm TransactionManager, createEntity func() E) TxDataAccess[E, GoQuery] {
 	entity := createEntity()
+	client := tm.GetClient().(*mongo.Client)
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
-	return &MongoDataAccess[C, E]{
-		collection: collection,
-		create:     createEntity,
+	return &mongoDataAccess[context.Context, E]{
+		TransactionManager: tm,
+		collection:         collection,
+		create:             createEntity,
 	}
 }
 
-func (m *MongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
+func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 	objectID, err := primitive.ObjectIDFromHex(id.(string))
 	if NoError(err) {
 		e := m.create()
@@ -41,11 +44,11 @@ func (m *MongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 	return nil, err
 }
 
-func (m *MongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
+	panic(msg)
 }
 
-func (m *MongoDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
+func (m *mongoDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
 	var result []E
 	cursor, err := m.collection.Find(ctx, bson.D{{}})
 	if NoError(err) {
@@ -54,15 +57,15 @@ func (m *MongoDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
 	return result, err
 }
 
-func (m *MongoDataAccess[C, E]) Count(ctx C, query GoQuery) (int64, error) {
+func (m *mongoDataAccess[C, E]) Count(ctx C, query GoQuery) (int64, error) {
 	return m.collection.CountDocuments(ctx, bson.M{})
 }
 
-func (m *MongoDataAccess[C, E]) DeleteByQuery(ctx C, query any) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query any) (int64, error) {
+	panic(msg)
 }
 
-func (m *MongoDataAccess[C, E]) Page(ctx C, query GoQuery) (PageList[E], error) {
+func (m *mongoDataAccess[C, E]) Page(ctx C, query GoQuery) (PageList[E], error) {
 	var count int64
 	data, err := m.Query(ctx, query)
 	if NoError(err) {
@@ -71,22 +74,22 @@ func (m *MongoDataAccess[C, E]) Page(ctx C, query GoQuery) (PageList[E], error) 
 	return PageList[E]{List: data, Total: count}, err
 }
 
-func (m *MongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
+	panic(msg)
 }
 
-func (m *MongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) {
+	panic(msg)
 }
 
-func (m *MongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
+	panic(msg)
 }
 
-func (m *MongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
+	panic(msg)
 }
 
-func (m *MongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query GoQuery) (int64, error) {
-	panic(v)
+func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query GoQuery) (int64, error) {
+	panic(msg)
 }
