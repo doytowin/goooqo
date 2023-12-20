@@ -5,15 +5,17 @@ import (
 	. "github.com/doytowin/go-query/core"
 )
 
-type Ck struct {
-}
-
-var connKey = Ck{}
+var txKey = struct{ string }{"tx-key"}
 
 type txDataAccess[C context.Context, E any] struct {
 	TransactionManager
 	conn     Connection
-	delegate DataAccess[Connection, E]
+	delegate DataAccess[ConnectionCtx, E]
+}
+
+type connectionCtx struct {
+	context.Context
+	Connection
 }
 
 func NewTxDataAccess[E Entity](tm TransactionManager, createEntity func() E) DataAccess[context.Context, E] {
@@ -24,53 +26,58 @@ func NewTxDataAccess[E Entity](tm TransactionManager, createEntity func() E) Dat
 	}
 }
 
-func (t *txDataAccess[C, E]) getConn(ctx C) Connection {
-	if conn := ctx.Value(connKey); conn != nil {
-		return conn.(Connection)
+// getConnCtx get connection from ctx, wrap the ctx
+// and connection by ConnectionCtx as return value.
+// ctx could be a TransactionContext with key txKey
+// and value tx for transaction operation.
+func (t *txDataAccess[C, E]) getConnCtx(ctx C) ConnectionCtx {
+	connection := t.conn
+	if conn := ctx.Value(txKey); conn != nil {
+		connection = conn.(Connection)
 	}
-	return t.conn
+	return &connectionCtx{ctx, connection}
 }
 
 func (t *txDataAccess[C, E]) Get(ctx C, id any) (*E, error) {
-	return t.delegate.Get(t.getConn(ctx), id)
+	return t.delegate.Get(t.getConnCtx(ctx), id)
 }
 
 func (t *txDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
-	return t.delegate.Delete(t.getConn(ctx), id)
+	return t.delegate.Delete(t.getConnCtx(ctx), id)
 }
 
 func (t *txDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
-	return t.delegate.Query(t.getConn(ctx), query)
+	return t.delegate.Query(t.getConnCtx(ctx), query)
 }
 
 func (t *txDataAccess[C, E]) Count(ctx C, query GoQuery) (int64, error) {
-	return t.delegate.Count(t.getConn(ctx), query)
+	return t.delegate.Count(t.getConnCtx(ctx), query)
 }
 
 func (t *txDataAccess[C, E]) DeleteByQuery(ctx C, query any) (int64, error) {
-	return t.delegate.DeleteByQuery(t.getConn(ctx), query)
+	return t.delegate.DeleteByQuery(t.getConnCtx(ctx), query)
 }
 
 func (t *txDataAccess[C, E]) Page(ctx C, query GoQuery) (PageList[E], error) {
-	return t.delegate.Page(t.getConn(ctx), query)
+	return t.delegate.Page(t.getConnCtx(ctx), query)
 }
 
 func (t *txDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
-	return t.delegate.Create(t.getConn(ctx), entity)
+	return t.delegate.Create(t.getConnCtx(ctx), entity)
 }
 
 func (t *txDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) {
-	return t.delegate.CreateMulti(t.getConn(ctx), entities)
+	return t.delegate.CreateMulti(t.getConnCtx(ctx), entities)
 }
 
 func (t *txDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
-	return t.delegate.Update(t.getConn(ctx), entity)
+	return t.delegate.Update(t.getConnCtx(ctx), entity)
 }
 
 func (t *txDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
-	return t.delegate.Patch(t.getConn(ctx), entity)
+	return t.delegate.Patch(t.getConnCtx(ctx), entity)
 }
 
 func (t *txDataAccess[C, E]) PatchByQuery(ctx C, entity E, query GoQuery) (int64, error) {
-	return t.delegate.PatchByQuery(t.getConn(ctx), entity, query)
+	return t.delegate.PatchByQuery(t.getConnCtx(ctx), entity, query)
 }

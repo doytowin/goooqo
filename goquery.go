@@ -13,7 +13,7 @@ type PageQuery = core.PageQuery
 
 type Entity = core.Entity
 
-type DataAccess[C any, E any] core.DataAccess[C, E]
+type DataAccess[C context.Context, E any] core.DataAccess[C, E]
 
 type TransactionManager = core.TransactionManager
 

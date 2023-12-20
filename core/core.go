@@ -25,18 +25,18 @@ type Entity interface {
 	GetTableName() string
 }
 
-type DataAccess[C any, E any] interface {
-	Get(conn C, id any) (*E, error)
-	Delete(conn C, id any) (int64, error)
-	Query(conn C, query GoQuery) ([]E, error)
-	Count(conn C, query GoQuery) (int64, error)
-	DeleteByQuery(conn C, query any) (int64, error)
-	Page(conn C, query GoQuery) (PageList[E], error)
-	Create(conn C, entity *E) (int64, error)
-	CreateMulti(conn C, entities []E) (int64, error)
-	Update(conn C, entity E) (int64, error)
-	Patch(conn C, entity E) (int64, error)
-	PatchByQuery(conn C, entity E, query GoQuery) (int64, error)
+type DataAccess[C context.Context, E any] interface {
+	Get(c C, id any) (*E, error)
+	Delete(c C, id any) (int64, error)
+	Query(c C, query GoQuery) ([]E, error)
+	Count(c C, query GoQuery) (int64, error)
+	DeleteByQuery(c C, query any) (int64, error)
+	Page(c C, query GoQuery) (PageList[E], error)
+	Create(c C, entity *E) (int64, error)
+	CreateMulti(c C, entities []E) (int64, error)
+	Update(c C, entity E) (int64, error)
+	Patch(c C, entity E) (int64, error)
+	PatchByQuery(c C, entity E, query GoQuery) (int64, error)
 }
 
 type TransactionManager interface {

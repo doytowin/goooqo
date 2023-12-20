@@ -19,7 +19,7 @@ func NewTransactionManager(db *sql.DB) TransactionManager {
 }
 
 func getTx(ctx context.Context) *sql.Tx {
-	if conn := ctx.Value(connKey); conn != nil {
+	if conn := ctx.Value(txKey); conn != nil {
 		return conn.(*sql.Tx)
 	}
 	return nil
@@ -34,7 +34,7 @@ func (t *rdbTransactionManager) StartTransaction(ctx context.Context) Transactio
 		if !NoError(err) {
 			panic(err)
 		}
-		txCtx = context.WithValue(ctx, connKey, tx)
+		txCtx = context.WithValue(ctx, txKey, tx)
 	} else {
 		return ctx.(*rdbTransactionContext)
 	}
