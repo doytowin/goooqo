@@ -18,27 +18,16 @@ func NewTransactionManager(db *sql.DB) TransactionManager {
 	return &rdbTransactionManager{db: db}
 }
 
-func getTx(ctx context.Context) *sql.Tx {
-	if conn := ctx.Value(txKey); conn != nil {
-		return conn.(*sql.Tx)
+func (t *rdbTransactionManager) StartTransaction(ctx context.Context) (TransactionContext, error) {
+	if tc, ok := ctx.(*rdbTransactionContext); ok {
+		return tc, nil
 	}
-	return nil
-}
-
-func (t *rdbTransactionManager) StartTransaction(ctx context.Context) TransactionContext {
-	var err error
-	tx := getTx(ctx)
-	txCtx := ctx
-	if tx == nil {
-		tx, err = t.db.BeginTx(ctx, nil)
-		if !NoError(err) {
-			panic(err)
-		}
-		txCtx = context.WithValue(ctx, txKey, tx)
-	} else {
-		return ctx.(*rdbTransactionContext)
+	tx, err := t.db.BeginTx(ctx, nil)
+	if !NoError(err) {
+		return nil, err
 	}
-	return &rdbTransactionContext{Context: txCtx, tx: tx}
+	txCtx := context.WithValue(ctx, txKey, tx)
+	return &rdbTransactionContext{Context: txCtx, tx: tx}, nil
 }
 
 type rdbTransactionContext struct {

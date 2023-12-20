@@ -41,7 +41,7 @@ type DataAccess[C context.Context, E any] interface {
 
 type TransactionManager interface {
 	GetClient() any
-	StartTransaction(ctx context.Context) TransactionContext
+	StartTransaction(ctx context.Context) (TransactionContext, error)
 }
 
 type TransactionContext interface {

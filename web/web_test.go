@@ -135,7 +135,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("PUT /user/1", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
 		writer := httptest.NewRecorder()
@@ -164,7 +164,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("DELETE /user/{id}", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 		writer := httptest.NewRecorder()
 		request := httptest.NewRequest("DELETE", "/user/1", nil).WithContext(tc)
@@ -190,7 +190,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("PATCH /user/{id}", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
 		writer := httptest.NewRecorder()
@@ -218,7 +218,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("POST /user/", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 		writer := httptest.NewRecorder()
 		body := bytes.NewBufferString(`[{"score":60, "memo":"Well"}]`)
