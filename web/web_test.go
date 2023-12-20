@@ -109,8 +109,9 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("Get /user/1", func(t *testing.T) {
+		tc, _ := tm.StartTransaction(ctx)
 		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/1", nil)
+		request := httptest.NewRequest("GET", "/user/1", nil).WithContext(tc)
 
 		rs.ServeHTTP(writer, request)
 
@@ -118,6 +119,8 @@ func TestWeb(t *testing.T) {
 		expect := `{"data":{"id":1,"score":85,"memo":"Good"},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		} else {
+			_ = tc.Commit()
 		}
 	})
 
