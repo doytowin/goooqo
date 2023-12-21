@@ -20,21 +20,12 @@ func PInt(i int) *int {
 }
 
 func ReadValue(value reflect.Value) any {
+	typeStr := value.Type().String()
+	log.Debug("Read value for type: ", typeStr)
 	if value.Kind() == reflect.Ptr && !value.Elem().IsValid() {
 		return nil
 	}
-	typeStr := value.Type().String()
-	switch typeStr {
-	case "bool", "*bool":
-		return reflect.Indirect(value).Bool()
-	case "int", "*int":
-		return reflect.Indirect(value).Int()
-	case "string", "*string":
-		return reflect.Indirect(value).String()
-	default:
-		log.Warn("Type not support: ", typeStr)
-		return nil
-	}
+	return reflect.Indirect(value).Interface()
 }
 
 func UnCapitalize(s string) string {

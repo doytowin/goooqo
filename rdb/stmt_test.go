@@ -26,7 +26,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] == int64(5)) {
+		if !(len(args) == 1 && args[0] == 5) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -39,7 +39,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == int64(5)) || args[1] != int64(60) {
+		if !(len(args) == 2 && args[0] == 5) || args[1] != 60 {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -78,7 +78,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] != 60) {
+		if !(len(args) == 1 && args[0] == 60) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -91,7 +91,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == int64(90) && args[1] == "Great") {
+		if !(len(args) == 2 && args[0] == 90 && args[1] == "Great") {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -104,7 +104,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 3 && args[0] == int64(90) && args[1] == "Great" && args[2] == int64(2)) {
+		if !(len(args) == 3 && args[0] == 90 && args[1] == "Great" && args[2] == 2) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -117,7 +117,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == "Great" && args[1] == int64(2)) {
+		if !(len(args) == 2 && args[0] == "Great" && args[1] == 2) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
