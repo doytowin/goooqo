@@ -1,6 +1,7 @@
 package rdb
 
 import (
+	"github.com/doytowin/go-query/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
@@ -47,16 +48,29 @@ func buildConditions(query any) ([]string, []any) {
 		fieldName := field.Name
 		value := rvalue.FieldByName(fieldName)
 		if isValidValue(value) {
+			var condition string
+			var arr []any
 			if strings.HasSuffix(fieldName, "Or") {
-				condition, arr := ProcessOr(value.Elem().Interface())
-				conditions = append(conditions, condition)
-				args = append(args, arr...)
+				condition, arr = ProcessOr(value.Elem().Interface())
+			} else if _, ok := field.Tag.Lookup("condition"); ok {
+				condition, arr = processCustomCondition(field, value)
 			} else {
-				condition, arg := Process(fieldName, value)
-				conditions = append(conditions, condition)
-				args = append(args, arg...)
+				condition, arr = Process(fieldName, value)
 			}
+			conditions = append(conditions, condition)
+			args = append(args, arr...)
 		}
 	}
 	return conditions, args
+}
+
+func processCustomCondition(field reflect.StructField, value reflect.Value) (string, []any) {
+	var arr []any
+	condition := field.Tag.Get("condition")
+	phCnt := strings.Count(condition, "?")
+	arg := core.ReadValue(value)
+	for j := 0; j < phCnt; j++ {
+		arr = append(arr, arg)
+	}
+	return condition, arr
 }

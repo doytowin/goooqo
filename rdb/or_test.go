@@ -2,7 +2,6 @@ package rdb
 
 import (
 	. "github.com/doytowin/go-query/core"
-	. "github.com/doytowin/go-query/test"
 	"testing"
 )
 
@@ -17,8 +16,8 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Or Interface", func(t *testing.T) {
-		userQuery := UserQuery{AccountOr: &AccountOr{Username: PStr("f0rb"), Email: PStr("f0rb")}, Deleted: PBool(true)}
-		actual, args := BuildWhereClause(userQuery)
+		query := TestQuery{AccountOr: &AccountOr{Username: PStr("f0rb"), Email: PStr("f0rb")}, Deleted: PBool(true)}
+		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR email = ?) AND deleted = ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
