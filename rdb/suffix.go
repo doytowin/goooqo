@@ -51,7 +51,7 @@ func CreateOpMap() map[string]operator {
 	opMap["Le"] = operator{"Le", " <= ", ReadValueToArray}
 	opMap["Not"] = operator{"Not", " != ", ReadValueToArray}
 	opMap["Ne"] = operator{"Ne", " <> ", ReadValueToArray}
-	opMap["Eq"] = operator{"Eq", " == ", ReadValueToArray}
+	opMap["Eq"] = operator{"Eq", " = ", ReadValueToArray}
 	opMap["Null"] = operator{"Null", " IS NULL", EmptyValue}
 	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", EmptyValue}
 	opMap["In"] = operator{"In", " IN ", ReadValueForIn}
