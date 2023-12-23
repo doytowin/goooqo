@@ -1,10 +1,15 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
 
 type PageQuery struct {
-	PageNumber *int `json:"page,omitempty"`
-	PageSize   *int `json:"size,omitempty"`
+	PageNumber *int    `json:"page,omitempty"`
+	PageSize   *int    `json:"size,omitempty"`
+	Sort       *string `json:"sort,omitempty"`
 }
 
 func (pageQuery PageQuery) BuildPageClause() string {
@@ -24,4 +29,21 @@ func (pageQuery PageQuery) BuildPageClause() string {
 
 func (pageQuery PageQuery) NeedPaging() bool {
 	return pageQuery.PageSize != nil || pageQuery.PageNumber != nil
+}
+
+var sortRgx = regexp.MustCompile("(?i)(\\w+)(,(asC|dEsc))?;?")
+
+func (pageQuery PageQuery) BuildSortClause() string {
+	if pageQuery.Sort == nil {
+		return ""
+	}
+	submatch := sortRgx.FindAllStringSubmatch(*pageQuery.Sort, -1)
+	var sort = make([]string, len(submatch))
+	for i, group := range submatch {
+		sort[i] = group[1]
+		if group[3] != "" {
+			sort[i] += " " + strings.ToUpper(group[3])
+		}
+	}
+	return " ORDER BY " + strings.Join(sort, ", ")
 }

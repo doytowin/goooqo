@@ -69,6 +69,19 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
+	t.Run("Get /user/?Sort=id,desc", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&Sort=id,desc", nil)
+
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":{"list":[{"id":3,"score":55,"memo":null},{"id":2,"score":40,"memo":"Bad"}],"total":2},"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
 	t.Run("Get /user/ ", func(t *testing.T) {
 		writer := httptest.NewRecorder()
 		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&MemoNull=true", nil)

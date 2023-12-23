@@ -6,7 +6,7 @@ import (
 
 func TestBuildPageClause(t *testing.T) {
 	t.Run("Build Page Clause", func(t *testing.T) {
-		pageQuery := PageQuery{PInt(3), PInt(10)}
+		pageQuery := PageQuery{PageNumber: PInt(3), PageSize: PInt(10)}
 		actual := pageQuery.BuildPageClause()
 		expect := " LIMIT 10 OFFSET 20"
 		if actual != expect {
@@ -69,6 +69,14 @@ func TestBuildPageClause(t *testing.T) {
 		pageQuery := PageQuery{PageSize: PInt(-1)}
 		actual := pageQuery.BuildPageClause()
 		expect := " LIMIT 10 OFFSET 0"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+	t.Run("Build Sort Clause", func(t *testing.T) {
+		pageQuery := PageQuery{Sort: PStr("id,desc;score,asc;memo")}
+		actual := pageQuery.BuildSortClause()
+		expect := " ORDER BY id DESC, score ASC, memo"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}

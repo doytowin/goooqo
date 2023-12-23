@@ -59,11 +59,25 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
-		query := UserQuery{PageQuery: PageQuery{PInt(1), PInt(10)}}
+		query := UserQuery{PageQuery: PageQuery{PageNumber: PInt(1), PageSize: PInt(10)}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if len(args) != 0 {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
+	t.Run("Build Select with Sort Clause", func(t *testing.T) {
+		em := buildEntityMetadata[UserEntity](UserEntity{})
+		query := UserQuery{PageQuery: PageQuery{PageSize: PInt(5), Sort: PStr("id")}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User ORDER BY id LIMIT 5 OFFSET 0"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
 		}
 		if len(args) != 0 {
 			t.Errorf("Args are not expected: %s", args)

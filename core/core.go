@@ -19,6 +19,7 @@ type Response struct {
 type GoQuery interface {
 	NeedPaging() bool
 	BuildPageClause() string
+	BuildSortClause() string
 }
 
 type Entity interface {
