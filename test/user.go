@@ -17,6 +17,7 @@ type UserQuery struct {
 	IdGt     *int
 	IdIn     *[]int
 	ScoreLt  *int
+	ScoreLt1 *UserQuery `subquery:"select:avg(score),from:UserEntity"`
 	MemoNull bool
 	MemoLike *string
 	Deleted  *bool

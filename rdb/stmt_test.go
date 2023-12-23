@@ -145,4 +145,17 @@ func TestBuildStmt(t *testing.T) {
 		}
 	})
 
+	t.Run("Support tag subquery", func(t *testing.T) {
+		em := buildEntityMetadata[UserEntity](UserEntity{})
+		query := UserQuery{ScoreLt1: &UserQuery{MemoLike: PStr("Well")}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User WHERE score < (SELECT avg(score) FROM User WHERE memo LIKE ?)"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+		if !(len(args) == 1 && args[0] == "Well") {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
 }

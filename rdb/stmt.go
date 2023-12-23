@@ -8,9 +8,14 @@ import (
 )
 
 var whereId = " WHERE id = ?"
+var emMap = make(map[string]*metadata)
+
+type metadata struct {
+	TableName string
+}
 
 type EntityMetadata[E any] struct {
-	TableName       string
+	metadata
 	ColStr          string
 	fieldsWithoutId []string
 	createStr       string
@@ -166,8 +171,9 @@ func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 	}
 	updateStr := "UPDATE " + tableName + " SET " + strings.Join(set, ", ") + whereId
 
+	emMap[refType.Name()] = &metadata{tableName}
 	return EntityMetadata[E]{
-		TableName:       tableName,
+		metadata:        *emMap[refType.Name()],
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,
