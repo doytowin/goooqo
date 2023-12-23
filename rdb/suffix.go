@@ -114,10 +114,10 @@ func Process(fieldName string, value reflect.Value) (string, []any) {
 	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
 		operator := opMap[match[1]]
 		column := strings.TrimSuffix(fieldName, match[1])
-		column = UnCapitalize(column)
+		column = ConvertToColumnCase(column)
 		placeholder, args := operator.process(value)
 		return column + operator.sign + placeholder, args
 	}
 	_, args := ReadValueToArray(value)
-	return UnCapitalize(fieldName) + " = ?", args
+	return ConvertToColumnCase(fieldName) + " = ?", args
 }

@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"reflect"
-	"strings"
 )
 
 func PStr(s string) *string {
@@ -28,8 +27,19 @@ func ReadValue(value reflect.Value) any {
 	return reflect.Indirect(value).Interface()
 }
 
-func UnCapitalize(s string) string {
-	return strings.ToLower(s[:1]) + s[1:]
+func ConvertToColumnCase(fieldName string) string {
+	return ToSnakeCase(fieldName)
+}
+
+func ToSnakeCase(fieldName string) string {
+	var col []rune
+	for i, letter := range fieldName {
+		if letter >= 'A' && letter <= 'Z' && i > 0 {
+			col = append(col, '_')
+		}
+		col = append(col, letter|0x20)
+	}
+	return string(col)
 }
 
 func ReadError(err error) *string {

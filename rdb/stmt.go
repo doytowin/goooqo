@@ -107,7 +107,7 @@ func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
 		value := rv.FieldByName(col)
 		v := ReadValue(value)
 		if v != nil {
-			sqlStr += UnCapitalize(col) + " = ?, "
+			sqlStr += ConvertToColumnCase(col) + " = ?, "
 			args = append(args, v)
 		}
 	}
@@ -142,10 +142,10 @@ func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 	var fieldsWithoutId []string
 	for i := 0; i < refType.NumField(); i++ {
 		field := refType.Field(i)
-		columns[i] = UnCapitalize(field.Name)
+		columns[i] = ConvertToColumnCase(field.Name)
 		if field.Name != "Id" {
 			fieldsWithoutId = append(fieldsWithoutId, field.Name)
-			columnsWithoutId = append(columnsWithoutId, UnCapitalize(field.Name))
+			columnsWithoutId = append(columnsWithoutId, columns[i])
 		}
 	}
 

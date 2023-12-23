@@ -19,6 +19,15 @@ func TestBuildStmt(t *testing.T) {
 		}
 	})
 
+	t.Run("Support snake_case_column", func(t *testing.T) {
+		em := buildEntityMetadata[TestEntity](TestEntity{})
+		actual := em.ColStr
+		expect := "id, username, email, mobile, create_time"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\n     Got: %s", expect, actual)
+		}
+	})
+
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: PInt(5), MemoNull: true}
 		actual, args := BuildWhereClause(query)

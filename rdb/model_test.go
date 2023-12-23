@@ -1,6 +1,9 @@
 package rdb
 
-import . "github.com/doytowin/go-query/core"
+import (
+	. "github.com/doytowin/go-query/core"
+	"time"
+)
 
 type AccountOr struct {
 	Username *string
@@ -9,10 +12,11 @@ type AccountOr struct {
 }
 
 type TestEntity struct {
-	Id       *int
-	Username *string
-	Email    *string
-	Mobile   *string
+	Id         *int
+	Username   *string
+	Email      *string
+	Mobile     *string
+	CreateTime *time.Time
 }
 
 func (e TestEntity) GetTableName() string {
