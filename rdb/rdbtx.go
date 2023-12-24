@@ -33,8 +33,7 @@ func (t *rdbTransactionManager) StartTransaction(ctx context.Context) (Transacti
 	}
 	sn := t.fetchSn()
 	log.Debug("Start Tx: ", sn)
-	txCtx := context.WithValue(ctx, txKey, tx)
-	return &rdbTransactionContext{Context: txCtx, tx: tx, sn: sn}, nil
+	return &rdbTransactionContext{Context: ctx, tx: tx, sn: sn}, nil
 }
 
 func (t *rdbTransactionManager) fetchSn() int64 {
@@ -59,4 +58,8 @@ func (t *rdbTransactionContext) Commit() error {
 func (t *rdbTransactionContext) Rollback() error {
 	log.Debug("Rollback Tx: ", t.sn)
 	return t.tx.Rollback()
+}
+
+func (t *rdbTransactionContext) Parent() context.Context {
+	return t.Context
 }

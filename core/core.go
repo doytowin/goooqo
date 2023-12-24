@@ -48,6 +48,7 @@ type TransactionManager interface {
 type TransactionContext interface {
 	context.Context
 	driver.Tx
+	Parent() context.Context
 }
 
 type TxDataAccess[E any, Q GoQuery] interface {

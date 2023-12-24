@@ -5,8 +5,6 @@ import (
 	. "github.com/doytowin/go-query/core"
 )
 
-var txKey = struct{ string }{"tx-key"}
-
 type txDataAccess[C context.Context, E any] struct {
 	TransactionManager
 	conn     Connection
@@ -26,14 +24,13 @@ func NewTxDataAccess[E Entity](tm TransactionManager, createEntity func() E) Dat
 	}
 }
 
-// getConnCtx get connection from ctx, wrap the ctx
-// and connection by ConnectionCtx as return value.
-// ctx could be a TransactionContext with key txKey
-// and value tx for transaction operation.
-func (t *txDataAccess[C, E]) getConnCtx(ctx C) ConnectionCtx {
+// getConnCtx get connection from ctx, wrap the ctx and
+// connection by ConnectionCtx as return value.
+// ctx could be a TransactionContext with an active tx.
+func (t *txDataAccess[C, E]) getConnCtx(ctx context.Context) ConnectionCtx {
 	connection := t.conn
-	if conn := ctx.Value(txKey); conn != nil {
-		connection = conn.(Connection)
+	if tc, ok := ctx.(*rdbTransactionContext); ok {
+		connection = tc.tx
 	}
 	return &connectionCtx{ctx, connection}
 }
