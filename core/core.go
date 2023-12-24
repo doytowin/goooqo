@@ -49,6 +49,8 @@ type TransactionContext interface {
 	context.Context
 	driver.Tx
 	Parent() context.Context
+	SavePoint(name string) error
+	RollbackTo(name string) error
 }
 
 type TxDataAccess[E any, Q GoQuery] interface {

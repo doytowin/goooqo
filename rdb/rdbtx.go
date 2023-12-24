@@ -63,3 +63,13 @@ func (t *rdbTransactionContext) Rollback() error {
 func (t *rdbTransactionContext) Parent() context.Context {
 	return t.Context
 }
+
+func (t *rdbTransactionContext) SavePoint(name string) error {
+	_, err := t.tx.ExecContext(t.Context, "SAVEPOINT "+name)
+	return err
+}
+
+func (t *rdbTransactionContext) RollbackTo(name string) error {
+	_, err := t.tx.ExecContext(t.Context, "ROLLBACK TO SAVEPOINT "+name)
+	return err
+}
