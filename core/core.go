@@ -17,9 +17,11 @@ type Response struct {
 }
 
 type GoQuery interface {
+	GetPageNumber() int
+	GetPageSize() int
+	CalcOffset() int
+	GetSort() *string
 	NeedPaging() bool
-	BuildPageClause() string
-	BuildSortClause() string
 }
 
 type Entity interface {

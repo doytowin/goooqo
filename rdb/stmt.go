@@ -42,9 +42,9 @@ func (em *EntityMetadata[E]) buildArgs(entity E) []any {
 func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
-	s += query.BuildSortClause()
+	s += BuildSortClause(query.GetSort())
 	if query.NeedPaging() {
-		s += query.BuildPageClause()
+		s = BuildPageClause(&s, query.CalcOffset(), query.GetPageSize())
 	}
 	return s, args
 }
