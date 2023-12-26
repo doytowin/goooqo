@@ -2,8 +2,8 @@ package rdb
 
 import (
 	"context"
-	. "github.com/doytowin/go-query/core"
-	. "github.com/doytowin/go-query/test"
+	. "github.com/doytowin/goooqo/core"
+	. "github.com/doytowin/goooqo/test"
 	"testing"
 )
 

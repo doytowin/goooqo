@@ -1,7 +1,7 @@
 package rdb
 
 import (
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	"reflect"
 	"regexp"
 	"strings"

@@ -1,9 +1,9 @@
-package goquery
+package goooqo
 
 import (
 	"context"
-	"github.com/doytowin/go-query/core"
-	"github.com/doytowin/go-query/web"
+	"github.com/doytowin/goooqo/core"
+	"github.com/doytowin/goooqo/web"
 	"net/http"
 )
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/doytowin/go-query"
-	"github.com/doytowin/go-query/rdb"
-	. "github.com/doytowin/go-query/test"
+	goooqo "github.com/doytowin/goooqo"
+	"github.com/doytowin/goooqo/rdb"
+	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -24,10 +24,10 @@ func main() {
 	}
 }
 
-func buildUserModule(tm goquery.TransactionManager) {
+func buildUserModule(tm goooqo.TransactionManager) {
 	createUserEntity := func() UserEntity { return UserEntity{} }
 	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm, createUserEntity)
-	goquery.BuildRestService[UserEntity, UserQuery](
+	goooqo.BuildRestService[UserEntity, UserQuery](
 		"/user/",
 		userDataAccess,
 		createUserEntity,

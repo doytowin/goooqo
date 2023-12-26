@@ -3,7 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"sync/atomic"
 )

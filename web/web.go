@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"

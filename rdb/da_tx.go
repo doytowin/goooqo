@@ -2,7 +2,7 @@ package rdb
 
 import (
 	"context"
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 )
 
 type txDataAccess[C context.Context, E any] struct {
