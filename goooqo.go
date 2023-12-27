@@ -13,11 +13,11 @@ type PageQuery = core.PageQuery
 
 type Entity = core.Entity
 
-type DataAccess[C context.Context, E any] core.DataAccess[C, E]
+type DataAccess[C context.Context, E Entity] core.DataAccess[C, E]
 
 type TransactionManager = core.TransactionManager
 
-func BuildRestService[E any, Q Query](
+func BuildRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,

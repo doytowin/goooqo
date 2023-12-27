@@ -17,7 +17,7 @@ type ConnectionCtx interface {
 	Connection
 }
 
-type relationalDataAccess[C ConnectionCtx, E any] struct {
+type relationalDataAccess[C ConnectionCtx, E Entity] struct {
 	em     EntityMetadata[E]
 	create func() E
 }

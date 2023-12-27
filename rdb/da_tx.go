@@ -5,7 +5,7 @@ import (
 	. "github.com/doytowin/goooqo/core"
 )
 
-type txDataAccess[C context.Context, E any] struct {
+type txDataAccess[C context.Context, E Entity] struct {
 	TransactionManager
 	conn     Connection
 	delegate DataAccess[ConnectionCtx, E]

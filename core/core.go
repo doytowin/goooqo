@@ -5,8 +5,8 @@ import (
 	"database/sql/driver"
 )
 
-type PageList[E any] struct {
-	List  []E   `json:"list"`
+type PageList[D any] struct {
+	List  []D   `json:"list"`
 	Total int64 `json:"total"`
 }
 
@@ -28,7 +28,7 @@ type Entity interface {
 	GetTableName() string
 }
 
-type DataAccess[C context.Context, E any] interface {
+type DataAccess[C context.Context, E Entity] interface {
 	Get(ctx C, id any) (*E, error)
 	Delete(ctx C, id any) (int64, error)
 	Query(ctx C, query Query) ([]E, error)
@@ -55,7 +55,7 @@ type TransactionContext interface {
 	RollbackTo(name string) error
 }
 
-type TxDataAccess[E any, Q Query] interface {
+type TxDataAccess[E Entity, Q Query] interface {
 	TransactionManager
 	DataAccess[context.Context, E]
 }

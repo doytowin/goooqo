@@ -15,14 +15,14 @@ import (
 	"strings"
 )
 
-type restService[E any, Q Query] struct {
+type restService[E Entity, Q Query] struct {
 	DataAccess[context.Context, E]
 	createQuery  func() Q
 	createEntity func() E
 	idRgx        *regexp.Regexp
 }
 
-func NewRestService[E any, Q Query](
+func NewRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,
