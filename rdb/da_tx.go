@@ -43,19 +43,19 @@ func (t *txDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 	return t.delegate.Delete(t.getConnCtx(ctx), id)
 }
 
-func (t *txDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
+func (t *txDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
 	return t.delegate.Query(t.getConnCtx(ctx), query)
 }
 
-func (t *txDataAccess[C, E]) Count(ctx C, query GoQuery) (int64, error) {
+func (t *txDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
 	return t.delegate.Count(t.getConnCtx(ctx), query)
 }
 
-func (t *txDataAccess[C, E]) DeleteByQuery(ctx C, query any) (int64, error) {
+func (t *txDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
 	return t.delegate.DeleteByQuery(t.getConnCtx(ctx), query)
 }
 
-func (t *txDataAccess[C, E]) Page(ctx C, query GoQuery) (PageList[E], error) {
+func (t *txDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 	return t.delegate.Page(t.getConnCtx(ctx), query)
 }
 
@@ -75,6 +75,6 @@ func (t *txDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
 	return t.delegate.Patch(t.getConnCtx(ctx), entity)
 }
 
-func (t *txDataAccess[C, E]) PatchByQuery(ctx C, entity E, query GoQuery) (int64, error) {
+func (t *txDataAccess[C, E]) PatchByQuery(ctx C, entity E, query Query) (int64, error) {
 	return t.delegate.PatchByQuery(t.getConnCtx(ctx), entity, query)
 }

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type GoQuery = core.GoQuery
+type Query = core.Query
 
 type PageQuery = core.PageQuery
 
@@ -17,7 +17,7 @@ type DataAccess[C context.Context, E any] core.DataAccess[C, E]
 
 type TransactionManager = core.TransactionManager
 
-func BuildRestService[E any, Q GoQuery](
+func BuildRestService[E any, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,

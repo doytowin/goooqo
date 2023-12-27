@@ -39,7 +39,7 @@ func (em *EntityMetadata[E]) buildArgs(entity E) []any {
 	return args
 }
 
-func (em *EntityMetadata[E]) buildSelect(query GoQuery) (string, []any) {
+func (em *EntityMetadata[E]) buildSelect(query Query) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
 	s += BuildSortClause(query.GetSort())
@@ -53,7 +53,7 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 	return "SELECT " + em.ColStr + " FROM " + em.TableName + whereId
 }
 
-func (em *EntityMetadata[E]) buildCount(query GoQuery) (string, []any) {
+func (em *EntityMetadata[E]) buildCount(query Query) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
 	sqlStr := "SELECT count(0) FROM " + em.TableName + whereClause
 
@@ -128,7 +128,7 @@ func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
 	return sqlStr, args
 }
 
-func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query GoQuery) ([]any, string) {
+func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) ([]any, string) {
 	patchClause, argsE := em.buildPatch(entity)
 	whereClause, argsQ := BuildWhereClause(query)
 

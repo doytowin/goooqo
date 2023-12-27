@@ -38,7 +38,7 @@ func (da *relationalDataAccess[C, E]) Get(connCtx C, id any) (*E, error) {
 	return nil, err
 }
 
-func (da *relationalDataAccess[C, E]) Query(connCtx C, query GoQuery) ([]E, error) {
+func (da *relationalDataAccess[C, E]) Query(connCtx C, query Query) ([]E, error) {
 	sqlStr, args := da.em.buildSelect(query)
 	return da.doQuery(connCtx, sqlStr, args)
 }
@@ -75,7 +75,7 @@ func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []a
 	return result, err
 }
 
-func (da *relationalDataAccess[C, E]) Count(connCtx C, query GoQuery) (int64, error) {
+func (da *relationalDataAccess[C, E]) Count(connCtx C, query Query) (int64, error) {
 	var cnt int64
 	sqlStr, args := da.em.buildCount(query)
 	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)
@@ -87,7 +87,7 @@ func (da *relationalDataAccess[C, E]) Count(connCtx C, query GoQuery) (int64, er
 	return cnt, err
 }
 
-func (da *relationalDataAccess[C, E]) Page(connCtx C, query GoQuery) (PageList[E], error) {
+func (da *relationalDataAccess[C, E]) Page(connCtx C, query Query) (PageList[E], error) {
 	var cnt int64
 	data, err := da.Query(connCtx, query)
 	if NoError(err) {
@@ -101,7 +101,7 @@ func (da *relationalDataAccess[C, E]) Delete(connCtx C, id any) (int64, error) {
 	return parse(da.doUpdate(connCtx, sqlStr, []any{id}))
 }
 
-func (da *relationalDataAccess[C, E]) DeleteByQuery(connCtx C, query any) (int64, error) {
+func (da *relationalDataAccess[C, E]) DeleteByQuery(connCtx C, query Query) (int64, error) {
 	sqlStr, args := da.em.buildDelete(query)
 	return parse(da.doUpdate(connCtx, sqlStr, args))
 }
@@ -147,7 +147,7 @@ func (da *relationalDataAccess[C, E]) Patch(connCtx C, entity E) (int64, error) 
 	return parse(da.doUpdate(connCtx, sqlStr, args))
 }
 
-func (da *relationalDataAccess[C, E]) PatchByQuery(connCtx C, entity E, query GoQuery) (int64, error) {
+func (da *relationalDataAccess[C, E]) PatchByQuery(connCtx C, entity E, query Query) (int64, error) {
 	args, sqlStr := da.em.buildPatchByQuery(entity, query)
 	return parse(da.doUpdate(connCtx, sqlStr, args))
 }

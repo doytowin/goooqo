@@ -16,7 +16,7 @@ type Response struct {
 	Error   *string `json:"error,omitempty"`
 }
 
-type GoQuery interface {
+type Query interface {
 	GetPageNumber() int
 	GetPageSize() int
 	CalcOffset() int
@@ -29,17 +29,17 @@ type Entity interface {
 }
 
 type DataAccess[C context.Context, E any] interface {
-	Get(c C, id any) (*E, error)
-	Delete(c C, id any) (int64, error)
-	Query(c C, query GoQuery) ([]E, error)
-	Count(c C, query GoQuery) (int64, error)
-	DeleteByQuery(c C, query any) (int64, error)
-	Page(c C, query GoQuery) (PageList[E], error)
-	Create(c C, entity *E) (int64, error)
-	CreateMulti(c C, entities []E) (int64, error)
-	Update(c C, entity E) (int64, error)
-	Patch(c C, entity E) (int64, error)
-	PatchByQuery(c C, entity E, query GoQuery) (int64, error)
+	Get(ctx C, id any) (*E, error)
+	Delete(ctx C, id any) (int64, error)
+	Query(ctx C, query Query) ([]E, error)
+	Count(ctx C, query Query) (int64, error)
+	DeleteByQuery(ctx C, query Query) (int64, error)
+	Page(ctx C, query Query) (PageList[E], error)
+	Create(ctx C, entity *E) (int64, error)
+	CreateMulti(ctx C, entities []E) (int64, error)
+	Update(ctx C, entity E) (int64, error)
+	Patch(ctx C, entity E) (int64, error)
+	PatchByQuery(ctx C, entity E, query Query) (int64, error)
 }
 
 type TransactionManager interface {
@@ -55,7 +55,7 @@ type TransactionContext interface {
 	RollbackTo(name string) error
 }
 
-type TxDataAccess[E any, Q GoQuery] interface {
+type TxDataAccess[E any, Q Query] interface {
 	TransactionManager
 	DataAccess[context.Context, E]
 }
