@@ -11,10 +11,11 @@ var whereId = " WHERE id = ?"
 var emMap = make(map[string]*metadata)
 
 type metadata struct {
-	TableName string
+	TableName   string
+	columnMetas []columnMetadata
 }
 
-type EntityMetadata[E any] struct {
+type EntityMetadata[E Entity] struct {
 	metadata
 	ColStr          string
 	fieldsWithoutId []string
@@ -141,20 +142,22 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) ([]any, st
 }
 
 func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
-	refType := reflect.TypeOf(entity)
-	columns := make([]string, refType.NumField())
+	entityType := reflect.TypeOf(entity)
+	columnMetas := buildColumnMetas(entityType)
+
+	columns := make([]string, len(columnMetas))
 	var columnsWithoutId []string
 	var fieldsWithoutId []string
-	for i := 0; i < refType.NumField(); i++ {
-		field := refType.Field(i)
-		columns[i] = ConvertToColumnCase(field.Name)
-		if field.Name != "Id" {
-			fieldsWithoutId = append(fieldsWithoutId, field.Name)
-			columnsWithoutId = append(columnsWithoutId, columns[i])
+
+	for i, md := range columnMetas {
+		columns[i] = md.columnName
+		if !md.isId {
+			fieldsWithoutId = append(fieldsWithoutId, md.field.Name)
+			columnsWithoutId = append(columnsWithoutId, md.columnName)
 		}
 	}
 
-	var tableName = entity.GetTableName()
+	tableName := entity.GetTableName()
 
 	placeholders := "(?"
 	for i := 1; i < len(columnsWithoutId); i++ {
@@ -171,9 +174,12 @@ func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 	}
 	updateStr := "UPDATE " + tableName + " SET " + strings.Join(set, ", ") + whereId
 
-	emMap[refType.Name()] = &metadata{tableName}
+	emMap[entityType.Name()] = &metadata{
+		TableName:   tableName,
+		columnMetas: columnMetas,
+	}
 	return EntityMetadata[E]{
-		metadata:        *emMap[refType.Name()],
+		metadata:        *emMap[entityType.Name()],
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,

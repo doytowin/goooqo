@@ -73,7 +73,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		entity := s.createEntity()
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			writeId(&entity, id)
+			entity.SetId(&entity, id)
 			return s.Update(request.Context(), entity)
 		}
 	case "PATCH":
@@ -81,7 +81,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		entity := s.createEntity()
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			writeId(&entity, id)
+			entity.SetId(&entity, id)
 			return s.Patch(request.Context(), entity)
 		}
 	case "DELETE":
@@ -96,14 +96,6 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		}
 	}
 	return data, err
-}
-
-func writeId(entity any, id string) {
-	rv := reflect.ValueOf(entity).Elem()
-	field := rv.FieldByName("Id")
-	if field.IsValid() {
-		resolvePointer(field, []string{id})
-	}
 }
 
 func resolveQuery(queryMap url.Values, query any) {

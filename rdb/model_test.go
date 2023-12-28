@@ -1,7 +1,9 @@
 package rdb
 
 import (
+	"fmt"
 	. "github.com/doytowin/goooqo/core"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +23,16 @@ type TestEntity struct {
 
 func (e TestEntity) GetTableName() string {
 	return "t_user"
+}
+
+func (e TestEntity) SetId(self any, id any) {
+	if v, ok := id.(int64); ok {
+		self.(*TestEntity).Id = PInt(int(v))
+	} else {
+		s := fmt.Sprintf("%s", id)
+		v, _ := strconv.Atoi(s)
+		self.(*TestEntity).Id = &v
+	}
 }
 
 type TestQuery struct {

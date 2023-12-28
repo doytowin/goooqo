@@ -26,6 +26,11 @@ type Query interface {
 
 type Entity interface {
 	GetTableName() string
+
+	// SetId set id to self.
+	// self: the pointer point to the current entity.
+	// id: type could be int64 or string so far.
+	SetId(self any, id any)
 }
 
 type DataAccess[C context.Context, E Entity] interface {

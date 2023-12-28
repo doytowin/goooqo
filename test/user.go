@@ -3,7 +3,7 @@ package test
 import . "github.com/doytowin/goooqo/core"
 
 type UserEntity struct {
-	Id    int     `json:"id"`
+	Int64Id
 	Score *int    `json:"score"`
 	Memo  *string `json:"memo"`
 }

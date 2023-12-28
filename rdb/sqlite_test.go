@@ -149,7 +149,8 @@ func TestSQLite(t *testing.T) {
 	t.Run("Update Entity", func(t *testing.T) {
 		tx, err := db.Begin()
 		cc := newConnCtx(tx)
-		entity := UserEntity{Id: 2, Score: PInt(90), Memo: PStr("Great")}
+		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
+		entity.Id = 2
 		cnt, err := userDataAccess.Update(cc, entity)
 		if err != nil {
 			t.Error("Error", err)
@@ -167,7 +168,8 @@ func TestSQLite(t *testing.T) {
 	t.Run("Patch Entity", func(t *testing.T) {
 		tx, err := db.Begin()
 		cc := newConnCtx(tx)
-		entity := UserEntity{Id: 2, Score: PInt(90)}
+		entity := UserEntity{Score: PInt(90)}
+		entity.Id = 2
 		cnt, err := userDataAccess.Patch(cc, entity)
 		if err != nil {
 			t.Error("Error", err)

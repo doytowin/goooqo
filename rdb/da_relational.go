@@ -51,10 +51,10 @@ func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []a
 
 	entity := da.create()
 	elem := reflect.ValueOf(&entity).Elem()
-	length := elem.NumField()
-	pointers := make([]any, length)
-	for i := range pointers {
-		pointers[i] = elem.Field(i).Addr().Interface()
+	columnMetas := da.em.columnMetas
+	pointers := make([]any, len(columnMetas))
+	for i, cm := range columnMetas {
+		pointers[i] = elem.FieldByName(cm.field.Name).Addr().Interface()
 	}
 
 	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)
@@ -122,8 +122,7 @@ func (da *relationalDataAccess[C, E]) Create(connCtx C, entity *E) (int64, error
 	if NoError(err) {
 		id, err = result.LastInsertId()
 		if NoError(err) {
-			elem := reflect.ValueOf(entity).Elem()
-			elem.FieldByName("Id").SetInt(id)
+			(*entity).SetId(entity, id)
 		}
 	}
 	return id, err

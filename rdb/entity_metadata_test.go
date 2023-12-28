@@ -121,26 +121,26 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Update Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
-		entity := UserEntity{2, PInt(90), PStr("Great")}
+		entity := UserEntity{Int64Id: NewIntId(2), Score: PInt(90), Memo: PStr("Great")}
 		actual, args := em.buildUpdate(entity)
 		expect := "UPDATE User SET score = ?, memo = ? WHERE id = ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 3 && args[0] == 90 && args[1] == "Great" && args[2] == 2) {
+		if !(len(args) == 3 && args[0] == 90 && args[1] == "Great" && args[2] == int64(2)) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
 
 	t.Run("Build Patch Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
-		entity := UserEntity{Id: 2, Memo: PStr("Great")}
+		entity := UserEntity{Int64Id: NewIntId(2), Memo: PStr("Great")}
 		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == "Great" && args[1] == 2) {
+		if !(len(args) == 2 && args[0] == "Great" && args[1] == int64(2)) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
