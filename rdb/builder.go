@@ -1,7 +1,6 @@
 package rdb
 
 import (
-	"github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
@@ -53,8 +52,6 @@ func buildConditions(query any) ([]string, []any) {
 			var arr []any
 			if strings.HasSuffix(fieldName, "Or") {
 				condition, arr = ProcessOr(value.Elem().Interface())
-			} else if _, ok := field.Tag.Lookup("condition"); ok {
-				condition, arr = processCustomCondition(field, value)
 			} else {
 				processor := fpMap[buildFpKey(rtype, field)]
 				condition, arr = processor.Process(value)
@@ -64,15 +61,4 @@ func buildConditions(query any) ([]string, []any) {
 		}
 	}
 	return conditions, args
-}
-
-func processCustomCondition(field reflect.StructField, value reflect.Value) (string, []any) {
-	var arr []any
-	condition := field.Tag.Get("condition")
-	phCnt := strings.Count(condition, "?")
-	arg := core.ReadValue(value)
-	for j := 0; j < phCnt; j++ {
-		arr = append(arr, arg)
-	}
-	return condition, arr
 }
