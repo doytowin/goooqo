@@ -17,10 +17,6 @@ type InventoryEntity struct {
 	Status string `json:"status,omitempty"`
 }
 
-func (r InventoryEntity) GetTableName() string {
-	return r.Collection()
-}
-
 func (r InventoryEntity) GetId() any {
 	return r.Id
 }
