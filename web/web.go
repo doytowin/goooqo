@@ -32,7 +32,7 @@ func NewRestService[E Entity, Q Query](
 		DataAccess:   dataAccess,
 		createQuery:  createQuery,
 		createEntity: createEntity,
-		idRgx:        regexp.MustCompile(prefix + `(\d+)$`),
+		idRgx:        regexp.MustCompile(prefix + `([\da-fA-F]+)$`),
 	}
 }
 

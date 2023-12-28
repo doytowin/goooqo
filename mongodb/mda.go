@@ -2,7 +2,7 @@ package mongodb
 
 import (
 	"context"
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,6 +11,7 @@ import (
 const msg = "implement me"
 
 type MongoEntity interface {
+	Entity
 	Database() string
 	Collection() string
 }
@@ -21,7 +22,7 @@ type mongoDataAccess[C context.Context, E MongoEntity] struct {
 	create     func() E
 }
 
-func NewMongoDataAccess[E MongoEntity](tm TransactionManager, createEntity func() E) TxDataAccess[E, GoQuery] {
+func NewMongoDataAccess[E MongoEntity](tm TransactionManager, createEntity func() E) TxDataAccess[E, Query] {
 	entity := createEntity()
 	client := tm.GetClient().(*mongo.Client)
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
@@ -48,7 +49,7 @@ func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 	panic(msg)
 }
 
-func (m *mongoDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
+func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
 	var result []E
 	cursor, err := m.collection.Find(ctx, bson.D{{}})
 	if NoError(err) {
@@ -57,15 +58,15 @@ func (m *mongoDataAccess[C, E]) Query(ctx C, query GoQuery) ([]E, error) {
 	return result, err
 }
 
-func (m *mongoDataAccess[C, E]) Count(ctx C, query GoQuery) (int64, error) {
+func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
 	return m.collection.CountDocuments(ctx, bson.M{})
 }
 
-func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query any) (int64, error) {
+func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
 	panic(msg)
 }
 
-func (m *mongoDataAccess[C, E]) Page(ctx C, query GoQuery) (PageList[E], error) {
+func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 	var count int64
 	data, err := m.Query(ctx, query)
 	if NoError(err) {
@@ -90,6 +91,6 @@ func (m *mongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
 	panic(msg)
 }
 
-func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query GoQuery) (int64, error) {
+func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query Query) (int64, error) {
 	panic(msg)
 }

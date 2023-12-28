@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	goooqo "github.com/doytowin/goooqo"
+	"github.com/doytowin/goooqo"
 	"github.com/doytowin/goooqo/mongodb"
 	"github.com/doytowin/goooqo/rdb"
 	. "github.com/doytowin/goooqo/test"
@@ -43,10 +43,10 @@ func buildUserModule(tm goooqo.TransactionManager) {
 	)
 }
 
-func buildInventoryModule(tm goquery.TransactionManager) {
+func buildInventoryModule(tm goooqo.TransactionManager) {
 	createInventoryEntity := func() InventoryEntity { return InventoryEntity{} }
 	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm, createInventoryEntity)
-	goquery.BuildRestService[InventoryEntity, InventoryQuery](
+	goooqo.BuildRestService[InventoryEntity, InventoryQuery](
 		"/inventory/", mongoDataAccess, createInventoryEntity,
 		func() InventoryQuery { return InventoryQuery{} },
 	)

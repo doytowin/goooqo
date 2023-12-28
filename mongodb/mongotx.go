@@ -2,11 +2,9 @@ package mongodb
 
 import (
 	"context"
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-var sessionKey = struct{}{}
 
 type mongoTransactionManager struct {
 	client *mongo.Client
@@ -20,43 +18,55 @@ func (tm *mongoTransactionManager) GetClient() any {
 	return tm.client
 }
 
-func (tm *mongoTransactionManager) StartTransaction(ctx context.Context) TransactionContext {
-	ssnCtx := tm.resolveCtx(ctx)
-	if !ssnCtx.active {
-		err := ssnCtx.StartTransaction()
-		ssnCtx.active = true
-		if !NoError(err) {
-			panic(err)
+func (tm *mongoTransactionManager) StartTransaction(ctx context.Context) (TransactionContext, error) {
+	ssnCtx, err := tm.resolveCtx(ctx)
+	if NoError(err) && !ssnCtx.active {
+		err = ssnCtx.StartTransaction()
+		if NoError(err) {
+			ssnCtx.active = true
 		}
 	}
-	return ssnCtx
+	return ssnCtx, err
 }
 
-func (tm *mongoTransactionManager) resolveCtx(ctx context.Context) *mongoTransactionController {
-	ssnCtx, ok := ctx.(*mongoTransactionController)
+func (tm *mongoTransactionManager) resolveCtx(ctx context.Context) (*mongoTransactionContext, error) {
+	ssnCtx, ok := ctx.(*mongoTransactionContext)
 	if !ok {
 		sess, err := tm.client.StartSession()
-		if NoError(err) {
-			ssnCtx = &mongoTransactionController{
-				SessionContext: mongo.NewSessionContext(ctx, sess),
-				active:         false,
-			}
-		} else {
-			panic(err)
+		if !NoError(err) {
+			return nil, err
+		}
+		ssnCtx = &mongoTransactionContext{
+			SessionContext: mongo.NewSessionContext(ctx, sess),
+			active:         false,
+			parent:         ctx,
 		}
 	}
-	return ssnCtx
+	return ssnCtx, nil
 }
 
-type mongoTransactionController struct {
+type mongoTransactionContext struct {
 	mongo.SessionContext
 	active bool
+	parent context.Context
 }
 
-func (t *mongoTransactionController) Commit() error {
+func (t *mongoTransactionContext) Parent() context.Context {
+	return t.parent
+}
+
+func (t *mongoTransactionContext) Commit() error {
 	return t.CommitTransaction(t.SessionContext)
 }
 
-func (t *mongoTransactionController) Rollback() error {
+func (t *mongoTransactionContext) Rollback() error {
 	return t.AbortTransaction(t.SessionContext)
+}
+
+func (t *mongoTransactionContext) SavePoint(name string) error {
+	panic("not implemented")
+}
+
+func (t *mongoTransactionContext) RollbackTo(name string) error {
+	panic("not implemented")
 }

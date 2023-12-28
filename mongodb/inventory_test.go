@@ -1,7 +1,7 @@
 package mongodb
 
 import (
-	goquery "github.com/doytowin/go-query"
+	"github.com/doytowin/goooqo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -17,6 +17,18 @@ type InventoryEntity struct {
 	Status string
 }
 
+func (r InventoryEntity) GetTableName() string {
+	return r.Collection()
+}
+
+func (r InventoryEntity) GetId() any {
+	return r.Id
+}
+
+func (r InventoryEntity) SetId(self any, id any) {
+	panic("not implemented")
+}
+
 func (r InventoryEntity) Database() string {
 	return "doytowin"
 }
@@ -26,5 +38,5 @@ func (r InventoryEntity) Collection() string {
 }
 
 type InventoryQuery struct {
-	goquery.PageQuery
+	goooqo.PageQuery
 }

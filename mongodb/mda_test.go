@@ -16,7 +16,7 @@ func TestMongoDataAccess(t *testing.T) {
 	mongoDataAccess := NewMongoDataAccess[InventoryEntity](tm, func() InventoryEntity { return InventoryEntity{} })
 
 	t.Run("Support Basic Query", func(t *testing.T) {
-		tc := mongoDataAccess.StartTransaction(ctx)
+		tc, _ := mongoDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 		actual, err := mongoDataAccess.Query(tc, InventoryQuery{})
 		expect := "journal"
