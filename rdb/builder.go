@@ -43,6 +43,7 @@ func buildConditions(query any) ([]string, []any) {
 		rvalue = rvalue.Elem()
 	}
 
+	registerFpByType(rtype)
 	for i := 0; i < rtype.NumField(); i++ {
 		field := rtype.Field(i)
 		fieldName := field.Name
@@ -57,7 +58,8 @@ func buildConditions(query any) ([]string, []any) {
 			} else if _, ok := field.Tag.Lookup("subquery"); ok {
 				condition, arr = processSubquery(field, value)
 			} else {
-				condition, arr = Process(fieldName, value)
+				key := buildFpKey(rtype, field)
+				condition, arr = fpMap[key].Process(value)
 			}
 			conditions = append(conditions, condition)
 			args = append(args, arr...)

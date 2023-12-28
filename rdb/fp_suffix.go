@@ -111,6 +111,14 @@ func resolvePlaceHolder(arg string) string {
 	return ph
 }
 
+type fpSuffix struct {
+	field reflect.StructField
+}
+
+func (s fpSuffix) Process(value reflect.Value) (string, []any) {
+	return Process(s.field.Name, value)
+}
+
 func Process(fieldName string, value reflect.Value) (string, []any) {
 	column, op := suffixMatch(fieldName)
 	placeholder, args := op.process(value)
