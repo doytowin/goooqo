@@ -25,6 +25,10 @@ func (e TestEntity) GetTableName() string {
 	return "t_user"
 }
 
+func (e TestEntity) GetId() any {
+	return e.Id
+}
+
 func (e TestEntity) SetId(self any, id any) {
 	if v, ok := id.(int64); ok {
 		self.(*TestEntity).Id = PInt(int(v))

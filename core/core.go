@@ -26,6 +26,7 @@ type Query interface {
 
 type Entity interface {
 	GetTableName() string
+	GetId() any
 
 	// SetId set id to self.
 	// self: the pointer point to the current entity.

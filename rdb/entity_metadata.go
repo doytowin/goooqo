@@ -24,12 +24,6 @@ type EntityMetadata[E Entity] struct {
 	updateStr       string
 }
 
-func readId(entity any) any {
-	rv := reflect.ValueOf(entity)
-	value := rv.FieldByName("Id")
-	return ReadValue(value)
-}
-
 func (em *EntityMetadata[E]) buildArgs(entity E) []any {
 	args := make([]any, len(em.fieldsWithoutId))
 	rv := reflect.ValueOf(entity)
@@ -98,7 +92,7 @@ func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
 
 func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	args := em.buildArgs(entity)
-	args = append(args, readId(entity))
+	args = append(args, entity.GetId())
 	log.Debug("SQL: ", em.updateStr)
 	log.Debug("ARG: ", args)
 	return em.updateStr, args
@@ -123,7 +117,7 @@ func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
 func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
 	sqlStr, args := em.buildPatch(entity)
 	sqlStr = sqlStr + whereId
-	args = append(args, readId(entity))
+	args = append(args, entity.GetId())
 	log.Debug("SQL: ", sqlStr)
 	log.Debug("ARG: ", args)
 	return sqlStr, args
