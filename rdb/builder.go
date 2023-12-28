@@ -48,14 +48,8 @@ func buildConditions(query any) ([]string, []any) {
 		fieldName := field.Name
 		value := rvalue.FieldByName(fieldName)
 		if isValidValue(value) {
-			var condition string
-			var arr []any
-			if strings.HasSuffix(fieldName, "Or") {
-				condition, arr = ProcessOr(value.Elem().Interface())
-			} else {
-				processor := fpMap[buildFpKey(rtype, field)]
-				condition, arr = processor.Process(value)
-			}
+			processor := fpMap[buildFpKey(rtype, field)]
+			condition, arr := processor.Process(value)
 			conditions = append(conditions, condition)
 			args = append(args, arr...)
 		}
