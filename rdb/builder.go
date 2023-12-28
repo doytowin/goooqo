@@ -55,11 +55,9 @@ func buildConditions(query any) ([]string, []any) {
 				condition, arr = ProcessOr(value.Elem().Interface())
 			} else if _, ok := field.Tag.Lookup("condition"); ok {
 				condition, arr = processCustomCondition(field, value)
-			} else if _, ok := field.Tag.Lookup("subquery"); ok {
-				condition, arr = processSubquery(field, value)
 			} else {
-				key := buildFpKey(rtype, field)
-				condition, arr = fpMap[key].Process(value)
+				processor := fpMap[buildFpKey(rtype, field)]
+				condition, arr = processor.Process(value)
 			}
 			conditions = append(conditions, condition)
 			args = append(args, arr...)

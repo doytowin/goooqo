@@ -24,7 +24,9 @@ func registerFpByType(queryType reflect.Type) {
 
 	for i := 0; i < queryType.NumField(); i++ {
 		field := queryType.Field(i)
-		if field.Type.Kind() == reflect.Ptr &&
+		if _, ok := field.Tag.Lookup("subquery"); ok {
+			fpMap[buildFpKey(queryType, field)] = buildFpSubquery(field)
+		} else if field.Type.Kind() == reflect.Ptr &&
 			field.Type.Elem().Kind() == reflect.Struct {
 			log.Info("[registerFpByType] field: ", field.Type.Elem().Name(), " ", field.Type.Elem().Kind())
 			registerFpByType(field.Type.Elem())

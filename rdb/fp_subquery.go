@@ -6,43 +6,41 @@ import (
 	"strings"
 )
 
-type subquery struct {
-	select_ string
-	from    string
+type fpSubquery struct {
+	field         reflect.StructField
+	column, op    string
+	select_, from string
 }
 
-func processSubquery(field reflect.StructField, value reflect.Value) (string, []any) {
-	subq := buildSubquery(field)
-	fieldName := strings.TrimRightFunc(field.Name, func(r rune) bool {
-		return 0x30 < r && r <= 0x39 // remove trailing digits, such as ScoreGt1
-	})
-	columnOp := processField(fieldName)
+func (fp *fpSubquery) Process(value reflect.Value) (string, []any) {
 	where, args := BuildWhereClause(value.Elem().Interface())
-	condition := columnOp + "(SELECT " + subq.select_ + " FROM " + subq.from + where + ")"
-	return condition, args
+	return fp.buildCondition(where), args
+}
+
+func (fp *fpSubquery) buildCondition(where string) string {
+	if em := emMap[fp.from]; em != nil {
+		fp.from = em.TableName
+	}
+	return fp.column + fp.op + "(SELECT " + fp.select_ + " FROM " + fp.from + where + ")"
 }
 
 var sqRegx = regexp.MustCompile(`(select|from):([\w()]+)`)
 
-func buildSubquery(field reflect.StructField) (subq *subquery) {
+func buildFpSubquery(field reflect.StructField) (fp *fpSubquery) {
 	subqueryStr := field.Tag.Get("subquery")
 	submatch := sqRegx.FindAllStringSubmatch(subqueryStr, -1)
-	subq = &subquery{}
+	fp = &fpSubquery{field: field}
 	for _, group := range submatch {
 		if group[1] == "select" {
-			subq.select_ = group[2]
+			fp.select_ = group[2]
 		} else if group[1] == "from" {
-			if from := emMap[group[2]]; from != nil {
-				subq.from = from.TableName
-			} else {
-				subq.from = group[2]
-			}
+			fp.from = group[2]
 		}
 	}
-	return
-}
-
-func processField(fieldName string) string {
+	fieldName := strings.TrimRightFunc(fp.field.Name, func(r rune) bool {
+		return 0x30 < r && r <= 0x39 // remove trailing digits, such as 1 in ScoreGt1
+	})
 	column, op := suffixMatch(fieldName)
-	return column + op.sign
+	fp.column, fp.op = column, op.sign
+	return
 }
