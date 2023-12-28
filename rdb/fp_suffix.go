@@ -1,10 +1,16 @@
 package rdb
 
 import (
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	"reflect"
 	"regexp"
 	"strings"
+)
+
+var (
+	opMap     = CreateOpMap()
+	suffixRgx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd)$`)
+	escapeRgx = regexp.MustCompile("[\\\\_%]")
 )
 
 type operator struct {
@@ -34,11 +40,9 @@ func EmptyValue(reflect.Value) (string, []any) {
 	return "", []any{}
 }
 
-var escapePtn = regexp.MustCompile("[\\\\_%]")
-
 func ReadLikeValue(value reflect.Value) string {
 	s := ReadValue(value).(string)
-	return escapePtn.ReplaceAllString(s, "\\$0")
+	return escapeRgx.ReplaceAllString(s, "\\$0")
 }
 
 func CreateOpMap() map[string]operator {
@@ -51,7 +55,7 @@ func CreateOpMap() map[string]operator {
 	opMap["Le"] = operator{"Le", " <= ", ReadValueToArray}
 	opMap["Not"] = operator{"Not", " != ", ReadValueToArray}
 	opMap["Ne"] = operator{"Ne", " <> ", ReadValueToArray}
-	opMap["Eq"] = operator{"Eq", " == ", ReadValueToArray}
+	opMap["Eq"] = operator{"Eq", " = ", ReadValueToArray}
 	opMap["Null"] = operator{"Null", " IS NULL", EmptyValue}
 	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", EmptyValue}
 	opMap["In"] = operator{"In", " IN ", ReadValueForIn}
@@ -107,17 +111,26 @@ func resolvePlaceHolder(arg string) string {
 	return ph
 }
 
-var opMap = CreateOpMap()
-var regx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd)$`)
+type fpSuffix struct {
+	field reflect.StructField
+}
+
+func (s fpSuffix) Process(value reflect.Value) (string, []any) {
+	return Process(s.field.Name, value)
+}
 
 func Process(fieldName string, value reflect.Value) (string, []any) {
-	if match := regx.FindStringSubmatch(fieldName); len(match) > 0 {
-		operator := opMap[match[1]]
+	column, op := suffixMatch(fieldName)
+	placeholder, args := op.process(value)
+	return column + op.sign + placeholder, args
+}
+
+func suffixMatch(fieldName string) (string, operator) {
+	if match := suffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
+		op := opMap[match[1]]
 		column := strings.TrimSuffix(fieldName, match[1])
-		column = UnCapitalize(column)
-		placeholder, args := operator.process(value)
-		return column + operator.sign + placeholder, args
+		column = ConvertToColumnCase(column)
+		return column, op
 	}
-	_, args := ReadValueToArray(value)
-	return UnCapitalize(fieldName) + " = ?", args
+	return ConvertToColumnCase(fieldName), opMap["Eq"]
 }

@@ -20,7 +20,7 @@ var useCases = []mapping{
 	{"idLe", "id <= ?", []int64{5}, reflect.ValueOf(5)},
 	{"idNot", "id != ?", []int64{5}, reflect.ValueOf(5)},
 	{"idNe", "id <> ?", []int64{5}, reflect.ValueOf(5)},
-	{"idEq", "id == ?", []int64{5}, reflect.ValueOf(5)},
+	{"idEq", "id = ?", []int64{5}, reflect.ValueOf(5)},
 	{"idNull", "id IS NULL", nil, reflect.ValueOf(true)},
 	{"idNotNull", "id IS NOT NULL", nil, reflect.ValueOf(true)},
 	{"idIn", "id IN (?, ?, ?)", []int64{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},

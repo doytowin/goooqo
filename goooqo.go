@@ -1,23 +1,23 @@
-package goquery
+package goooqo
 
 import (
 	"context"
-	"github.com/doytowin/go-query/core"
-	"github.com/doytowin/go-query/web"
+	"github.com/doytowin/goooqo/core"
+	"github.com/doytowin/goooqo/web"
 	"net/http"
 )
 
-type GoQuery = core.GoQuery
+type Query = core.Query
 
 type PageQuery = core.PageQuery
 
 type Entity = core.Entity
 
-type DataAccess[C any, E any] core.DataAccess[C, E]
+type DataAccess[C context.Context, E Entity] core.DataAccess[C, E]
 
 type TransactionManager = core.TransactionManager
 
-func BuildRestService[E any, Q GoQuery](
+func BuildRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,

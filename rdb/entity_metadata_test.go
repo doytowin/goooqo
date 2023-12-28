@@ -1,8 +1,8 @@
 package rdb
 
 import (
-	. "github.com/doytowin/go-query/core"
-	. "github.com/doytowin/go-query/test"
+	. "github.com/doytowin/goooqo/core"
+	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )
@@ -19,6 +19,15 @@ func TestBuildStmt(t *testing.T) {
 		}
 	})
 
+	t.Run("Support snake_case_column", func(t *testing.T) {
+		em := buildEntityMetadata[TestEntity](TestEntity{})
+		actual := em.ColStr
+		expect := "id, username, email, mobile, create_time"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\n     Got: %s", expect, actual)
+		}
+	})
+
 	t.Run("Build Where Clause", func(t *testing.T) {
 		query := UserQuery{IdGt: PInt(5), MemoNull: true}
 		actual, args := BuildWhereClause(query)
@@ -26,7 +35,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] == int64(5)) {
+		if !(len(args) == 1 && args[0] == 5) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -39,7 +48,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == int64(5)) || args[1] != int64(60) {
+		if !(len(args) == 2 && args[0] == 5) || args[1] != 60 {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -59,11 +68,25 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
-		query := UserQuery{PageQuery: PageQuery{PInt(1), PInt(10)}}
+		query := UserQuery{PageQuery: PageQuery{PageNumber: PInt(1), PageSize: PInt(10)}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if len(args) != 0 {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
+	t.Run("Build Select with Sort Clause", func(t *testing.T) {
+		em := buildEntityMetadata[UserEntity](UserEntity{})
+		query := UserQuery{PageQuery: PageQuery{PageSize: PInt(5), Sort: PStr("id")}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User ORDER BY id LIMIT 5 OFFSET 0"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
 		}
 		if len(args) != 0 {
 			t.Errorf("Args are not expected: %s", args)
@@ -78,7 +101,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] != 60) {
+		if !(len(args) == 1 && args[0] == 60) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -91,27 +114,27 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == int64(90) && args[1] == "Great") {
+		if !(len(args) == 2 && args[0] == 90 && args[1] == "Great") {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
 
 	t.Run("Build Update Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
-		entity := UserEntity{2, PInt(90), PStr("Great")}
+		entity := UserEntity{Int64Id: NewIntId(2), Score: PInt(90), Memo: PStr("Great")}
 		actual, args := em.buildUpdate(entity)
 		expect := "UPDATE User SET score = ?, memo = ? WHERE id = ?"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 3 && args[0] == int64(90) && args[1] == "Great" && args[2] == int64(2)) {
+		if !(len(args) == 3 && args[0] == 90 && args[1] == "Great" && args[2] == int64(2)) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
 
 	t.Run("Build Patch Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity](UserEntity{})
-		entity := UserEntity{Id: 2, Memo: PStr("Great")}
+		entity := UserEntity{Int64Id: NewIntId(2), Memo: PStr("Great")}
 		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
 		if actual != expect {
@@ -122,4 +145,17 @@ func TestBuildStmt(t *testing.T) {
 		}
 	})
 
+	t.Run("Support tag subquery", func(t *testing.T) {
+		em := buildEntityMetadata[UserEntity](UserEntity{})
+		query := UserQuery{ScoreLt1: &UserQuery{MemoLike: PStr("Well")}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User WHERE score < (SELECT avg(score) FROM User WHERE memo LIKE ?)"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+		if !(len(args) == 1 && args[0] == "Well") {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
 }

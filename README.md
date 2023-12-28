@@ -1,9 +1,18 @@
-GoQuery
+GoooQo
 ---
-[![Sonar Stats](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goquery&metric=alert_status)](https://sonarcloud.io/dashboard?id=win.doyto.goquery)
-[![Code Lines](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goquery&metric=ncloc)](https://sonarcloud.io/component_measures?id=win.doyto.goquery&metric=ncloc)
-[![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goquery&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goquery&metric=coverage)
+[![Sonar Stats](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=alert_status)](https://sonarcloud.io/dashboard?id=win.doyto.goooqo)
+[![Code Lines](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=ncloc)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=ncloc)
+[![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
 
-An OSM implementation for Go by DoytoWin Go Team.
+An Object-Statement Mapping implementation for Go by DoytoWin Go Team which
 
-    This is an experimental project only and is not suitable for production use.
+The first three Os in the name `GoooQo` stands for the three major object concepts in the OSM technique:
+
+- `Entity Object` is used to map the static part in the DML/DQL, such as table name and column names;
+- `Query Object` is used to map the dynamic part in the DML/DQL, such as filter conditions, pagination, and sorting;
+- `View Object` is used to map the static part in the DQL, such as table name, column names, nested views, and group-by columns.
+
+Among them, `Qo` represents `Query Object`, which is the core object concept in the OSM technique.
+
+
+    This is currently an experimental project and is not suitable for use in a production environment..

@@ -5,8 +5,8 @@ import (
 	"database/sql/driver"
 )
 
-type PageList[E any] struct {
-	List  []E   `json:"list"`
+type PageList[D any] struct {
+	List  []D   `json:"list"`
 	Total int64 `json:"total"`
 }
 
@@ -16,40 +16,52 @@ type Response struct {
 	Error   *string `json:"error,omitempty"`
 }
 
-type GoQuery interface {
+type Query interface {
+	GetPageNumber() int
+	GetPageSize() int
+	CalcOffset() int
+	GetSort() *string
 	NeedPaging() bool
-	BuildPageClause() string
 }
 
 type Entity interface {
 	GetTableName() string
+	GetId() any
+
+	// SetId set id to self.
+	// self: the pointer point to the current entity.
+	// id: type could be int64 or string so far.
+	SetId(self any, id any)
 }
 
-type DataAccess[C any, E any] interface {
-	Get(conn C, id any) (*E, error)
-	Delete(conn C, id any) (int64, error)
-	Query(conn C, query GoQuery) ([]E, error)
-	Count(conn C, query GoQuery) (int64, error)
-	DeleteByQuery(conn C, query any) (int64, error)
-	Page(conn C, query GoQuery) (PageList[E], error)
-	Create(conn C, entity *E) (int64, error)
-	CreateMulti(conn C, entities []E) (int64, error)
-	Update(conn C, entity E) (int64, error)
-	Patch(conn C, entity E) (int64, error)
-	PatchByQuery(conn C, entity E, query GoQuery) (int64, error)
+type DataAccess[C context.Context, E Entity] interface {
+	Get(ctx C, id any) (*E, error)
+	Delete(ctx C, id any) (int64, error)
+	Query(ctx C, query Query) ([]E, error)
+	Count(ctx C, query Query) (int64, error)
+	DeleteByQuery(ctx C, query Query) (int64, error)
+	Page(ctx C, query Query) (PageList[E], error)
+	Create(ctx C, entity *E) (int64, error)
+	CreateMulti(ctx C, entities []E) (int64, error)
+	Update(ctx C, entity E) (int64, error)
+	Patch(ctx C, entity E) (int64, error)
+	PatchByQuery(ctx C, entity E, query Query) (int64, error)
 }
 
 type TransactionManager interface {
 	GetClient() any
-	StartTransaction(ctx context.Context) TransactionContext
+	StartTransaction(ctx context.Context) (TransactionContext, error)
 }
 
 type TransactionContext interface {
 	context.Context
 	driver.Tx
+	Parent() context.Context
+	SavePoint(name string) error
+	RollbackTo(name string) error
 }
 
-type TxDataAccess[E any, Q GoQuery] interface {
+type TxDataAccess[E Entity, Q Query] interface {
 	TransactionManager
 	DataAccess[context.Context, E]
 }

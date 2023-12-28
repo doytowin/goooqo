@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"reflect"
-	"strings"
 )
 
 func PStr(s string) *string {
@@ -20,25 +19,27 @@ func PInt(i int) *int {
 }
 
 func ReadValue(value reflect.Value) any {
+	typeStr := value.Type().String()
+	log.Debug("Read value for type: ", typeStr)
 	if value.Kind() == reflect.Ptr && !value.Elem().IsValid() {
 		return nil
 	}
-	typeStr := value.Type().String()
-	switch typeStr {
-	case "bool", "*bool":
-		return reflect.Indirect(value).Bool()
-	case "int", "*int":
-		return reflect.Indirect(value).Int()
-	case "string", "*string":
-		return reflect.Indirect(value).String()
-	default:
-		log.Warn("Type not support: ", typeStr)
-		return nil
-	}
+	return reflect.Indirect(value).Interface()
 }
 
-func UnCapitalize(s string) string {
-	return strings.ToLower(s[:1]) + s[1:]
+func ConvertToColumnCase(fieldName string) string {
+	return ToSnakeCase(fieldName)
+}
+
+func ToSnakeCase(fieldName string) string {
+	var col []rune
+	for i, letter := range fieldName {
+		if letter >= 'A' && letter <= 'Z' && i > 0 {
+			col = append(col, '_')
+		}
+		col = append(col, letter|0x20)
+	}
+	return string(col)
 }
 
 func ReadError(err error) *string {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	. "github.com/doytowin/go-query/core"
+	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -15,14 +15,14 @@ import (
 	"strings"
 )
 
-type restService[E any, Q GoQuery] struct {
+type restService[E Entity, Q Query] struct {
 	DataAccess[context.Context, E]
 	createQuery  func() Q
 	createEntity func() E
 	idRgx        *regexp.Regexp
 }
 
-func NewRestService[E any, Q GoQuery](
+func NewRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
 	createEntity func() E,
@@ -73,7 +73,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		entity := s.createEntity()
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			writeId(&entity, id)
+			entity.SetId(&entity, id)
 			return s.Update(request.Context(), entity)
 		}
 	case "PATCH":
@@ -81,7 +81,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		entity := s.createEntity()
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			writeId(&entity, id)
+			entity.SetId(&entity, id)
 			return s.Patch(request.Context(), entity)
 		}
 	case "DELETE":
@@ -96,14 +96,6 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		}
 	}
 	return data, err
-}
-
-func writeId(entity any, id string) {
-	rv := reflect.ValueOf(entity).Elem()
-	field := rv.FieldByName("Id")
-	if field.IsValid() {
-		resolvePointer(field, []string{id})
-	}
 }
 
 func resolveQuery(queryMap url.Values, query any) {

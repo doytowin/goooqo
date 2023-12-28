@@ -1,9 +1,9 @@
-package goquery
+package goooqo
 
 import (
 	"database/sql"
-	"github.com/doytowin/go-query/rdb"
-	. "github.com/doytowin/go-query/test"
+	"github.com/doytowin/goooqo/rdb"
+	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )

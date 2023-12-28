@@ -1,4 +1,4 @@
-module github.com/doytowin/go-query
+module github.com/doytowin/goooqo
 
 go 1.18
 

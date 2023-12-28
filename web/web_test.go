@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/doytowin/go-query/core"
-	"github.com/doytowin/go-query/rdb"
-	. "github.com/doytowin/go-query/test"
+	"github.com/doytowin/goooqo/core"
+	"github.com/doytowin/goooqo/rdb"
+	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
 	"net/http/httptest"
 	"testing"
@@ -69,6 +69,19 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
+	t.Run("Get /user/?Sort=id,desc", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&Sort=id,desc", nil)
+
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":{"list":[{"id":3,"score":55,"memo":null},{"id":2,"score":40,"memo":"Bad"}],"total":2},"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
 	t.Run("Get /user/ ", func(t *testing.T) {
 		writer := httptest.NewRecorder()
 		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&MemoNull=true", nil)
@@ -109,8 +122,9 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("Get /user/1", func(t *testing.T) {
+		tc, _ := tm.StartTransaction(ctx)
 		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/1", nil)
+		request := httptest.NewRequest("GET", "/user/1", nil).WithContext(tc)
 
 		rs.ServeHTTP(writer, request)
 
@@ -118,6 +132,8 @@ func TestWeb(t *testing.T) {
 		expect := `{"data":{"id":1,"score":85,"memo":"Good"},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		} else {
+			_ = tc.Commit()
 		}
 	})
 
@@ -135,7 +151,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("PUT /user/1", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
 		writer := httptest.NewRecorder()
@@ -164,7 +180,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("DELETE /user/{id}", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 		writer := httptest.NewRecorder()
 		request := httptest.NewRequest("DELETE", "/user/1", nil).WithContext(tc)
@@ -190,7 +206,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("PATCH /user/{id}", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
 		writer := httptest.NewRecorder()
@@ -218,7 +234,7 @@ func TestWeb(t *testing.T) {
 	})
 
 	t.Run("POST /user/", func(t *testing.T) {
-		tc := tm.StartTransaction(ctx)
+		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 		writer := httptest.NewRecorder()
 		body := bytes.NewBufferString(`[{"score":60, "memo":"Well"}]`)
