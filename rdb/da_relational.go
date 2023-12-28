@@ -54,7 +54,7 @@ func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []a
 	columnMetas := da.em.columnMetas
 	pointers := make([]any, len(columnMetas))
 	for i, cm := range columnMetas {
-		pointers[i] = elem.FieldByName(cm.field.Name).Addr().Interface()
+		pointers[i] = elem.FieldByName(cm.Field.Name).Addr().Interface()
 	}
 
 	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)

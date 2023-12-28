@@ -12,7 +12,7 @@ var emMap = make(map[string]*metadata)
 
 type metadata struct {
 	TableName   string
-	columnMetas []columnMetadata
+	columnMetas []ColumnMetadata
 }
 
 type EntityMetadata[E Entity] struct {
@@ -137,17 +137,17 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) ([]any, st
 
 func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 	entityType := reflect.TypeOf(entity)
-	columnMetas := buildColumnMetas(entityType)
+	columnMetas := BuildColumnMetas(entityType)
 
 	columns := make([]string, len(columnMetas))
 	var columnsWithoutId []string
 	var fieldsWithoutId []string
 
 	for i, md := range columnMetas {
-		columns[i] = md.columnName
-		if !md.isId {
-			fieldsWithoutId = append(fieldsWithoutId, md.field.Name)
-			columnsWithoutId = append(columnsWithoutId, md.columnName)
+		columns[i] = md.ColumnName
+		if !md.IsId {
+			fieldsWithoutId = append(fieldsWithoutId, md.Field.Name)
+			columnsWithoutId = append(columnsWithoutId, md.ColumnName)
 		}
 	}
 
