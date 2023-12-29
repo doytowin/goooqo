@@ -77,14 +77,11 @@ func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
 }
 
 func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
-	var args []any
+	args := make([]any, 0, len(entities)*len(em.fieldsWithoutId))
 	for _, entity := range entities {
 		args = append(args, em.buildArgs(entity)...)
 	}
-	createStr := em.createStr
-	for i := 1; i < len(entities); i++ {
-		createStr += ", " + em.placeholders
-	}
+	createStr := em.createStr + strings.Repeat(", "+em.placeholders, len(entities)-1)
 	log.Debug("SQL: ", createStr)
 	log.Debug("ARG: ", args)
 	return createStr, args
@@ -98,8 +95,8 @@ func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	return em.updateStr, args
 }
 
-func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
-	var args []any
+func (em *EntityMetadata[E]) buildPatch(entity E, extra int) (string, []any) {
+	args := make([]any, 0, len(em.fieldsWithoutId)+extra)
 	sqlStr := "UPDATE " + em.TableName + " SET "
 
 	rv := reflect.ValueOf(entity)
@@ -115,7 +112,7 @@ func (em *EntityMetadata[E]) buildPatch(entity E) (string, []any) {
 }
 
 func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
-	sqlStr, args := em.buildPatch(entity)
+	sqlStr, args := em.buildPatch(entity, 1)
 	sqlStr = sqlStr + whereId
 	args = append(args, entity.GetId())
 	log.Debug("SQL: ", sqlStr)
@@ -124,8 +121,8 @@ func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
 }
 
 func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) ([]any, string) {
-	patchClause, argsE := em.buildPatch(entity)
 	whereClause, argsQ := BuildWhereClause(query)
+	patchClause, argsE := em.buildPatch(entity, len(argsQ))
 
 	args := append(argsE, argsQ...)
 	sqlStr := patchClause + whereClause
@@ -140,8 +137,8 @@ func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 	columnMetas := BuildColumnMetas(entityType)
 
 	columns := make([]string, len(columnMetas))
-	var columnsWithoutId []string
-	var fieldsWithoutId []string
+	columnsWithoutId := make([]string, 0, len(columnMetas))
+	fieldsWithoutId := make([]string, 0, len(columnMetas))
 
 	for i, md := range columnMetas {
 		columns[i] = md.ColumnName
@@ -153,11 +150,7 @@ func buildEntityMetadata[E Entity](entity E) EntityMetadata[E] {
 
 	tableName := entity.GetTableName()
 
-	placeholders := "(?"
-	for i := 1; i < len(columnsWithoutId); i++ {
-		placeholders += ", ?"
-	}
-	placeholders += ")"
+	placeholders := "(?" + strings.Repeat(", ?", len(columnsWithoutId)-1) + ")"
 	createStr := "INSERT INTO " + tableName +
 		" (" + strings.Join(columnsWithoutId, ", ") + ") " +
 		"VALUES " + placeholders

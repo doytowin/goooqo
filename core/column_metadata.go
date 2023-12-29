@@ -10,11 +10,12 @@ type ColumnMetadata struct {
 	ColumnName string
 }
 
-func BuildColumnMetas(structType reflect.Type) (columnMetas []ColumnMetadata) {
+func BuildColumnMetas(structType reflect.Type) []ColumnMetadata {
+	columnMetas := make([]ColumnMetadata, 0, structType.NumField())
 	for i := 0; i < structType.NumField(); i++ {
 		columnMetas = append(columnMetas, buildColumnMetadata(structType.Field(i))...)
 	}
-	return
+	return columnMetas
 }
 
 func buildColumnMetadata(field reflect.StructField) []ColumnMetadata {
