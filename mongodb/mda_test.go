@@ -2,7 +2,8 @@ package mongodb
 
 import (
 	"context"
-	"log"
+	. "github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 	"testing"
 )
 
@@ -27,6 +28,19 @@ func TestMongoDataAccess(t *testing.T) {
 		} else if !(actual[0].Size.H == 14.) {
 			t.Errorf("%s\nExpected: %f\n     Got: %f", err, 14., actual[0].Size.H)
 		}
-		log.Println(actual)
+		log.Debugln(actual)
+	})
+
+	t.Run("Support Custom Query Builder", func(t *testing.T) {
+		tc, _ := mongoDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		actual, err := mongoDataAccess.Query(tc, InventoryQuery{QtyGt: PInt(70)})
+		expect := 2
+		if !(err == nil && len(actual) == expect) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, len(actual))
+		} else if !(actual[0].Qty == 100) {
+			t.Errorf("\nExpected: %f\n     Got: %d", 100., actual[0].Qty)
+		}
+		log.Debugln(actual)
 	})
 }

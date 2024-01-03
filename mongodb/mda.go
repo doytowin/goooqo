@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"errors"
 	. "github.com/doytowin/goooqo/core"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,6 +15,10 @@ type MongoEntity interface {
 	Entity
 	Database() string
 	Collection() string
+}
+
+type QueryBuilder interface {
+	BuildFilter() []bson.D
 }
 
 type mongoDataAccess[C context.Context, E MongoEntity] struct {
@@ -51,11 +56,23 @@ func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
 	var result []E
-	cursor, err := m.collection.Find(ctx, bson.D{{}})
+	cursor, err := m.collection.Find(ctx, buildFilter(query))
 	if NoError(err) {
 		err = cursor.All(ctx, &result)
 	}
 	return result, err
+}
+
+func buildFilter(query Query) bson.D {
+	if qb, ok := query.(QueryBuilder); ok {
+		d := qb.BuildFilter()
+		ret := bson.D{}
+		if len(d) > 0 {
+			ret = bson.D{{"$and", d}}
+		}
+		return ret
+	}
+	panic(errors.New("Query object should be type of QueryBuilder"))
 }
 
 func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {

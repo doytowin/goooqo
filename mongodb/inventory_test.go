@@ -5,6 +5,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type InventoryQuery struct {
+	goooqo.PageQuery
+	QtyGt *int
+}
+
 type InventoryEntity struct {
 	Id   primitive.ObjectID `bson:"_id,omitempty"`
 	Item string
@@ -31,8 +36,4 @@ func (r InventoryEntity) Database() string {
 
 func (r InventoryEntity) Collection() string {
 	return "inventory"
-}
-
-type InventoryQuery struct {
-	goooqo.PageQuery
 }
