@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	. "github.com/doytowin/goooqo/core"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	. "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,7 +17,7 @@ type MongoEntity interface {
 }
 
 type QueryBuilder interface {
-	BuildFilter() []bson.D
+	BuildFilter() []D
 }
 
 type mongoDataAccess[C context.Context, E MongoEntity] struct {
@@ -39,10 +38,10 @@ func NewMongoDataAccess[E MongoEntity](tm TransactionManager, createEntity func(
 }
 
 func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
-	objectID, err := primitive.ObjectIDFromHex(id.(string))
+	idFilter, err := buildIdFilter(id)
 	if NoError(err) {
 		e := m.create()
-		err = m.collection.FindOne(c, bson.M{"_id": objectID}).Decode(&e)
+		err = m.collection.FindOne(c, idFilter).Decode(&e)
 		if NoError(err) {
 			return &e, err
 		}
@@ -51,7 +50,21 @@ func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
-	panic(msg)
+	idFilter, err := buildIdFilter(id)
+	if NoError(err) {
+		result, err := m.collection.DeleteOne(ctx, idFilter)
+		return result.DeletedCount, err
+	}
+	return 0, err
+}
+
+func buildIdFilter(id any) (M, error) {
+	var err error
+	objectID, ok := id.(ObjectID)
+	if !ok {
+		objectID, err = ObjectIDFromHex(id.(string))
+	}
+	return M{"_id": objectID}, err
 }
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
@@ -63,12 +76,12 @@ func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
 	return result, err
 }
 
-func buildFilter(query Query) bson.D {
+func buildFilter(query Query) D {
 	if qb, ok := query.(QueryBuilder); ok {
 		d := qb.BuildFilter()
-		ret := bson.D{}
+		ret := D{}
 		if len(d) > 0 {
-			ret = bson.D{{"$and", d}}
+			ret = D{{"$and", d}}
 		}
 		return ret
 	}
