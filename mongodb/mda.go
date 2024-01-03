@@ -76,7 +76,7 @@ func buildFilter(query Query) bson.D {
 }
 
 func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
-	return m.collection.CountDocuments(ctx, bson.M{})
+	return m.collection.CountDocuments(ctx, buildFilter(query))
 }
 
 func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {

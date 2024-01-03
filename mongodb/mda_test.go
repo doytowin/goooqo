@@ -43,4 +43,19 @@ func TestMongoDataAccess(t *testing.T) {
 		}
 		log.Debugln(actual)
 	})
+
+	t.Run("Support Page Query", func(t *testing.T) {
+		tc, _ := mongoDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		actual, err := mongoDataAccess.Page(tc, InventoryQuery{QtyGt: PInt(70)})
+		expect := 2
+		if !(err == nil && len(actual.List) == expect) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, len(actual.List))
+		} else if !(actual.Total == int64(expect)) {
+			t.Errorf("\nExpected: %d\n     Got: %d", expect, actual.Total)
+		} else if !(actual.List[0].Qty == 100) {
+			t.Errorf("\nExpected: %f\n     Got: %d", 100., actual.List[0].Qty)
+		}
+		log.Debugln(actual)
+	})
 }
