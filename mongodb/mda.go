@@ -52,8 +52,7 @@ func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 	idFilter, err := buildIdFilter(id)
 	if NoError(err) {
-		result, err := m.collection.DeleteOne(ctx, idFilter)
-		return result.DeletedCount, err
+		return unwrap(m.collection.DeleteOne(ctx, idFilter))
 	}
 	return 0, err
 }
@@ -93,7 +92,14 @@ func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
 }
 
 func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
-	panic(msg)
+	return unwrap(m.collection.DeleteMany(ctx, buildFilter(query)))
+}
+
+func unwrap(result *mongo.DeleteResult, err error) (int64, error) {
+	if NoError(err) {
+		return result.DeletedCount, nil
+	}
+	return 0, err
 }
 
 func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {

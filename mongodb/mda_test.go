@@ -75,4 +75,19 @@ func TestMongoDataAccess(t *testing.T) {
 		}
 		log.Debugln(actual)
 	})
+
+	t.Run("Support Delete by Query", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		actual, err := inventoryDataAccess.DeleteByQuery(tc, InventoryQuery{QtyGt: PInt(70)})
+		expect := int64(2)
+		if !(err == nil && actual == expect) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, actual)
+		}
+		cnt, err := inventoryDataAccess.Count(tc, InventoryQuery{})
+		if !(err == nil && cnt == int64(3)) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 3, cnt)
+		}
+		log.Debugln(actual)
+	})
 }
