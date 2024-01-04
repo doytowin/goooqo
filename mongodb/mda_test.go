@@ -9,6 +9,7 @@ import (
 )
 
 func TestMongoDataAccess(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
 
 	ctx := context.Background()
 	var client = Connect(ctx, "app.properties")
@@ -113,5 +114,29 @@ func TestMongoDataAccess(t *testing.T) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 6, cnt)
 		}
 		log.Debugln(actual)
+	})
+
+	t.Run("Support Update", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		newQty := 123
+		Id, _ := primitive.ObjectIDFromHex("657bbb49675e5c32a2b8af72")
+		inventory, _ := inventoryDataAccess.Get(tc, Id)
+
+		inventory.Qty = newQty
+		actual, err := inventoryDataAccess.Update(tc, *inventory)
+
+		if !(err == nil && actual == 1) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 1, actual)
+		}
+
+		newE, err := inventoryDataAccess.Get(tc, Id)
+		if !(err == nil) {
+			t.Error(err)
+		} else if !(newE.Qty == newQty) {
+			t.Errorf("\nExpected: %d\n     Got: %d", newQty, newE.Qty)
+		}
+		log.Println(actual)
 	})
 }

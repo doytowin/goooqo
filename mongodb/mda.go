@@ -131,7 +131,11 @@ func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) 
 }
 
 func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
-	panic(msg)
+	result, err := m.collection.ReplaceOne(ctx, M{"_id": entity.GetId()}, entity)
+	if NoError(err) {
+		return result.MatchedCount, err
+	}
+	return 0, err
 }
 
 func (m *mongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
