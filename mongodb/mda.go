@@ -6,6 +6,7 @@ import (
 	. "github.com/doytowin/goooqo/core"
 	. "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"reflect"
 )
 
@@ -74,11 +75,25 @@ func resolveId(id any) (ObjectID, error) {
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
 	var result []E
-	cursor, err := m.collection.Find(ctx, buildFilter(query))
+	cursor, err := m.collection.Find(ctx, buildFilter(query), buildPageOpt(query))
 	if NoError(err) {
 		err = cursor.All(ctx, &result)
 	}
 	return result, err
+}
+
+func buildPageOpt(query Query) *options.FindOptions {
+	pageOpt := &options.FindOptions{}
+	if query.NeedPaging() {
+		pageOpt.Limit = PInt64(query.GetPageSize())
+		pageOpt.Skip = PInt64(query.CalcOffset())
+	}
+	return pageOpt
+}
+
+func PInt64(i int) *int64 {
+	i64 := int64(i)
+	return &i64
 }
 
 func buildFilter(query Query) D {

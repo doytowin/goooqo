@@ -56,7 +56,24 @@ func TestMongoDataAccess(t *testing.T) {
 		} else if !(actual.Total == int64(expect)) {
 			t.Errorf("\nExpected: %d\n     Got: %d", expect, actual.Total)
 		} else if !(actual.List[0].Qty == 100) {
-			t.Errorf("\nExpected: %f\n     Got: %d", 100., actual.List[0].Qty)
+			t.Errorf("\nExpected: %d\n     Got: %d", 100, actual.List[0].Qty)
+		}
+		log.Debugln(actual)
+	})
+
+	t.Run("Support Page Query with Pagination", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		inventoryQuery := InventoryQuery{QtyGt: PInt(70)}
+		inventoryQuery.PageSize = PInt(1)
+		inventoryQuery.PageNumber = PInt(2)
+		actual, err := inventoryDataAccess.Page(tc, inventoryQuery)
+		if !(err == nil && len(actual.List) == 1) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 1, len(actual.List))
+		} else if !(actual.Total == int64(2)) {
+			t.Errorf("\nExpected: %d\n     Got: %d", 2, actual.Total)
+		} else if !(actual.List[0].Qty == 75) {
+			t.Errorf("\nExpected: %d\n     Got: %d", 75, actual.List[0].Qty)
 		}
 		log.Debugln(actual)
 	})
