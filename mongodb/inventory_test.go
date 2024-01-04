@@ -9,16 +9,18 @@ type InventoryQuery struct {
 	QtyGt *int
 }
 
+type SizeDoc struct {
+	H   float64 `json:"h,omitempty" bson:"h"`
+	W   float64 `json:"w,omitempty" bson:"w"`
+	Uom string  `json:"uom,omitempty" bson:"uom"`
+}
+
 type InventoryEntity struct {
 	MongoId `bson:",inline"`
-	Item    string
-	Size    struct {
-		H   float64
-		W   float64
-		Uom string
-	}
-	Qty    int
-	Status string
+	Item    string  `json:"item,omitempty" bson:"item"`
+	Size    SizeDoc `json:"size" bson:"size"`
+	Qty     int     `json:"qty,omitempty" bson:"qty"`
+	Status  string  `json:"status,omitempty" bson:"status"`
 }
 
 func (r InventoryEntity) Database() string {

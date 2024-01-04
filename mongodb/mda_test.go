@@ -96,12 +96,8 @@ func TestMongoDataAccess(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 		entity := InventoryEntity{
-			Item: "eraser",
-			Size: struct {
-				H   float64
-				W   float64
-				Uom string
-			}{3.5, 2, "cm"},
+			Item:   "eraser",
+			Size:   SizeDoc{3.5, 2, "cm"},
 			Qty:    20,
 			Status: "A",
 		}
@@ -138,5 +134,36 @@ func TestMongoDataAccess(t *testing.T) {
 			t.Errorf("\nExpected: %d\n     Got: %d", newQty, newE.Qty)
 		}
 		log.Println(actual)
+	})
+
+	t.Run("Support Create Multiple Entities", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		entities := []InventoryEntity{
+			{
+				Item:   "eraser",
+				Size:   SizeDoc{3.5, 2, "cm"},
+				Qty:    20,
+				Status: "A",
+			},
+			{
+				Item:   "keyboard",
+				Size:   SizeDoc{40, 15.5, "cm"},
+				Qty:    10,
+				Status: "D",
+			},
+		}
+		actual, err := inventoryDataAccess.CreateMulti(tc, entities)
+		if !(err == nil) {
+			t.Fatal(err)
+		} else if entities[0].Id == nil {
+			t.Fatal("id should not be nil")
+		}
+
+		cnt, err := inventoryDataAccess.Count(tc, InventoryQuery{})
+		if !(err == nil && cnt == int64(7)) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 7, cnt)
+		}
+		log.Debugln(actual)
 	})
 }

@@ -2,27 +2,27 @@ package main
 
 import (
 	"github.com/doytowin/goooqo"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/doytowin/goooqo/mongodb"
+	. "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type InventoryQuery struct {
+	goooqo.PageQuery
+	QtyGt *int
+}
+
+type SizeDoc struct {
+	H   float64 `json:"h,omitempty" bson:"h"`
+	W   float64 `json:"w,omitempty" bson:"w"`
+	Uom string  `json:"uom,omitempty" bson:"uom"`
+}
+
 type InventoryEntity struct {
-	Id   primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Item string             `json:"item,omitempty"`
-	Size struct {
-		H   float64 `json:"h,omitempty"`
-		W   float64 `json:"w,omitempty"`
-		Uom string  `json:"uom,omitempty"`
-	} `json:"size"`
-	Qty    int    `json:"qty,omitempty"`
-	Status string `json:"status,omitempty"`
-}
-
-func (r InventoryEntity) GetId() any {
-	return r.Id
-}
-
-func (r InventoryEntity) SetId(self any, id any) error {
-	panic("implement me")
+	mongodb.MongoId `bson:",inline"`
+	Item            string  `json:"item,omitempty" bson:"item"`
+	Size            SizeDoc `json:"size" bson:"size"`
+	Qty             int     `json:"qty,omitempty" bson:"qty"`
+	Status          string  `json:"status,omitempty" bson:"status"`
 }
 
 func (r InventoryEntity) Database() string {
@@ -33,6 +33,10 @@ func (r InventoryEntity) Collection() string {
 	return "inventory"
 }
 
-type InventoryQuery struct {
-	goooqo.PageQuery
+func (q InventoryQuery) BuildFilter() []D {
+	d := make([]D, 0, 10)
+	if q.QtyGt != nil {
+		d = append(d, D{{"qty", D{{"$gt", q.QtyGt}}}})
+	}
+	return d
 }

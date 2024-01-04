@@ -126,7 +126,19 @@ func (m *mongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
 }
 
 func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) {
-	panic(msg)
+	docs := make([]any, len(entities))
+	for i := range entities {
+		docs[i] = entities[i]
+	}
+
+	result, err := m.collection.InsertMany(ctx, docs)
+	if NoError(err) {
+		for i, ID := range result.InsertedIDs {
+			err = entities[i].SetId(&entities[i], ID)
+		}
+		return int64(len(result.InsertedIDs)), err
+	}
+	return 0, err
 }
 
 func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
