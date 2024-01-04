@@ -39,10 +39,10 @@ func NewMongoDataAccess[E MongoEntity](tm TransactionManager, createEntity func(
 }
 
 func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
-	idFilter, err := buildIdFilter(id)
+	ID, err := resolveId(id)
 	if NoError(err) {
 		e := m.create()
-		err = m.collection.FindOne(c, idFilter).Decode(&e)
+		err = m.collection.FindOne(c, buildIdFilter(ID)).Decode(&e)
 		if NoError(err) {
 			return &e, err
 		}
@@ -51,16 +51,15 @@ func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
-	idFilter, err := buildIdFilter(id)
+	ID, err := resolveId(id)
 	if NoError(err) {
-		return unwrap(m.collection.DeleteOne(ctx, idFilter))
+		return unwrap(m.collection.DeleteOne(ctx, buildIdFilter(ID)))
 	}
 	return 0, err
 }
 
-func buildIdFilter(id any) (M, error) {
-	objectID, err := resolveId(id)
-	return M{"_id": objectID}, err
+func buildIdFilter(objectID any) M {
+	return M{"_id": objectID}
 }
 
 func resolveId(id any) (ObjectID, error) {
@@ -131,7 +130,7 @@ func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) 
 }
 
 func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
-	result, err := m.collection.ReplaceOne(ctx, M{"_id": entity.GetId()}, entity)
+	result, err := m.collection.ReplaceOne(ctx, buildIdFilter(entity.GetId()), entity)
 	if NoError(err) {
 		return result.MatchedCount, err
 	}
