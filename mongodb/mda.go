@@ -6,6 +6,7 @@ import (
 	. "github.com/doytowin/goooqo/core"
 	. "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"reflect"
 )
 
 const msg = "implement me"
@@ -58,12 +59,18 @@ func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 }
 
 func buildIdFilter(id any) (M, error) {
-	var err error
-	objectID, ok := id.(ObjectID)
-	if !ok {
-		objectID, err = ObjectIDFromHex(id.(string))
-	}
+	objectID, err := resolveId(id)
 	return M{"_id": objectID}, err
+}
+
+func resolveId(id any) (ObjectID, error) {
+	switch x := id.(type) {
+	case ObjectID:
+		return x, nil
+	case string:
+		return ObjectIDFromHex(x)
+	}
+	return NilObjectID, errors.New("unknown type of id: " + reflect.TypeOf(id).String())
 }
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
@@ -112,7 +119,11 @@ func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 }
 
 func (m *mongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
-	panic(msg)
+	result, err := m.collection.InsertOne(ctx, entity)
+	if NoError(err) {
+		(*entity).SetId(entity, result.InsertedID)
+	}
+	return 0, err
 }
 
 func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) {

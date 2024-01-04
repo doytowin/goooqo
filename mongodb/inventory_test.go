@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"github.com/doytowin/goooqo"
+	"github.com/doytowin/goooqo/core"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -27,7 +28,10 @@ func (r InventoryEntity) GetId() any {
 }
 
 func (r InventoryEntity) SetId(self any, id any) {
-	panic("not implemented")
+	objectID, err := resolveId(id)
+	if core.NoError(err) {
+		self.(*InventoryEntity).Id = objectID
+	}
 }
 
 func (r InventoryEntity) Database() string {

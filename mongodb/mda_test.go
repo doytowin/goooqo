@@ -90,4 +90,28 @@ func TestMongoDataAccess(t *testing.T) {
 		}
 		log.Debugln(actual)
 	})
+
+	t.Run("Support Create", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		entity := InventoryEntity{
+			Item: "eraser",
+			Size: struct {
+				H   float64
+				W   float64
+				Uom string
+			}{3.5, 2, "cm"},
+			Qty:    20,
+			Status: "A",
+		}
+		actual, err := inventoryDataAccess.Create(tc, &entity)
+		if !(err == nil && !entity.Id.IsZero()) {
+			t.Errorf("%s\n     Got: %s", err, entity.Id.Hex())
+		}
+		cnt, err := inventoryDataAccess.Count(tc, InventoryQuery{})
+		if !(err == nil && cnt == int64(6)) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 6, cnt)
+		}
+		log.Debugln(actual)
+	})
 }
