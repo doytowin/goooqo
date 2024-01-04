@@ -29,14 +29,16 @@ func (e TestEntity) GetId() any {
 	return e.Id
 }
 
-func (e TestEntity) SetId(self any, id any) {
-	if v, ok := id.(int64); ok {
-		self.(*TestEntity).Id = PInt(int(v))
-	} else {
+func (e TestEntity) SetId(self any, id any) (err error) {
+	v, ok := id.(int64)
+	if !ok {
 		s := fmt.Sprintf("%s", id)
-		v, _ := strconv.Atoi(s)
-		self.(*TestEntity).Id = &v
+		v, err = strconv.ParseInt(s, 10, 64)
 	}
+	if NoError(err) {
+		self.(*TestEntity).Id = PInt(int(v))
+	}
+	return
 }
 
 type TestQuery struct {
