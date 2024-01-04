@@ -21,7 +21,7 @@ func (r InventoryEntity) GetId() any {
 	return r.Id
 }
 
-func (r InventoryEntity) SetId(self any, id any) {
+func (r InventoryEntity) SetId(self any, id any) error {
 	panic("implement me")
 }
 

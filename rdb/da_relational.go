@@ -122,7 +122,7 @@ func (da *relationalDataAccess[C, E]) Create(connCtx C, entity *E) (int64, error
 	if NoError(err) {
 		id, err = result.LastInsertId()
 		if NoError(err) {
-			(*entity).SetId(entity, id)
+			err = (*entity).SetId(entity, id)
 		}
 	}
 	return id, err

@@ -121,7 +121,7 @@ func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 func (m *mongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
 	result, err := m.collection.InsertOne(ctx, entity)
 	if NoError(err) {
-		(*entity).SetId(entity, result.InsertedID)
+		err = (*entity).SetId(entity, result.InsertedID)
 	}
 	return 0, err
 }

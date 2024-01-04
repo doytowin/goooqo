@@ -30,7 +30,7 @@ type Entity interface {
 	// SetId set id to self.
 	// self: the pointer point to the current entity.
 	// id: type could be int64 or string so far.
-	SetId(self any, id any)
+	SetId(self any, id any) error
 }
 
 type DataAccess[C context.Context, E Entity] interface {

@@ -27,11 +27,12 @@ func (r InventoryEntity) GetId() any {
 	return r.Id
 }
 
-func (r InventoryEntity) SetId(self any, id any) {
+func (r InventoryEntity) SetId(self any, id any) error {
 	objectID, err := resolveId(id)
 	if core.NoError(err) {
 		self.(*InventoryEntity).Id = objectID
 	}
+	return err
 }
 
 func (r InventoryEntity) Database() string {
