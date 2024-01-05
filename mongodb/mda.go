@@ -11,8 +11,6 @@ import (
 	"strings"
 )
 
-const msg = "implement me"
-
 type MongoEntity interface {
 	Entity
 	Database() string
@@ -213,5 +211,11 @@ func readFieldName(field reflect.StructField) string {
 }
 
 func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query Query) (int64, error) {
-	panic(msg)
+	doc := buildPatch(entity)
+	filter := buildFilter(query)
+	result, err := m.collection.UpdateMany(ctx, filter, doc)
+	if NoError(err) {
+		return result.MatchedCount, err
+	}
+	return 0, err
 }

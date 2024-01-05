@@ -217,4 +217,21 @@ func TestMongoDataAccess(t *testing.T) {
 		log.Println(actual)
 	})
 
+	t.Run("Support Patch by Query", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		newQty := 70
+		cnt, err := inventoryDataAccess.PatchByQuery(tc, InventoryEntity{Qty: &newQty}, InventoryQuery{QtyGt: &newQty})
+
+		if !(err == nil && cnt == 2) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 2, cnt)
+		}
+
+		cnt, err = inventoryDataAccess.Count(tc, InventoryQuery{QtyGt: &newQty})
+		if !(err == nil && cnt == 0) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 0, cnt)
+		}
+	})
+
 }
