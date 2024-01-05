@@ -7,7 +7,11 @@ import (
 )
 
 type MongoId struct {
-	Id *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Id *primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+}
+
+func NewMongoId(Id *primitive.ObjectID) MongoId {
+	return MongoId{Id: Id}
 }
 
 func (e MongoId) GetId() any {

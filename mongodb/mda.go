@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"reflect"
+	"strings"
 )
 
 const msg = "implement me"
@@ -59,8 +60,8 @@ func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 	return 0, err
 }
 
-func buildIdFilter(objectID any) M {
-	return M{"_id": objectID}
+func buildIdFilter(objectID any) D {
+	return D{{"_id", objectID}}
 }
 
 func resolveId(id any) (ObjectID, error) {
@@ -165,7 +166,50 @@ func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
-	panic(msg)
+	doc := buildPatch(entity)
+	idFilter := buildIdFilter(entity.GetId())
+	result, err := m.collection.UpdateOne(ctx, idFilter, doc)
+	if NoError(err) {
+		return result.MatchedCount, err
+	}
+	return 0, err
+}
+
+func buildPatch(entity any) M {
+	dst := M{}
+	flattenDoc(dst, "", entity)
+	return M{"$set": dst}
+}
+
+func flattenDoc(dst M, path string, value any) {
+	vType := reflect.TypeOf(value)
+	if vType.Kind() == reflect.Struct {
+		if path != "" {
+			path += "."
+		}
+		rv := reflect.ValueOf(value)
+		for i := 0; i < vType.NumField(); i++ {
+			value = ReadValue(rv.Field(i))
+			if value != nil {
+				name := readFieldName(vType.Field(i))
+				flattenDoc(dst, path+name, value)
+			}
+		}
+	} else if path != "_id" {
+		dst[path] = value
+	}
+}
+
+func readFieldName(field reflect.StructField) string {
+	if bsonTag, ok := field.Tag.Lookup("bson"); ok {
+		if strings.Index(bsonTag, "inline") > 0 {
+			return ""
+		}
+		if name := strings.Split(bsonTag, ",")[0]; name != "" {
+			return name
+		}
+	}
+	return ConvertToColumnCase(field.Name)
 }
 
 func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query Query) (int64, error) {

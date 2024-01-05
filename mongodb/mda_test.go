@@ -2,11 +2,16 @@ package mongodb
 
 import (
 	"context"
+	"encoding/json"
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 )
+
+func PF64(f float64) *float64 {
+	return &f
+}
 
 func TestMongoDataAccess(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
@@ -25,10 +30,10 @@ func TestMongoDataAccess(t *testing.T) {
 		expect := "journal"
 		if !(err == nil && len(actual) == 5) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 5, len(actual))
-		} else if !(actual[0].Item == expect) {
-			t.Errorf("%s\nExpected: %s\n     Got: %s", err, expect, actual[0].Item)
-		} else if !(actual[0].Size.H == 14.) {
-			t.Errorf("%s\nExpected: %f\n     Got: %f", err, 14., actual[0].Size.H)
+		} else if !(*actual[0].Item == expect) {
+			t.Errorf("%s\nExpected: %s\n     Got: %s", err, expect, *actual[0].Item)
+		} else if !(*actual[0].Size.H == 14.) {
+			t.Errorf("%s\nExpected: %f\n     Got: %f", err, 14., *actual[0].Size.H)
 		}
 		log.Debugln(actual)
 	})
@@ -40,7 +45,7 @@ func TestMongoDataAccess(t *testing.T) {
 		expect := 2
 		if !(err == nil && len(actual) == expect) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, len(actual))
-		} else if !(actual[0].Qty == 100) {
+		} else if !(*actual[0].Qty == 100) {
 			t.Errorf("\nExpected: %f\n     Got: %d", 100., actual[0].Qty)
 		}
 		log.Debugln(actual)
@@ -55,7 +60,7 @@ func TestMongoDataAccess(t *testing.T) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, len(actual.List))
 		} else if !(actual.Total == int64(expect)) {
 			t.Errorf("\nExpected: %d\n     Got: %d", expect, actual.Total)
-		} else if !(actual.List[0].Qty == 100) {
+		} else if !(*actual.List[0].Qty == 100) {
 			t.Errorf("\nExpected: %d\n     Got: %d", 100, actual.List[0].Qty)
 		}
 		log.Debugln(actual)
@@ -72,7 +77,7 @@ func TestMongoDataAccess(t *testing.T) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 1, len(actual.List))
 		} else if !(actual.Total == int64(2)) {
 			t.Errorf("\nExpected: %d\n     Got: %d", 2, actual.Total)
-		} else if !(actual.List[0].Qty == 75) {
+		} else if !(*actual.List[0].Qty == 75) {
 			t.Errorf("\nExpected: %d\n     Got: %d", 75, actual.List[0].Qty)
 		}
 		log.Debugln(actual)
@@ -113,10 +118,10 @@ func TestMongoDataAccess(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 		entity := InventoryEntity{
-			Item:   "eraser",
-			Size:   SizeDoc{3.5, 2, "cm"},
-			Qty:    20,
-			Status: "A",
+			Item:   PStr("eraser"),
+			Size:   &SizeDoc{PF64(3.5), PF64(2), PStr("cm")},
+			Qty:    PInt(20),
+			Status: PStr("A"),
 		}
 		actual, err := inventoryDataAccess.Create(tc, &entity)
 		if !(err == nil && !entity.Id.IsZero()) {
@@ -137,7 +142,7 @@ func TestMongoDataAccess(t *testing.T) {
 		Id, _ := primitive.ObjectIDFromHex("657bbb49675e5c32a2b8af72")
 		inventory, _ := inventoryDataAccess.Get(tc, Id)
 
-		inventory.Qty = newQty
+		inventory.Qty = &newQty
 		actual, err := inventoryDataAccess.Update(tc, *inventory)
 
 		if !(err == nil && actual == 1) {
@@ -147,7 +152,7 @@ func TestMongoDataAccess(t *testing.T) {
 		newE, err := inventoryDataAccess.Get(tc, Id)
 		if !(err == nil) {
 			t.Error(err)
-		} else if !(newE.Qty == newQty) {
+		} else if !(*newE.Qty == newQty) {
 			t.Errorf("\nExpected: %d\n     Got: %d", newQty, newE.Qty)
 		}
 		log.Println(actual)
@@ -158,16 +163,16 @@ func TestMongoDataAccess(t *testing.T) {
 		defer tc.Rollback()
 		entities := []InventoryEntity{
 			{
-				Item:   "eraser",
-				Size:   SizeDoc{3.5, 2, "cm"},
-				Qty:    20,
-				Status: "A",
+				Item:   PStr("eraser"),
+				Size:   &SizeDoc{PF64(3.5), PF64(2), PStr("cm")},
+				Qty:    PInt(20),
+				Status: PStr("A"),
 			},
 			{
-				Item:   "keyboard",
-				Size:   SizeDoc{40, 15.5, "cm"},
-				Qty:    10,
-				Status: "D",
+				Item:   PStr("keyboard"),
+				Size:   &SizeDoc{PF64(40), PF64(15.5), PStr("cm")},
+				Qty:    PInt(10),
+				Status: PStr("D"),
 			},
 		}
 		actual, err := inventoryDataAccess.CreateMulti(tc, entities)
@@ -183,4 +188,33 @@ func TestMongoDataAccess(t *testing.T) {
 		}
 		log.Debugln(actual)
 	})
+
+	t.Run("Support Patch", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		Id, _ := primitive.ObjectIDFromHex("657bbb49675e5c32a2b8af72")
+		inventory := InventoryEntity{MongoId: NewMongoId(&Id)}
+		inventory.Qty = PInt(123)
+		inventory.Size = &SizeDoc{H: PF64(20.5)}
+
+		cnt, err := inventoryDataAccess.Patch(tc, inventory)
+
+		if !(err == nil && cnt == 1) {
+			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 1, cnt)
+		}
+
+		newE, err := inventoryDataAccess.Get(tc, Id)
+		data, _ := json.Marshal(newE)
+		actual := string(data)
+		expect := `{"id":"657bbb49675e5c32a2b8af72","item":"journal","size":{"h":20.5,"w":21,"uom":"cm"},"qty":123,"status":"A"}`
+
+		if !(err == nil) {
+			t.Error(err)
+		} else if !(actual == expect) {
+			t.Errorf("\nExpected: %s\n     Got: %s", expect, actual)
+		}
+		log.Println(actual)
+	})
+
 }
