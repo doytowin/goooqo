@@ -114,6 +114,26 @@ func TestMongoDataAccess(t *testing.T) {
 		log.Debugln(actual)
 	})
 
+	t.Run("Support Delete by Page", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+		inventoryQuery := InventoryQuery{QtyGt: PInt(30)}
+		inventoryQuery.PageNumber = PInt(2)
+		inventoryQuery.PageSize = PInt(2)
+		actual, err := inventoryDataAccess.DeleteByQuery(tc, inventoryQuery)
+		expect := int64(2)
+		if !(err == nil && actual == expect) {
+			t.Fatalf("%s\nExpected: %d\n     Got: %d", err, expect, actual)
+		}
+
+		entities, err := inventoryDataAccess.Query(tc, InventoryQuery{})
+		if !(err == nil) {
+			t.Error(err)
+		}
+		assertEquals(t, 3, len(entities))
+		assertEquals(t, "657bbb49675e5c32a2b8af74", entities[2].Id.Hex())
+	})
+
 	t.Run("Support Create", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
@@ -234,4 +254,10 @@ func TestMongoDataAccess(t *testing.T) {
 		}
 	})
 
+}
+
+func assertEquals(t *testing.T, expect any, actual any) {
+	if !(actual == expect) {
+		t.Error("\nExpected: ", expect, "\n\t Got: ", actual)
+	}
 }

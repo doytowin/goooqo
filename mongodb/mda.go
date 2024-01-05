@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+const MID = "_id"
+
 type MongoEntity interface {
 	Entity
 	Database() string
@@ -59,7 +61,7 @@ func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
 }
 
 func buildIdFilter(objectID any) D {
-	return D{{"_id", objectID}}
+	return D{{MID, objectID}}
 }
 
 func resolveId(id any) (ObjectID, error) {
@@ -112,7 +114,32 @@ func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
 }
 
 func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
+	if query.NeedPaging() {
+		IDs, err := m.QueryIds(ctx, query)
+		if NoError(err) {
+			filter := D{{MID, D{{"$in", IDs}}}}
+			return unwrap(m.collection.DeleteMany(ctx, filter))
+		}
+		return 0, err
+	}
 	return unwrap(m.collection.DeleteMany(ctx, buildFilter(query)))
+}
+
+func (m *mongoDataAccess[C, E]) QueryIds(ctx C, query Query) ([]any, error) {
+	pageOpt := buildPageOpt(query).SetProjection(M{MID: 1})
+	cursor, err := m.collection.Find(ctx, buildFilter(query), pageOpt)
+	if NoError(err) {
+		var result []M
+		err = cursor.All(ctx, &result)
+		if NoError(err) {
+			IDs := make([]any, 0, len(result))
+			for _, e := range result {
+				IDs = append(IDs, e[MID])
+			}
+			return IDs, err
+		}
+	}
+	return nil, err
 }
 
 func unwrap(result *mongo.DeleteResult, err error) (int64, error) {
@@ -193,7 +220,7 @@ func flattenDoc(dst M, path string, value any) {
 				flattenDoc(dst, path+name, value)
 			}
 		}
-	} else if path != "_id" {
+	} else if path != MID {
 		dst[path] = value
 	}
 }
