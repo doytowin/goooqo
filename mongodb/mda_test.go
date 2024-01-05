@@ -254,6 +254,30 @@ func TestMongoDataAccess(t *testing.T) {
 		}
 	})
 
+	t.Run("Support Patch by Page", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		newQty := 30
+		inventoryQuery := InventoryQuery{QtyGt: &newQty}
+		inventoryQuery.PageNumber = PInt(2)
+		inventoryQuery.PageSize = PInt(2)
+		cnt, err := inventoryDataAccess.PatchByQuery(tc, InventoryEntity{Qty: &newQty}, inventoryQuery)
+
+		assertNoError(t, err)
+		assertEquals(t, int64(2), cnt)
+
+		entities, _ := inventoryDataAccess.Query(tc, InventoryQuery{})
+		assertEquals(t, 100, *entities[2].Qty)
+		assertEquals(t, 30, *entities[4].Qty)
+	})
+
+}
+
+func assertNoError(t *testing.T, err error) {
+	if !(err == nil) {
+		t.Error(err)
+	}
 }
 
 func assertEquals(t *testing.T, expect any, actual any) {

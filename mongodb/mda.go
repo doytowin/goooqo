@@ -114,20 +114,25 @@ func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
 }
 
 func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
+	filter := buildFilter(query)
 	if query.NeedPaging() {
-		IDs, err := m.QueryIds(ctx, query)
-		if NoError(err) {
-			filter := D{{MID, D{{"$in", IDs}}}}
-			return unwrap(m.collection.DeleteMany(ctx, filter))
+		IDs, err := m.doQueryIds(ctx, query, filter)
+		if HasError(err) {
+			return 0, err
 		}
-		return 0, err
+		filter = D{{MID, D{{"$in", IDs}}}}
 	}
-	return unwrap(m.collection.DeleteMany(ctx, buildFilter(query)))
+	return unwrap(m.collection.DeleteMany(ctx, filter))
 }
 
 func (m *mongoDataAccess[C, E]) QueryIds(ctx C, query Query) ([]any, error) {
+	filter := buildFilter(query)
+	return m.doQueryIds(ctx, query, filter)
+}
+
+func (m *mongoDataAccess[C, E]) doQueryIds(ctx C, query Query, filter any) ([]any, error) {
 	pageOpt := buildPageOpt(query).SetProjection(M{MID: 1})
-	cursor, err := m.collection.Find(ctx, buildFilter(query), pageOpt)
+	cursor, err := m.collection.Find(ctx, filter, pageOpt)
 	if NoError(err) {
 		var result []M
 		err = cursor.All(ctx, &result)
@@ -193,11 +198,7 @@ func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
 func (m *mongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
 	doc := buildPatch(entity)
 	idFilter := buildIdFilter(entity.GetId())
-	result, err := m.collection.UpdateOne(ctx, idFilter, doc)
-	if NoError(err) {
-		return result.MatchedCount, err
-	}
-	return 0, err
+	return unwrapPatch(m.collection.UpdateMany(ctx, idFilter, doc))
 }
 
 func buildPatch(entity any) M {
@@ -240,7 +241,17 @@ func readFieldName(field reflect.StructField) string {
 func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query Query) (int64, error) {
 	doc := buildPatch(entity)
 	filter := buildFilter(query)
-	result, err := m.collection.UpdateMany(ctx, filter, doc)
+	if query.NeedPaging() {
+		IDs, err := m.doQueryIds(ctx, query, filter)
+		if HasError(err) {
+			return 0, err
+		}
+		filter = D{{MID, D{{"$in", IDs}}}}
+	}
+	return unwrapPatch(m.collection.UpdateMany(ctx, filter, doc))
+}
+
+func unwrapPatch(result *mongo.UpdateResult, err error) (int64, error) {
 	if NoError(err) {
 		return result.MatchedCount, err
 	}
