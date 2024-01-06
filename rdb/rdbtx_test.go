@@ -16,7 +16,7 @@ func TestWeb(t *testing.T) {
 	ctx := context.Background()
 	tm := NewTransactionManager(db)
 
-	userDataAccess := NewTxDataAccess[UserEntity](tm, func() UserEntity { return UserEntity{} })
+	userDataAccess := NewTxDataAccess[UserEntity](tm)
 
 	t.Run("Should not start tx repeated", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)

@@ -17,22 +17,16 @@ import (
 
 type restService[E Entity, Q Query] struct {
 	DataAccess[context.Context, E]
-	createQuery  func() Q
-	createEntity func() E
-	idRgx        *regexp.Regexp
+	idRgx *regexp.Regexp
 }
 
 func NewRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
-	createEntity func() E,
-	createQuery func() Q,
 ) http.Handler {
 	return &restService[E, Q]{
-		DataAccess:   dataAccess,
-		createQuery:  createQuery,
-		createEntity: createEntity,
-		idRgx:        regexp.MustCompile(prefix + `(\d+)$`),
+		DataAccess: dataAccess,
+		idRgx:      regexp.MustCompile(prefix + `(\d+)$`),
 	}
 }
 
@@ -57,7 +51,7 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 		return
 	}
 
-	query := s.createQuery()
+	query := *new(Q)
 	queryMap := request.URL.Query()
 	resolveQuery(queryMap, &query)
 	pageList, err := s.Page(request.Context(), query)
@@ -70,7 +64,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 	switch request.Method {
 	case "PUT":
 		body, _ := io.ReadAll(request.Body)
-		entity := s.createEntity()
+		entity := *new(E)
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
 			entity.SetId(&entity, id)
@@ -78,7 +72,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		}
 	case "PATCH":
 		body, _ := io.ReadAll(request.Body)
-		entity := s.createEntity()
+		entity := *new(E)
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
 			entity.SetId(&entity, id)

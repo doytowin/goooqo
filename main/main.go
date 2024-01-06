@@ -1,7 +1,7 @@
 package main
 
 import (
-	goooqo "github.com/doytowin/goooqo"
+	"github.com/doytowin/goooqo"
 	"github.com/doytowin/goooqo/rdb"
 	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
@@ -25,12 +25,6 @@ func main() {
 }
 
 func buildUserModule(tm goooqo.TransactionManager) {
-	createUserEntity := func() UserEntity { return UserEntity{} }
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm, createUserEntity)
-	goooqo.BuildRestService[UserEntity, UserQuery](
-		"/user/",
-		userDataAccess,
-		createUserEntity,
-		func() UserQuery { return UserQuery{} },
-	)
+	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
+	goooqo.BuildRestService[UserEntity, UserQuery]("/user/", userDataAccess)
 }

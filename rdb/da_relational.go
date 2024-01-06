@@ -18,14 +18,12 @@ type ConnectionCtx interface {
 }
 
 type relationalDataAccess[C ConnectionCtx, E Entity] struct {
-	em     EntityMetadata[E]
-	create func() E
+	em EntityMetadata[E]
 }
 
-func newRelationalDataAccess[E RdbEntity](createEntity func() E) DataAccess[ConnectionCtx, E] {
+func newRelationalDataAccess[E RdbEntity]() DataAccess[ConnectionCtx, E] {
 	return &relationalDataAccess[ConnectionCtx, E]{
-		em:     buildEntityMetadata[E](createEntity()),
-		create: createEntity,
+		em: buildEntityMetadata[E](),
 	}
 }
 
@@ -49,7 +47,7 @@ func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []a
 
 	result := make([]E, 0, size)
 
-	entity := da.create()
+	entity := *new(E)
 	elem := reflect.ValueOf(&entity).Elem()
 	columnMetas := da.em.columnMetas
 	pointers := make([]any, len(columnMetas))

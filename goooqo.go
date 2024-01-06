@@ -20,9 +20,7 @@ type TransactionManager = core.TransactionManager
 func BuildRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[context.Context, E],
-	createEntity func() E,
-	createQuery func() Q,
 ) {
-	s := web.NewRestService[E, Q](prefix, dataAccess, createEntity, createQuery)
+	s := web.NewRestService[E, Q](prefix, dataAccess)
 	http.Handle(prefix, s)
 }

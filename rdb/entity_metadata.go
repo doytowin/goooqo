@@ -132,7 +132,8 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) ([]any, st
 	return args, sqlStr
 }
 
-func buildEntityMetadata[E RdbEntity](entity E) EntityMetadata[E] {
+func buildEntityMetadata[E RdbEntity]() EntityMetadata[E] {
+	entity := *new(E)
 	entityType := reflect.TypeOf(entity)
 	columnMetas := BuildColumnMetas(entityType)
 
