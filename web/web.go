@@ -11,8 +11,6 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
-	"strconv"
-	"strings"
 )
 
 type restService[E Entity, Q Query] struct {
@@ -26,7 +24,7 @@ func NewRestService[E Entity, Q Query](
 ) http.Handler {
 	return &restService[E, Q]{
 		DataAccess: dataAccess,
-		idRgx:      regexp.MustCompile(prefix + `(\d+)$`),
+		idRgx:      regexp.MustCompile(prefix + `([\da-fA-F]+)$`),
 	}
 }
 
@@ -99,41 +97,16 @@ func resolveQuery(queryMap url.Values, query any) {
 		if !field.IsValid() {
 			continue
 		}
-		log.Debug("field.Kind: ", field.Kind())
-		if field.Kind() == reflect.Bool {
-			v0 := strings.EqualFold(v[0], "TRue")
-			field.Set(reflect.ValueOf(v0))
-		} else if field.Kind() == reflect.Pointer {
-			resolvePointer(field, v)
-		}
+		convertAndSet(field, v)
 	}
 }
 
-func resolvePointer(field reflect.Value, v []string) {
+func convertAndSet(field reflect.Value, v []string) {
 	log.Debug("field.Type: ", field.Type())
-	fieldType := field.Type().String()
-	if fieldType == "*[]int" {
-		strArr := strings.Split(v[0], ",")
-		var v0 []int
-		for _, s := range strArr {
-			num, err := strconv.Atoi(s)
-			if NoError(err) {
-				v0 = append(v0, num)
-			}
-		}
-		field.Set(reflect.ValueOf(&v0))
-	} else if fieldType == "*int" {
-		v0, err := strconv.Atoi(v[0])
-		if NoError(err) {
-			field.Set(reflect.ValueOf(&v0))
-		}
-	} else if fieldType == "int" {
-		v0, err := strconv.Atoi(v[0])
-		if NoError(err) {
-			field.Set(reflect.ValueOf(v0))
-		}
-	} else {
-		field.Set(reflect.ValueOf(&v[0]))
+	fieldType := field.Type()
+	v0, err := converterMap[fieldType](v)
+	if NoError(err) {
+		field.Set(reflect.ValueOf(v0))
 	}
 }
 
