@@ -8,6 +8,7 @@ import (
 type InventoryQuery struct {
 	goooqo.PageQuery
 	QtyGt *int
+	QtyLt *int
 }
 
 type SizeDoc struct {
