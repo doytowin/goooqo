@@ -34,7 +34,11 @@ func appendCondition(buffer *bytes.Buffer, fieldName string) {
 
 	buffer.WriteString(fmt.Sprintf("\tif q.%s != nil {", fieldName))
 	buffer.WriteString(NewLine)
-	buffer.WriteString(fmt.Sprintf("\t\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], fieldName))
+	if op.name != "Eq" {
+		buffer.WriteString(fmt.Sprintf("\t\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], fieldName))
+	} else {
+		buffer.WriteString(fmt.Sprintf("\t\td = append(d, D{{\"%s\", q.%s}})", column, fieldName))
+	}
 	buffer.WriteString(NewLine)
 	buffer.WriteString("\t}")
 	buffer.WriteString(NewLine)
