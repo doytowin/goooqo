@@ -83,6 +83,23 @@ func TestMongoDataAccess(t *testing.T) {
 		log.Debugln(actual)
 	})
 
+	t.Run("Support Page Query with Sort", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		inventoryQuery := InventoryQuery{QtyGt: PInt(70)}
+		inventoryQuery.Sort = PStr("qty,desc")
+
+		actual, err := inventoryDataAccess.Page(tc, inventoryQuery)
+		if !(err == nil) {
+			t.Error(err)
+		} else if !(actual.Total == int64(2)) {
+			t.Errorf("\nExpected: %d\n     Got: %d", 2, actual.Total)
+		} else if !(*actual.List[1].Qty == 75) {
+			t.Errorf("\nExpected: %d\n     Got: %d", 75, actual.List[1].Qty)
+		}
+	})
+
 	t.Run("Support Delete by id", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
