@@ -22,7 +22,7 @@ type relationalDataAccess[C ConnectionCtx, E Entity] struct {
 	create func() E
 }
 
-func newRelationalDataAccess[E Entity](createEntity func() E) DataAccess[ConnectionCtx, E] {
+func newRelationalDataAccess[E RdbEntity](createEntity func() E) DataAccess[ConnectionCtx, E] {
 	return &relationalDataAccess[ConnectionCtx, E]{
 		em:     buildEntityMetadata[E](createEntity()),
 		create: createEntity,

@@ -16,7 +16,7 @@ type connectionCtx struct {
 	Connection
 }
 
-func NewTxDataAccess[E Entity](tm TransactionManager, createEntity func() E) DataAccess[context.Context, E] {
+func NewTxDataAccess[E RdbEntity](tm TransactionManager, createEntity func() E) DataAccess[context.Context, E] {
 	return &txDataAccess[context.Context, E]{
 		TransactionManager: tm,
 		conn:               tm.GetClient().(Connection),
