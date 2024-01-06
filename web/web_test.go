@@ -22,13 +22,8 @@ func TestWeb(t *testing.T) {
 	ctx := context.Background()
 	tm := rdb.NewTransactionManager(db)
 
-	createUserEntity := func() UserEntity { return UserEntity{} }
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm, createUserEntity)
-	rs := NewRestService[UserEntity, UserQuery](
-		"/user/", userDataAccess,
-		createUserEntity,
-		func() UserQuery { return UserQuery{} },
-	)
+	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
+	rs := NewRestService[UserEntity, UserQuery]("/user/", userDataAccess)
 
 	t.Run("Page /user/", func(t *testing.T) {
 		writer := httptest.NewRecorder()

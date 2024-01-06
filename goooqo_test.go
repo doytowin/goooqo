@@ -14,12 +14,8 @@ func TestBuild(t *testing.T) {
 	t.Run("Export Interface", func(t *testing.T) {
 		var db *sql.DB
 		tm := rdb.NewTransactionManager(db)
-		dataAccess := rdb.NewTxDataAccess[UserEntity](tm, func() UserEntity { return UserEntity{} })
+		dataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 
-		BuildRestService[UserEntity, UserQuery](
-			"/user/", dataAccess,
-			func() UserEntity { return UserEntity{} },
-			func() UserQuery { return UserQuery{} },
-		)
+		BuildRestService[UserEntity, UserQuery]("/user/", dataAccess)
 	})
 }

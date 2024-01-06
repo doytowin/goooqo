@@ -11,7 +11,7 @@ func TestBuildStmt(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	t.Run("Build with Custom Table Name", func(t *testing.T) {
-		em := buildEntityMetadata[TestEntity](TestEntity{})
+		em := buildEntityMetadata[TestEntity]()
 		actual := em.TableName
 		expect := "t_user"
 		if actual != expect {
@@ -20,7 +20,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Support snake_case_column", func(t *testing.T) {
-		em := buildEntityMetadata[TestEntity](TestEntity{})
+		em := buildEntityMetadata[TestEntity]()
 		actual := em.ColStr
 		expect := "id, username, email, mobile, create_time"
 		if actual != expect {
@@ -41,7 +41,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select Statement", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{IdGt: PInt(5), ScoreLt: PInt(60)}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
@@ -54,7 +54,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select Without Where", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User"
@@ -67,7 +67,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{PageQuery: PageQuery{PageNumber: PInt(1), PageSize: PInt(10)}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
@@ -80,7 +80,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select with Sort Clause", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{PageQuery: PageQuery{PageSize: PInt(5), Sort: PStr("id")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User ORDER BY id LIMIT 5 OFFSET 0"
@@ -94,7 +94,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Count", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{ScoreLt: PInt(60)}
 		actual, args := em.buildCount(&query)
 		expect := "SELECT count(0) FROM User WHERE score < ?"
@@ -107,7 +107,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Create Stmt", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
 		actual, args := em.buildCreate(entity)
 		expect := "INSERT INTO User (score, memo) VALUES (?, ?)"
@@ -120,7 +120,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Update Stmt", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		entity := UserEntity{Int64Id: NewIntId(2), Score: PInt(90), Memo: PStr("Great")}
 		actual, args := em.buildUpdate(entity)
 		expect := "UPDATE User SET score = ?, memo = ? WHERE id = ?"
@@ -133,7 +133,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Patch Stmt", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		entity := UserEntity{Int64Id: NewIntId(2), Memo: PStr("Great")}
 		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
@@ -146,7 +146,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Support tag subquery", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity](UserEntity{})
+		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{ScoreLt1: &UserQuery{MemoLike: PStr("Well")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE score < (SELECT avg(score) FROM User WHERE memo LIKE ?)"

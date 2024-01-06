@@ -33,21 +33,14 @@ func main() {
 }
 
 func buildUserModule(tm goooqo.TransactionManager) {
-	createUserEntity := func() UserEntity { return UserEntity{} }
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm, createUserEntity)
-	goooqo.BuildRestService[UserEntity, UserQuery](
-		"/user/",
-		userDataAccess,
-		createUserEntity,
-		func() UserQuery { return UserQuery{} },
-	)
+	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
+	goooqo.BuildRestService[UserEntity, UserQuery]("/user/", userDataAccess)
 }
 
 func buildInventoryModule(tm goooqo.TransactionManager) {
 	createInventoryEntity := func() InventoryEntity { return InventoryEntity{} }
 	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm, createInventoryEntity)
 	goooqo.BuildRestService[InventoryEntity, InventoryQuery](
-		"/inventory/", mongoDataAccess, createInventoryEntity,
-		func() InventoryQuery { return InventoryQuery{} },
+		"/inventory/", mongoDataAccess,
 	)
 }

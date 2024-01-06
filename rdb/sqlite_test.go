@@ -17,7 +17,7 @@ func TestSQLite(t *testing.T) {
 	defer Disconnect(db)
 	cc := newConnCtx(db)
 
-	userDataAccess := newRelationalDataAccess[UserEntity](func() UserEntity { return UserEntity{} })
+	userDataAccess := newRelationalDataAccess[UserEntity]()
 
 	t.Run("Query Entities", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(80)}
