@@ -12,6 +12,9 @@ import . "go.mongodb.org/mongo-driver/bson/primitive"
 
 func (q InventoryQuery) BuildFilter() []D {
 	d := make([]D, 0, 10)
+	if q.Id != nil {
+		d = append(d, D{{"_id", q.Id}})
+	}
 	if q.Qty != nil {
 		d = append(d, D{{"qty", q.Qty}})
 	}

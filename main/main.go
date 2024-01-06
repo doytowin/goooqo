@@ -6,11 +6,19 @@ import (
 	"github.com/doytowin/goooqo/mongodb"
 	"github.com/doytowin/goooqo/rdb"
 	. "github.com/doytowin/goooqo/test"
+	"github.com/doytowin/goooqo/web"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"reflect"
 )
 
 func main() {
+	web.RegisterConverter(reflect.PointerTo(reflect.TypeOf(primitive.NilObjectID)), func(v []string) (any, error) {
+		objectID, err := mongodb.ResolveId(v[0])
+		return &objectID, err
+	})
+
 	log.SetLevel(log.DebugLevel)
 	db := rdb.Connect("local.properties")
 	InitDB(db)

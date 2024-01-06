@@ -3,10 +3,12 @@ package main
 import (
 	"github.com/doytowin/goooqo"
 	"github.com/doytowin/goooqo/mongodb"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type InventoryQuery struct {
 	goooqo.PageQuery
+	Id    *primitive.ObjectID
 	Qty   *int
 	QtyGt *int
 	QtyLt *int

@@ -39,7 +39,7 @@ func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E, Qu
 }
 
 func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
-	ID, err := resolveId(id)
+	ID, err := ResolveId(id)
 	if NoError(err) {
 		e := *new(E)
 		err = m.collection.FindOne(c, buildIdFilter(ID)).Decode(&e)
@@ -51,7 +51,7 @@ func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
-	ID, err := resolveId(id)
+	ID, err := ResolveId(id)
 	if NoError(err) {
 		return unwrap(m.collection.DeleteOne(ctx, buildIdFilter(ID)))
 	}
@@ -62,7 +62,11 @@ func buildIdFilter(objectID any) D {
 	return D{{MID, objectID}}
 }
 
-func resolveId(id any) (ObjectID, error) {
+//func ResolveId(id any) (ObjectID, error) {
+//	return ResolveId(id)
+//}
+
+func ResolveId(id any) (ObjectID, error) {
 	switch x := id.(type) {
 	case ObjectID:
 		return x, nil

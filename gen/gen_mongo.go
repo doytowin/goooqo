@@ -31,6 +31,9 @@ func appendBuildMethod(buffer *bytes.Buffer, stp *ast.StructType) {
 
 func appendCondition(buffer *bytes.Buffer, fieldName string) {
 	column, op := suffixMatch(fieldName)
+	if column == "id" {
+		column = "_id"
+	}
 
 	buffer.WriteString(fmt.Sprintf("\tif q.%s != nil {", fieldName))
 	buffer.WriteString(NewLine)
