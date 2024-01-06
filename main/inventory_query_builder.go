@@ -16,5 +16,8 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.QtyGe != nil {
 		d = append(d, D{{"qty", D{{"$gte", q.QtyGe}}}})
 	}
+	if q.QtyLe != nil {
+		d = append(d, D{{"qty", D{{"$lte", q.QtyLe}}}})
+	}
 	return d
 }
