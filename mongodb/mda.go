@@ -73,7 +73,7 @@ func resolveId(id any) (ObjectID, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
-	var result []E
+	result := make([]E, 0, query.GetPageSize())
 	cursor, err := m.collection.Find(ctx, buildFilter(query), buildPageOpt(query))
 	if NoError(err) {
 		err = cursor.All(ctx, &result)

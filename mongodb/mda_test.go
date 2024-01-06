@@ -38,6 +38,17 @@ func TestMongoDataAccess(t *testing.T) {
 		log.Debugln(actual)
 	})
 
+	t.Run("Support Basic Query", func(t *testing.T) {
+		tc, _ := inventoryDataAccess.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		actual, _ := inventoryDataAccess.Query(tc, InventoryQuery{QtyGt: PInt(100)})
+
+		if !(actual != nil && len(actual) == 0) {
+			t.Errorf("should return empty array: %v", actual)
+		}
+	})
+
 	t.Run("Support Custom Query Builder", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
