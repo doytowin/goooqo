@@ -1,9 +1,7 @@
 package mongodb
 
 import (
-	"github.com/doytowin/goooqo/core"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"reflect"
 )
 
 type MongoId struct {
@@ -20,9 +18,14 @@ func (e MongoId) GetId() any {
 
 func (e MongoId) SetId(self any, id any) error {
 	ID, err := resolveId(id)
-	if core.NoError(err) {
-		elem := reflect.ValueOf(self).Elem()
-		elem.FieldByName("Id").Set(reflect.ValueOf(&ID))
-	}
+	self.(IdSetter).setId(ID)
 	return err
+}
+
+type IdSetter interface {
+	setId(id primitive.ObjectID)
+}
+
+func (e *MongoId) setId(id primitive.ObjectID) {
+	e.Id = &id
 }
