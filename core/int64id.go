@@ -1,8 +1,6 @@
 package core
 
 import (
-	"fmt"
-	"reflect"
 	"strconv"
 )
 
@@ -19,14 +17,21 @@ func NewIntId(id int64) Int64Id {
 }
 
 func (e Int64Id) SetId(self any, id any) (err error) {
-	Id, ok := id.(int64)
-	if !ok {
-		s := fmt.Sprintf("%s", id)
-		Id, err = strconv.ParseInt(s, 10, 64)
+	var Id int64
+	switch x := id.(type) {
+	case int64:
+		Id = x
+	case string:
+		Id, err = strconv.ParseInt(x, 10, 64)
 	}
-	if NoError(err) {
-		elem := reflect.ValueOf(self).Elem()
-		elem.FieldByName("Id").SetInt(Id)
-	}
+	self.(int64IdSetter).setId(Id)
 	return
+}
+
+type int64IdSetter interface {
+	setId(id int64)
+}
+
+func (e *Int64Id) setId(id int64) {
+	e.Id = id
 }

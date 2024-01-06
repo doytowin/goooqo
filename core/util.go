@@ -32,7 +32,7 @@ func ConvertToColumnCase(fieldName string) string {
 }
 
 func ToSnakeCase(fieldName string) string {
-	var col []rune
+	col := make([]rune, 0, 2*len(fieldName))
 	for i, letter := range fieldName {
 		if letter >= 'A' && letter <= 'Z' && i > 0 {
 			col = append(col, '_')

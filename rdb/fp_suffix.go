@@ -1,6 +1,7 @@
 package rdb
 
 import (
+	"bytes"
 	. "github.com/doytowin/goooqo/core"
 	"reflect"
 	"regexp"
@@ -23,18 +24,19 @@ func ReadValueToArray(value reflect.Value) (string, []any) {
 }
 
 func ReadValueForIn(value reflect.Value) (string, []any) {
-	var args []any
 	arg := reflect.Indirect(value)
-	ph := "("
+	args := make([]any, 0, arg.Len())
+	ph := bytes.NewBuffer(make([]byte, 0, 3*arg.Len()))
+	ph.WriteString("(")
 	for i := 0; i < arg.Len(); i++ {
 		args = append(args, arg.Index(i).Int())
-		ph += "?"
+		ph.WriteString("?")
 		if i < arg.Len()-1 {
-			ph += ", "
+			ph.WriteString(", ")
 		}
 	}
-	ph += ")"
-	return ph, args
+	ph.WriteString(")")
+	return ph.String(), args
 }
 func EmptyValue(reflect.Value) (string, []any) {
 	return "", []any{}

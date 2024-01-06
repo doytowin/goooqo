@@ -31,7 +31,7 @@ func newRelationalDataAccess[E RdbEntity](createEntity func() E) DataAccess[Conn
 
 func (da *relationalDataAccess[C, E]) Get(connCtx C, id any) (*E, error) {
 	sqlStr := da.em.buildSelectById()
-	rows, err := da.doQuery(connCtx, sqlStr, []any{id})
+	rows, err := da.doQuery(connCtx, sqlStr, []any{id}, 1)
 	if len(rows) == 1 {
 		return &rows[0], err
 	}
@@ -40,21 +40,21 @@ func (da *relationalDataAccess[C, E]) Get(connCtx C, id any) (*E, error) {
 
 func (da *relationalDataAccess[C, E]) Query(connCtx C, query Query) ([]E, error) {
 	sqlStr, args := da.em.buildSelect(query)
-	return da.doQuery(connCtx, sqlStr, args)
+	return da.doQuery(connCtx, sqlStr, args, query.GetPageSize())
 }
 
-func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []any) ([]E, error) {
+func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []any, size int) ([]E, error) {
 	log.Debug("SQL: ", sqlStr)
 	log.Debug("ARG: ", args)
 
-	result := []E{}
+	result := make([]E, 0, size)
 
 	entity := da.create()
 	elem := reflect.ValueOf(&entity).Elem()
 	columnMetas := da.em.columnMetas
 	pointers := make([]any, len(columnMetas))
 	for i, cm := range columnMetas {
-		pointers[i] = elem.FieldByName(cm.field.Name).Addr().Interface()
+		pointers[i] = elem.FieldByName(cm.Field.Name).Addr().Interface()
 	}
 
 	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)

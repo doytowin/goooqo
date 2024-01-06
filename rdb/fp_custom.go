@@ -19,7 +19,7 @@ func buildFpCustom(field reflect.StructField) FieldProcessor {
 }
 
 func (fp *fpCustom) Process(value reflect.Value) (string, []any) {
-	var arr []any
+	arr := make([]any, 0, fp.phCnt)
 	arg := ReadValue(value)
 	for j := 0; j < fp.phCnt; j++ {
 		arr = append(arr, arg)

@@ -31,16 +31,14 @@ func BuildWhereClause(query any) (string, []any) {
 }
 
 func buildConditions(query any) ([]string, []any) {
-	var (
-		args       []any
-		conditions []string
-		rtype      = reflect.TypeOf(query)
-		rvalue     = reflect.ValueOf(query)
-	)
+	rtype := reflect.TypeOf(query)
+	rvalue := reflect.ValueOf(query)
 	if rtype.Kind() == reflect.Pointer {
 		rtype = rtype.Elem()
 		rvalue = rvalue.Elem()
 	}
+	args := make([]any, 0, rtype.NumField())
+	conditions := make([]string, 0, rtype.NumField())
 
 	registerFpByType(rtype)
 	for i := 0; i < rtype.NumField(); i++ {
