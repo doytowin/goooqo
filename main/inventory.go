@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/doytowin/goooqo"
 	"github.com/doytowin/goooqo/mongodb"
-	. "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type InventoryQuery struct {
@@ -31,12 +30,4 @@ func (r InventoryEntity) Database() string {
 
 func (r InventoryEntity) Collection() string {
 	return "inventory"
-}
-
-func (q InventoryQuery) BuildFilter() []D {
-	d := make([]D, 0, 10)
-	if q.QtyGt != nil {
-		d = append(d, D{{"qty", D{{"$gt", q.QtyGt}}}})
-	}
-	return d
 }
