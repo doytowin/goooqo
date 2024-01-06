@@ -21,7 +21,7 @@ func TestMongoDataAccess(t *testing.T) {
 	defer Disconnect(client, ctx)
 
 	tm := NewMongoTransactionManager(client)
-	inventoryDataAccess := NewMongoDataAccess[InventoryEntity](tm, func() InventoryEntity { return InventoryEntity{} })
+	inventoryDataAccess := NewMongoDataAccess[InventoryEntity](tm)
 
 	t.Run("Support Basic Query", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)

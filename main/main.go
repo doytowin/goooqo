@@ -38,9 +38,6 @@ func buildUserModule(tm goooqo.TransactionManager) {
 }
 
 func buildInventoryModule(tm goooqo.TransactionManager) {
-	createInventoryEntity := func() InventoryEntity { return InventoryEntity{} }
-	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm, createInventoryEntity)
-	goooqo.BuildRestService[InventoryEntity, InventoryQuery](
-		"/inventory/", mongoDataAccess,
-	)
+	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm)
+	goooqo.BuildRestService[InventoryEntity, InventoryQuery]("/inventory/", mongoDataAccess)
 }

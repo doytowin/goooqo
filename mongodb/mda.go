@@ -26,24 +26,22 @@ type QueryBuilder interface {
 type mongoDataAccess[C context.Context, E MongoEntity] struct {
 	TransactionManager
 	collection *mongo.Collection
-	create     func() E
 }
 
-func NewMongoDataAccess[E MongoEntity](tm TransactionManager, createEntity func() E) TxDataAccess[E, Query] {
-	entity := createEntity()
+func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E, Query] {
+	entity := *new(E)
 	client := tm.GetClient().(*mongo.Client)
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
 	return &mongoDataAccess[context.Context, E]{
 		TransactionManager: tm,
 		collection:         collection,
-		create:             createEntity,
 	}
 }
 
 func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 	ID, err := resolveId(id)
 	if NoError(err) {
-		e := m.create()
+		e := *new(E)
 		err = m.collection.FindOne(c, buildIdFilter(ID)).Decode(&e)
 		if NoError(err) {
 			return &e, err
