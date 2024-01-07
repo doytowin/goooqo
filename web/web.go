@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strings"
 )
 
 type restService[E Entity, Q Query] struct {
@@ -93,11 +94,22 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 func resolveQuery(queryMap url.Values, query any) {
 	elem := reflect.ValueOf(query).Elem()
 	for name, v := range queryMap {
-		field := elem.FieldByName(name)
-		if !field.IsValid() {
-			continue
+		path := strings.Split(name, ".")
+		field := elem.FieldByName(path[0])
+		for i := 1; i < len(path); i++ {
+			if !field.IsValid() {
+				break
+			}
+			if field.IsNil() {
+				fieldType := field.Type().Elem()
+				field.Set(reflect.New(fieldType))
+			}
+			field = field.Elem().FieldByName(path[i])
 		}
-		convertAndSet(field, v)
+
+		if field.IsValid() {
+			convertAndSet(field, v)
+		}
 	}
 }
 

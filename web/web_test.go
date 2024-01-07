@@ -9,6 +9,7 @@ import (
 	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -254,4 +255,44 @@ func TestWeb(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
+}
+
+func Test_resolveQuery(t *testing.T) {
+	type Unit struct {
+		Name *string `json:"name,omitempty"`
+	}
+	type SizeQuery struct {
+		HLt  *int  `json:"hLt,omitempty"`
+		HGe  *int  `json:"hGe,omitempty"`
+		Unit *Unit `json:"unit,omitempty"`
+	}
+	type qo struct {
+		Size *SizeQuery `json:"size,omitempty"`
+	}
+	type args struct {
+		queryMap url.Values
+		query    qo
+	}
+	tests := []struct {
+		name   string
+		expect string
+		args   args
+	}{
+		{"Nested Parameters", `{"size":{"hLt":20}}`,
+			args{url.Values{"Size.HLt": {"20"}}, qo{}}},
+		{"Two Nested Parameters", `{"size":{"hLt":20,"hGe":10}}`,
+			args{url.Values{"Size.HLt": {"20"}, "Size.HGe": {"10"}}, qo{}}},
+		{"Level Three of Nested Parameters", `{"size":{"unit":{"name":"cm"}}}`,
+			args{url.Values{"Size.Unit.Name": {"cm"}}, qo{}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resolveQuery(tt.args.queryMap, &tt.args.query)
+			data, _ := json.Marshal(tt.args.query)
+			actual := string(data)
+			if tt.expect != actual {
+				t.Errorf("\nExpected: %s\nBut got : %s", tt.expect, actual)
+			}
+		})
+	}
 }
