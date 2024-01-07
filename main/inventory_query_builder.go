@@ -34,5 +34,8 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.StatusNull {
 		d = append(d, D{{"status", D{{"$type", 10}}}})
 	}
+	if q.StatusNotNull {
+		d = append(d, D{{"status", D{{"$not", D{{"$type", 10}}}}}})
+	}
 	return d
 }

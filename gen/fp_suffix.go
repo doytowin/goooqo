@@ -23,5 +23,6 @@ func CreateOpMap() map[string]operator {
 	opMap["In"] = operator{"In", map[string]string{"mongo": "$in"}}
 	opMap["NotIn"] = operator{"NotIn", map[string]string{"mongo": "$nin"}}
 	opMap["Null"] = operator{"Null", map[string]string{"mongo": "$type"}}
+	opMap["NotNull"] = operator{"NotNull", map[string]string{"mongo": "$type"}}
 	return opMap
 }
