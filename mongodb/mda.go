@@ -62,10 +62,6 @@ func buildIdFilter(objectID any) D {
 	return D{{MID, objectID}}
 }
 
-//func ResolveId(id any) (ObjectID, error) {
-//	return ResolveId(id)
-//}
-
 func ResolveId(id any) (ObjectID, error) {
 	switch x := id.(type) {
 	case ObjectID:
@@ -77,8 +73,13 @@ func ResolveId(id any) (ObjectID, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
+	filter := buildFilter(query)
+	return m.doQuery(ctx, query, filter)
+}
+
+func (m *mongoDataAccess[C, E]) doQuery(ctx C, query Query, filter D) ([]E, error) {
 	result := make([]E, 0, query.GetPageSize())
-	cursor, err := m.collection.Find(ctx, buildFilter(query), buildPageOpt(query))
+	cursor, err := m.collection.Find(ctx, filter, buildPageOpt(query))
 	if NoError(err) {
 		err = cursor.All(ctx, &result)
 	}
@@ -115,7 +116,12 @@ func buildFilter(query Query) D {
 }
 
 func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
-	return m.collection.CountDocuments(ctx, buildFilter(query))
+	filter := buildFilter(query)
+	return m.doCount(ctx, filter)
+}
+
+func (m *mongoDataAccess[C, E]) doCount(ctx C, filter D) (int64, error) {
+	return m.collection.CountDocuments(ctx, filter)
 }
 
 func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
@@ -161,9 +167,10 @@ func unwrap(result *mongo.DeleteResult, err error) (int64, error) {
 
 func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 	var count int64
-	data, err := m.Query(ctx, query)
+	filter := buildFilter(query)
+	data, err := m.doQuery(ctx, query, filter)
 	if NoError(err) {
-		count, err = m.Count(ctx, query)
+		count, err = m.doCount(ctx, filter)
 	}
 	return PageList[E]{List: data, Total: count}, err
 }
