@@ -116,6 +116,19 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
+	t.Run("Get /user/?IdIn=1&IdIn=4&IdIn=a5", func(t *testing.T) {
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/user/?IdIn=1&IdIn=4&IdIn=a5", nil)
+
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
 	t.Run("Get /user/1", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		writer := httptest.NewRecorder()

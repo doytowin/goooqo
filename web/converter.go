@@ -28,16 +28,17 @@ func init() {
 	})
 
 	RegisterConverter(reflect.PointerTo(reflect.TypeOf([]int{0})), func(params []string) (any, error) {
-		var v []int
-		num, err := strconv.Atoi(params[0])
-		strArr := strings.Split(params[0], ",")
-		for _, s := range strArr {
-			num, err = strconv.Atoi(s)
+		if len(params) == 1 {
+			params = strings.Split(params[0], ",")
+		}
+		v := make([]int, 0, len(params))
+		for _, s := range params {
+			num, err := strconv.Atoi(s)
 			if core.NoError(err) {
 				v = append(v, num)
 			}
 		}
-		return &v, err
+		return &v, nil
 	})
 
 	RegisterConverter(reflect.PointerTo(reflect.TypeOf("")), func(v []string) (any, error) {
