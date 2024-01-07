@@ -9,6 +9,7 @@ import (
 type InventoryQuery struct {
 	goooqo.PageQuery
 	Id    *primitive.ObjectID
+	IdNot *primitive.ObjectID
 	IdIn  *[]primitive.ObjectID
 	Qty   *int
 	QtyGt *int
