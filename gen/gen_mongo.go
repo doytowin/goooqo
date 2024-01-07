@@ -35,9 +35,15 @@ func appendCondition(buffer *bytes.Buffer, fieldName string) {
 		column = "_id"
 	}
 
-	buffer.WriteString(fmt.Sprintf("\tif q.%s != nil {", fieldName))
-	buffer.WriteString(NewLine)
-	buffer.WriteString(fmt.Sprintf("\t\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], fieldName))
+	if op.name == "Null" {
+		buffer.WriteString(fmt.Sprintf("\tif q.%s {", fieldName))
+		buffer.WriteString(NewLine)
+		buffer.WriteString(fmt.Sprintf("\t\td = append(d, D{{\"%s\", D{{\"%s\", 10}}}})", column, op.sign["mongo"]))
+	} else {
+		buffer.WriteString(fmt.Sprintf("\tif q.%s != nil {", fieldName))
+		buffer.WriteString(NewLine)
+		buffer.WriteString(fmt.Sprintf("\t\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], fieldName))
+	}
 	buffer.WriteString(NewLine)
 	buffer.WriteString("\t}")
 	buffer.WriteString(NewLine)
