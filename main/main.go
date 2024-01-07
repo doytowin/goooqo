@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/doytowin/goooqo"
+	"github.com/doytowin/goooqo/core"
 	"github.com/doytowin/goooqo/mongodb"
 	"github.com/doytowin/goooqo/rdb"
 	. "github.com/doytowin/goooqo/test"
@@ -11,14 +12,30 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
-func main() {
+func init() {
 	web.RegisterConverter(reflect.PointerTo(reflect.TypeOf(primitive.NilObjectID)), func(v []string) (any, error) {
 		objectID, err := mongodb.ResolveId(v[0])
 		return &objectID, err
 	})
+	web.RegisterConverter(reflect.PointerTo(reflect.TypeOf([]primitive.ObjectID{})), func(params []string) (any, error) {
+		if len(params) == 1 {
+			params = strings.Split(params[0], ",")
+		}
+		v := make([]primitive.ObjectID, 0, len(params))
+		for _, s := range params {
+			objectID, err := mongodb.ResolveId(s)
+			if core.NoError(err) {
+				v = append(v, objectID)
+			}
+		}
+		return &v, nil
+	})
+}
 
+func main() {
 	log.SetLevel(log.DebugLevel)
 	db := rdb.Connect("local.properties")
 	InitDB(db)

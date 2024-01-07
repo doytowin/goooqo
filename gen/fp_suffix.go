@@ -19,5 +19,6 @@ func CreateOpMap() map[string]operator {
 	opMap["Ge"] = operator{"Ge", map[string]string{"mongo": "$gte"}}
 	opMap["Lt"] = operator{"Lt", map[string]string{"mongo": "$lt"}}
 	opMap["Le"] = operator{"Le", map[string]string{"mongo": "$lte"}}
+	opMap["In"] = operator{"In", map[string]string{"mongo": "$in"}}
 	return opMap
 }
