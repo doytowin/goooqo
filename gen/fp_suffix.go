@@ -14,7 +14,7 @@ type operator struct {
 
 func CreateOpMap() map[string]operator {
 	opMap := make(map[string]operator)
-	opMap["Eq"] = operator{"Eq", map[string]string{}}
+	opMap["Eq"] = operator{"Eq", map[string]string{"mongo": "$eq"}}
 	opMap["Gt"] = operator{"Gt", map[string]string{"mongo": "$gt"}}
 	opMap["Ge"] = operator{"Ge", map[string]string{"mongo": "$gte"}}
 	opMap["Lt"] = operator{"Lt", map[string]string{"mongo": "$lt"}}
