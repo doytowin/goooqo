@@ -13,6 +13,9 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.IdIn != nil {
 		d = append(d, D{{"_id", D{{"$in", q.IdIn}}}})
 	}
+	if q.IdNotIn != nil {
+		d = append(d, D{{"_id", D{{"$nin", q.IdNotIn}}}})
+	}
 	if q.Qty != nil {
 		d = append(d, D{{"qty", D{{"$eq", q.Qty}}}})
 	}

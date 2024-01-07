@@ -21,5 +21,6 @@ func CreateOpMap() map[string]operator {
 	opMap["Lt"] = operator{"Lt", map[string]string{"mongo": "$lt"}}
 	opMap["Le"] = operator{"Le", map[string]string{"mongo": "$lte"}}
 	opMap["In"] = operator{"In", map[string]string{"mongo": "$in"}}
+	opMap["NotIn"] = operator{"NotIn", map[string]string{"mongo": "$nin"}}
 	return opMap
 }
