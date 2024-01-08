@@ -8,20 +8,21 @@ import (
 
 type InventoryQuery struct {
 	goooqo.PageQuery
-	Id            *primitive.ObjectID
-	IdNot         *primitive.ObjectID
-	IdNe          *primitive.ObjectID
-	IdIn          *[]primitive.ObjectID
-	IdNotIn       *[]primitive.ObjectID
-	Qty           *int
-	QtyGt         *int
-	QtyLt         *int
-	QtyGe         *int
-	QtyLe         *int
-	Size          *SizeQuery
-	StatusNull    bool
-	StatusNotNull bool
-	ItemContain   *string
+	Id             *primitive.ObjectID
+	IdNot          *primitive.ObjectID
+	IdNe           *primitive.ObjectID
+	IdIn           *[]primitive.ObjectID
+	IdNotIn        *[]primitive.ObjectID
+	Qty            *int
+	QtyGt          *int
+	QtyLt          *int
+	QtyGe          *int
+	QtyLe          *int
+	Size           *SizeQuery
+	StatusNull     bool
+	StatusNotNull  bool
+	ItemContain    *string
+	ItemNotContain *string
 }
 
 type Unit struct {
