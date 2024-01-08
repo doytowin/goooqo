@@ -27,6 +27,11 @@ func init() {
 		return &v0, err
 	})
 
+	RegisterConverter(reflect.PointerTo(reflect.TypeOf(0.1)), func(v []string) (any, error) {
+		v0, err := strconv.ParseFloat(v[0], 64)
+		return &v0, err
+	})
+
 	RegisterConverter(reflect.PointerTo(reflect.TypeOf([]int{0})), func(params []string) (any, error) {
 		if len(params) == 1 {
 			params = strings.Split(params[0], ",")
