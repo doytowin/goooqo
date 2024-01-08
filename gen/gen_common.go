@@ -66,6 +66,19 @@ func lookupQueryStruct(f *ast.File) (result []*ast.StructType) {
 	return
 }
 
+func toStructPointer(field *ast.Field) *ast.StructType {
+	if expr, ok := field.Type.(*ast.StarExpr); ok {
+		if ident, ok := expr.X.(*ast.Ident); ok && ident.Obj != nil {
+			if tp, ok := ident.Obj.Decl.(*ast.TypeSpec); ok {
+				if stp, ok := tp.Type.(*ast.StructType); ok && stp.Struct.IsValid() {
+					return stp
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func appendPackage(buffer *bytes.Buffer, pkg string) {
 	buffer.WriteString("package " + pkg)
 	buffer.WriteString(NewLine)

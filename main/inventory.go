@@ -17,8 +17,13 @@ type InventoryQuery struct {
 	QtyLt         *int
 	QtyGe         *int
 	QtyLe         *int
+	Size          *SizeQuery
 	StatusNull    bool
 	StatusNotNull bool
+}
+
+type SizeQuery struct {
+	HLt *int
 }
 
 type SizeDoc struct {

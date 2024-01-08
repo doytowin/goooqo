@@ -39,6 +39,11 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.QtyLe != nil {
 		d = append(d, D{{"qty", D{{"$lte", q.QtyLe}}}})
 	}
+	if q.Size != nil {
+		if q.Size.HLt != nil {
+			d = append(d, D{{"size.h", D{{"$lt", q.Size.HLt}}}})
+		}
+	}
 	if q.StatusNull {
 		d = append(d, D{{"status", D{{"$type", 10}}}})
 	}
