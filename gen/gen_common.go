@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/doytowin/goooqo/core"
 	"go/ast"
@@ -39,13 +38,13 @@ func GenerateCode(filename string) string {
 	}
 	stpList := lookupQueryStruct(f)
 
-	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
-	appendPackage(buffer, f.Name.String())
-	appendImports(buffer)
+	gen := NewMongoGenerator()
+	gen.appendPackage(f.Name.String())
+	gen.appendImports()
 	for _, stp := range stpList {
-		appendBuildMethod(buffer, stp)
+		gen.appendBuildMethod(stp)
 	}
-	return buffer.String()
+	return gen.String()
 }
 
 func lookupQueryStruct(f *ast.File) (result []*ast.StructType) {
@@ -77,12 +76,6 @@ func toStructPointer(field *ast.Field) *ast.StructType {
 		}
 	}
 	return nil
-}
-
-func appendPackage(buffer *bytes.Buffer, pkg string) {
-	buffer.WriteString("package " + pkg)
-	buffer.WriteString(NewLine)
-	buffer.WriteString(NewLine)
 }
 
 func suffixMatch(fieldName string) (string, operator) {

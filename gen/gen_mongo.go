@@ -8,28 +8,33 @@ import (
 	"strings"
 )
 
-func appendImports(buffer *bytes.Buffer) {
-	buffer.WriteString(`import . "go.mongodb.org/mongo-driver/bson/primitive"`)
-	buffer.WriteString(NewLine)
-	buffer.WriteString(NewLine)
+type MongoGenerator struct {
+	*generator
 }
 
-func appendBuildMethod(buffer *bytes.Buffer, stp *ast.StructType) {
-	buffer.WriteString("func (q InventoryQuery) BuildFilter() []D {")
-	buffer.WriteString(NewLine)
-	buffer.WriteString("\td := make([]D, 0, 10)")
-	buffer.WriteString(NewLine)
-	appendStruct(buffer, stp, []string{})
-	buffer.WriteString("\treturn d")
-	buffer.WriteString(NewLine)
-	buffer.WriteString("}")
-	buffer.WriteString(NewLine)
+func NewMongoGenerator() *MongoGenerator {
+	return &MongoGenerator{&generator{
+		Buffer:  bytes.NewBuffer(make([]byte, 0, 1024)),
+		imports: []string{`import . "go.mongodb.org/mongo-driver/bson/primitive"`},
+	}}
 }
 
-func appendStruct(buffer *bytes.Buffer, stp *ast.StructType, path []string) {
+func (g *MongoGenerator) appendBuildMethod(stp *ast.StructType) {
+	g.WriteString("func (q InventoryQuery) BuildFilter() []D {")
+	g.WriteString(NewLine)
+	g.WriteString("\td := make([]D, 0, 10)")
+	g.WriteString(NewLine)
+	g.appendStruct(stp, []string{})
+	g.WriteString("\treturn d")
+	g.WriteString(NewLine)
+	g.WriteString("}")
+	g.WriteString(NewLine)
+}
+
+func (g *MongoGenerator) appendStruct(stp *ast.StructType, path []string) {
 	for _, field := range stp.Fields.List {
 		if field.Names != nil {
-			appendCondition(buffer, toStructPointer(field), path, field.Names[0].Name)
+			g.appendCondition(toStructPointer(field), path, field.Names[0].Name)
 		}
 	}
 }
@@ -47,7 +52,7 @@ func buildNestedProperty(path []string, column string) string {
 	return strings.Join(append(props, column), ".")
 }
 
-func appendCondition(buffer *bytes.Buffer, stp *ast.StructType, path []string, fieldName string) {
+func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fieldName string) {
 	intent := strings.Repeat("\t", len(path)+1)
 
 	column, op := suffixMatch(fieldName)
@@ -59,40 +64,34 @@ func appendCondition(buffer *bytes.Buffer, stp *ast.StructType, path []string, f
 	column = buildNestedProperty(path, column)
 
 	if op.name == "Null" {
-		appendIfStart(buffer, intent, structName, "")
-		buffer.WriteString(intent)
-		buffer.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"%s\", 10}}}})", column, op.sign["mongo"]))
-		buffer.WriteString(NewLine)
+		g.appendIfStart(intent, structName, "")
+		g.WriteString(intent)
+		g.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"%s\", 10}}}})", column, op.sign["mongo"]))
+		g.WriteString(NewLine)
 	} else if op.name == "NotNull" {
-		appendIfStart(buffer, intent, structName, "")
-		buffer.WriteString(intent)
-		buffer.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", 10}}}}}})", column, op.sign["mongo"]))
-		buffer.WriteString(NewLine)
+		g.appendIfStart(intent, structName, "")
+		g.WriteString(intent)
+		g.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", 10}}}}}})", column, op.sign["mongo"]))
+		g.WriteString(NewLine)
 	} else {
-		appendIfStart(buffer, intent, structName, " != nil")
+		g.appendIfStart(intent, structName, " != nil")
 		if stp != nil {
-			appendStruct(buffer, stp, append(path, fieldName))
+			g.appendStruct(stp, append(path, fieldName))
 		} else {
-			appendIfBody(buffer, intent, column, op, structName)
+			g.appendIfBody(intent, column, op, structName)
 		}
 	}
-	appendIfEnd(buffer, intent)
+	g.appendIfEnd(intent)
 }
 
-func appendIfStart(buffer *bytes.Buffer, intent string, structName string, cond string) {
-	buffer.WriteString(intent)
-	buffer.WriteString(fmt.Sprintf("if q.%s%s {", structName, cond))
-	buffer.WriteString(NewLine)
+func (g *MongoGenerator) appendIfStart(intent string, structName string, cond string) {
+	g.WriteString(intent)
+	g.WriteString(fmt.Sprintf("if q.%s%s {", structName, cond))
+	g.WriteString(NewLine)
 }
 
-func appendIfBody(buffer *bytes.Buffer, intent string, column string, op operator, structName string) {
-	buffer.WriteString(intent)
-	buffer.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], structName))
-	buffer.WriteString(NewLine)
-}
-
-func appendIfEnd(buffer *bytes.Buffer, intent string) {
-	buffer.WriteString(intent)
-	buffer.WriteString("}")
-	buffer.WriteString(NewLine)
+func (g *MongoGenerator) appendIfBody(intent string, column string, op operator, structName string) {
+	g.WriteString(intent)
+	g.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], structName))
+	g.WriteString(NewLine)
 }
