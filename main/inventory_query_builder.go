@@ -35,6 +35,17 @@ func (q InventoryQuery) BuildFilter() []D {
 		if q.Size.HLt != nil {
 			d = append(d, D{{"size.h", D{{"$lt", q.Size.HLt}}}})
 		}
+		if q.Size.HGe != nil {
+			d = append(d, D{{"size.h", D{{"$gte", q.Size.HGe}}}})
+		}
+		if q.Size.Unit != nil {
+			if q.Size.Unit.Name != nil {
+				d = append(d, D{{"size.unit.name", D{{"$eq", q.Size.Unit.Name}}}})
+			}
+			if q.Size.Unit.NameNull {
+				d = append(d, D{{"size.unit.name", D{{"$type", 10}}}})
+			}
+		}
 	}
 	if q.StatusNull {
 		d = append(d, D{{"status", D{{"$type", 10}}}})

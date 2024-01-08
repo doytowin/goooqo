@@ -22,8 +22,15 @@ type InventoryQuery struct {
 	StatusNotNull bool
 }
 
+type Unit struct {
+	Name     *string
+	NameNull bool
+}
+
 type SizeQuery struct {
-	HLt *int
+	HLt  *float64
+	HGe  *float64
+	Unit *Unit
 }
 
 type SizeDoc struct {
