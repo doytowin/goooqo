@@ -36,26 +36,26 @@ func GenerateCode(filename string) string {
 	if err != nil {
 		panic(err)
 	}
-	stpList := lookupQueryStruct(f)
+	tsList := lookupQueryStruct(f)
 
 	gen := NewMongoGenerator()
 	gen.appendPackage(f.Name.String())
 	gen.appendImports()
-	for _, stp := range stpList {
-		gen.appendBuildMethod(stp)
+	for _, ts := range tsList {
+		gen.appendBuildMethod(ts)
 	}
 	return gen.String()
 }
 
-func lookupQueryStruct(f *ast.File) (result []*ast.StructType) {
+func lookupQueryStruct(f *ast.File) (result []*ast.TypeSpec) {
 	for _, v := range f.Decls {
 		if stc, ok := v.(*ast.GenDecl); ok && stc.Tok == token.TYPE {
 			for _, spec := range stc.Specs {
-				if tp, ok := spec.(*ast.TypeSpec); ok {
-					if stp, ok := tp.Type.(*ast.StructType); ok && stp.Struct.IsValid() {
+				if ts, ok := spec.(*ast.TypeSpec); ok {
+					if stp, ok := ts.Type.(*ast.StructType); ok && stp.Struct.IsValid() {
 						fields := stp.Fields.List
 						if fmt.Sprint(fields[0].Type) == "&{goooqo PageQuery}" {
-							result = append(result, stp)
+							result = append(result, ts)
 						}
 					}
 				}

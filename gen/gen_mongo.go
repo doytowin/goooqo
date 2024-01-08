@@ -19,12 +19,12 @@ func NewMongoGenerator() *MongoGenerator {
 	}}
 }
 
-func (g *MongoGenerator) appendBuildMethod(stp *ast.StructType) {
-	g.WriteString("func (q InventoryQuery) BuildFilter() []D {")
+func (g *MongoGenerator) appendBuildMethod(ts *ast.TypeSpec) {
+	g.WriteString(fmt.Sprintf("func (q %s) BuildFilter() []D {", ts.Name))
 	g.WriteString(NewLine)
-	g.WriteString("\td := make([]D, 0, 10)")
+	g.WriteString("\td := make([]D, 0, 4)")
 	g.WriteString(NewLine)
-	g.appendStruct(stp, []string{})
+	g.appendStruct(ts.Type.(*ast.StructType), []string{})
 	g.WriteString("\treturn d")
 	g.WriteString(NewLine)
 	g.WriteString("}")
