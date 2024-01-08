@@ -21,6 +21,7 @@ type InventoryQuery struct {
 	Size          *SizeQuery
 	StatusNull    bool
 	StatusNotNull bool
+	ItemContain   *string
 }
 
 type Unit struct {

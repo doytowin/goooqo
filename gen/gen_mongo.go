@@ -63,7 +63,10 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 	structName := buildNestedFieldName(path, fieldName)
 	column = buildNestedProperty(path, column)
 
-	if op.name == "Null" {
+	if stp != nil {
+		g.appendIfStartCommon(intent, structName)
+		g.appendStruct(stp, append(path, fieldName))
+	} else if op.name == "Null" {
 		g.appendIfStart(intent, structName, "")
 		g.WriteString(intent)
 		g.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"%s\", 10}}}})", column, op.sign["mongo"]))
@@ -73,15 +76,20 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 		g.WriteString(intent)
 		g.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", 10}}}}}})", column, op.sign["mongo"]))
 		g.WriteString(NewLine)
+	} else if op.sign["mongo"] == "$regex" {
+		g.appendIfStartCommon(intent, structName)
+		g.WriteString(intent)
+		g.WriteString(fmt.Sprintf("\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})", column, op.sign["mongo"], structName))
+		g.WriteString(NewLine)
 	} else {
-		g.appendIfStart(intent, structName, " != nil")
-		if stp != nil {
-			g.appendStruct(stp, append(path, fieldName))
-		} else {
-			g.appendIfBody(intent, column, op, structName)
-		}
+		g.appendIfStartCommon(intent, structName)
+		g.appendIfBody(intent, column, op, structName)
 	}
 	g.appendIfEnd(intent)
+}
+
+func (g *MongoGenerator) appendIfStartCommon(intent string, structName string) {
+	g.appendIfStart(intent, structName, " != nil")
 }
 
 func (g *MongoGenerator) appendIfStart(intent string, structName string, cond string) {

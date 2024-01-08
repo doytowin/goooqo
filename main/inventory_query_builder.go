@@ -56,5 +56,8 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.StatusNotNull {
 		d = append(d, D{{"status", D{{"$not", D{{"$type", 10}}}}}})
 	}
+	if q.ItemContain != nil {
+		d = append(d, D{{"item", D{{"$regex", q.ItemContain}}}})
+	}
 	return d
 }
