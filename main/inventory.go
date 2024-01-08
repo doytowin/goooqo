@@ -10,6 +10,7 @@ type InventoryQuery struct {
 	goooqo.PageQuery
 	Id            *primitive.ObjectID
 	IdNot         *primitive.ObjectID
+	IdNe          *primitive.ObjectID
 	IdIn          *[]primitive.ObjectID
 	IdNotIn       *[]primitive.ObjectID
 	Qty           *int
