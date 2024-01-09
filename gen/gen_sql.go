@@ -21,8 +21,8 @@ func init() {
 	sqlOpMap["Ge"] = operator{name: "Ge", sign: ">="}
 	sqlOpMap["Lt"] = operator{name: "Lt", sign: "<"}
 	sqlOpMap["Le"] = operator{name: "Le", sign: "<="}
-	sqlOpMap["In"] = operator{name: "In", sign: "IN", format: "conditions = append(conditions, \"%s%s\"+strings.Repeat(\"?\", len(*q.%s)))"}
-	sqlOpMap["NotIn"] = operator{name: "NotIn", sign: "NOT IN", format: "conditions = append(conditions, \"%s%s\" + strings.Repeat(\"?\", len(*q.%s)))"}
+	sqlOpMap["In"] = operator{name: "In", sign: "IN", format: "conditions = append(conditions, \"%s %s (\"+strings.Join(phs, \", \")+\")\")"}
+	sqlOpMap["NotIn"] = operator{name: "NotIn", sign: "NOT IN", format: "conditions = append(conditions, \"%s %s (\"+strings.Join(phs, \", \")+\")\")"}
 	sqlOpMap["Null"] = operator{name: "Null", sign: "IS NULL", format: "conditions = append(conditions, \"%s %s\")"}
 	sqlOpMap["NotNull"] = operator{name: "NotNull", sign: "IS NOT NULL", format: "conditions = append(conditions, \"%s %s\")"}
 	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: "conditions = append(conditions, \"%s %s ?\")"}
@@ -85,8 +85,12 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendIfBody(op.format, column, op.sign)
 	} else if strings.Contains(op.sign, "IN") {
 		g.appendIfStartNil(fieldName)
-		g.appendIfBody(op.format, column, op.sign, fieldName)
-		g.appendIfBody("args = append(args, q.%s)", fieldName)
+		g.appendIfBody("phs := make([]string, 0, len(*q.%s))", fieldName)
+		g.appendIfBody("for _, arg := range *q.%s {", fieldName)
+		g.appendIfBody("\targs = append(args, arg)")
+		g.appendIfBody("\tphs = append(phs, \"?\")")
+		g.appendIfBody("}")
+		g.appendIfBody(op.format, column, op.sign)
 	} else {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody(op.format, column, op.sign)

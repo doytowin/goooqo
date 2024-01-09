@@ -11,8 +11,20 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		args = append(args, q.IdGt)
 	}
 	if q.IdIn != nil {
-		conditions = append(conditions, "idIN"+strings.Repeat("?", len(*q.IdIn)))
-		args = append(args, q.IdIn)
+		phs := make([]string, 0, len(*q.IdIn))
+		for _, arg := range *q.IdIn {
+			args = append(args, arg)
+			phs = append(phs, "?")
+		}
+		conditions = append(conditions, "id IN ("+strings.Join(phs, ", ")+")")
+	}
+	if q.IdNotIn != nil {
+		phs := make([]string, 0, len(*q.IdNotIn))
+		for _, arg := range *q.IdNotIn {
+			args = append(args, arg)
+			phs = append(phs, "?")
+		}
+		conditions = append(conditions, "id NOT IN ("+strings.Join(phs, ", ")+")")
 	}
 	if q.ScoreLt != nil {
 		conditions = append(conditions, "score < ?")

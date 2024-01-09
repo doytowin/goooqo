@@ -16,6 +16,7 @@ type UserQuery struct {
 	PageQuery
 	IdGt     *int
 	IdIn     *[]int
+	IdNotIn  *[]int
 	ScoreLt  *int
 	ScoreLt1 *UserQuery `subquery:"select:avg(score),from:User"`
 	MemoNull bool
