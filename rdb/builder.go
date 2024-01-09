@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+type QueryBuilder interface {
+	BuildConditions() ([]string, []any)
+}
+
 func isValidValue(value reflect.Value) bool {
 	typeName := value.Type().Name()
 	if typeName == "bool" {
@@ -31,6 +35,9 @@ func BuildWhereClause(query any) (string, []any) {
 }
 
 func buildConditions(query any) ([]string, []any) {
+	if qb, ok := query.(QueryBuilder); ok {
+		return qb.BuildConditions()
+	}
 	rtype := reflect.TypeOf(query)
 	rvalue := reflect.ValueOf(query)
 	if rtype.Kind() == reflect.Pointer {

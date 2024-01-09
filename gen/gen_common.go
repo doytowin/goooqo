@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
 )
 
 var NewLine = func() string {
@@ -16,10 +17,6 @@ var NewLine = func() string {
 	}
 	return "\n"
 }()
-
-func Generate(code, output string) error {
-	return WriteFile(output, code)
-}
 
 func WriteFile(filename string, code string) error {
 	f, _ := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
@@ -51,7 +48,8 @@ func lookupQueryStruct(f *ast.File) (result []*ast.TypeSpec) {
 				if ts, ok := spec.(*ast.TypeSpec); ok {
 					if stp, ok := ts.Type.(*ast.StructType); ok && stp.Struct.IsValid() {
 						fields := stp.Fields.List
-						if fmt.Sprint(fields[0].Type) == "&{goooqo PageQuery}" {
+						fieldType := fmt.Sprint(fields[0].Type)
+						if strings.Contains(fieldType, "PageQuery") {
 							result = append(result, ts)
 						}
 					}

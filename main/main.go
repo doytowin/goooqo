@@ -6,7 +6,7 @@ import (
 	"github.com/doytowin/goooqo/core"
 	"github.com/doytowin/goooqo/mongodb"
 	"github.com/doytowin/goooqo/rdb"
-	. "github.com/doytowin/goooqo/test"
+	"github.com/doytowin/goooqo/test"
 	"github.com/doytowin/goooqo/web"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -38,7 +38,7 @@ func init() {
 func main() {
 	log.SetLevel(log.DebugLevel)
 	db := rdb.Connect("local.properties")
-	InitDB(db)
+	test.InitDB(db)
 	defer rdb.Disconnect(db)
 	tm := rdb.NewTransactionManager(db)
 
