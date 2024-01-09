@@ -5,7 +5,10 @@ import (
 )
 
 func TestExampleCommentMap(t *testing.T) {
-	tests := []struct{ input, output, expect string }{
+	tests := []struct {
+		input, output, expect string
+		generator             Generator
+	}{
 		{input: "../main/inventory.go", output: "../main/inventory_query_builder.go", expect: `package main
 
 import . "go.mongodb.org/mongo-driver/bson/primitive"
@@ -72,15 +75,15 @@ func (q InventoryQuery) BuildFilter() []D {
 	}
 	return d
 }
-`},
+`, generator: NewMongoGenerator()},
 	}
 	for _, tt := range tests {
 		t.Run("Generate for "+tt.input, func(t *testing.T) {
-			code := GenerateCode(tt.input)
+			code := GenerateCode(tt.input, tt.generator)
 			if code != tt.expect {
 				t.Fatalf("Got \n%s", code)
 			}
-			_ = Generate(tt.input, tt.output)
+			_ = Generate(code, tt.output)
 		})
 	}
 }

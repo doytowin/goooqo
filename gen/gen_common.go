@@ -2,14 +2,12 @@ package gen
 
 import (
 	"fmt"
-	"github.com/doytowin/goooqo/core"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"io"
 	"os"
 	"runtime"
-	"strings"
 )
 
 var NewLine = func() string {
@@ -19,8 +17,8 @@ var NewLine = func() string {
 	return "\n"
 }()
 
-func Generate(input, output string) error {
-	return WriteFile(output, GenerateCode(input))
+func Generate(code, output string) error {
+	return WriteFile(output, code)
 }
 
 func WriteFile(filename string, code string) error {
@@ -29,7 +27,7 @@ func WriteFile(filename string, code string) error {
 	return err
 }
 
-func GenerateCode(filename string) string {
+func GenerateCode(filename string, gen Generator) string {
 	// Create the AST by parsing src.
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filename, nil, 0)
@@ -38,7 +36,6 @@ func GenerateCode(filename string) string {
 	}
 	tsList := lookupQueryStruct(f)
 
-	gen := NewMongoGenerator()
 	gen.appendPackage(f.Name.String())
 	gen.appendImports()
 	for _, ts := range tsList {
@@ -76,14 +73,4 @@ func toStructPointer(field *ast.Field) *ast.StructType {
 		}
 	}
 	return nil
-}
-
-func suffixMatch(fieldName string) (string, operator) {
-	if match := suffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
-		op := opMap[match[1]]
-		column := strings.TrimSuffix(fieldName, match[1])
-		column = core.ConvertToColumnCase(column)
-		return column, op
-	}
-	return core.ConvertToColumnCase(fieldName), opMap["Eq"]
 }
