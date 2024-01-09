@@ -21,6 +21,7 @@ type generator struct {
 	imports    []string
 	bodyFormat string
 	ifFormat   string
+	intent     string
 }
 
 func (g *generator) appendPackage(pkg string) {
@@ -37,23 +38,27 @@ func (g *generator) appendImports() {
 	}
 }
 
-func (g *generator) appendIfEnd(intent string) {
-	g.WriteString(intent)
+func (g *generator) appendIfEnd() {
+	g.WriteString(g.intent)
 	g.WriteString("}")
 	g.WriteString(NewLine)
 }
 
-func (g *generator) appendIfStart(intent string, structName string, cond string) {
-	g.WriteString(intent)
+func (g *generator) appendIfStart(structName string, cond string) {
+	g.WriteString(g.intent)
 	g.WriteString(fmt.Sprintf(g.ifFormat, structName, cond))
 	g.WriteString(NewLine)
 }
 
-func (g *generator) appendIfBody(intent string, format string, args ...any) {
+func (g *generator) appendIfStartNil(fieldName string) {
+	g.appendIfStart(fieldName, " != nil")
+}
+
+func (g *generator) appendIfBody(format string, args ...any) {
 	if format == "" {
 		format = g.bodyFormat
 	}
-	g.WriteString(intent)
+	g.WriteString(g.intent)
 	g.WriteString(fmt.Sprintf(format, args...))
 	g.WriteString(NewLine)
 }

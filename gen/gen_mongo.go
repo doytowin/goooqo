@@ -90,7 +90,7 @@ func buildNestedProperty(path []string, column string) string {
 }
 
 func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fieldName string) {
-	intent := strings.Repeat("\t", len(path)+1)
+	g.intent = strings.Repeat("\t", len(path)+1)
 
 	column, op := g.suffixMatch(fieldName)
 	if column == "id" {
@@ -101,14 +101,15 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 	column = buildNestedProperty(path, column)
 
 	if stp != nil {
-		g.appendIfStart(intent, structName, " != nil")
+		g.appendIfStartNil(structName)
 		g.appendStruct(stp, append(path, fieldName))
+		g.intent = strings.Repeat("\t", len(path)+1)
 	} else if op.sign == "$type" {
-		g.appendIfStart(intent, structName, "")
-		g.appendIfBody(intent, op.format, column, op.sign)
+		g.appendIfStart(structName, "")
+		g.appendIfBody(op.format, column, op.sign)
 	} else {
-		g.appendIfStart(intent, structName, " != nil")
-		g.appendIfBody(intent, op.format, column, op.sign, structName)
+		g.appendIfStartNil(structName)
+		g.appendIfBody(op.format, column, op.sign, structName)
 	}
-	g.appendIfEnd(intent)
+	g.appendIfEnd()
 }

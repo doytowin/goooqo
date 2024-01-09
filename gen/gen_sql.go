@@ -61,33 +61,29 @@ func (g *SqlGenerator) appendStruct(stp *ast.StructType, path []string) {
 }
 
 func (g *SqlGenerator) appendCondition(stp *ast.StructType, path []string, fieldName string) {
-	intent := strings.Repeat("\t", len(path)+1)
+	g.intent = strings.Repeat("\t", len(path)+1)
 
 	column, op := g.suffixMatch(fieldName)
 
 	if stp != nil {
-		g.appendIfStartNil(intent, fieldName)
+		g.appendIfStartNil(fieldName)
 	} else if strings.Contains(op.sign, "NULL") {
-		g.appendIfStart(intent, fieldName, "")
-		g.appendIfBody(intent, op.format, column, op.sign)
+		g.appendIfStart(fieldName, "")
+		g.appendIfBody(op.format, column, op.sign)
 	} else if strings.Contains(op.sign, "IN") {
-		g.appendIfStartNil(intent, fieldName)
-		g.appendIfBody(intent, op.format, column, op.sign, fieldName)
-		g.appendArgs(intent, fieldName)
+		g.appendIfStartNil(fieldName)
+		g.appendIfBody(op.format, column, op.sign, fieldName)
+		g.appendArgs(fieldName)
 	} else {
-		g.appendIfStartNil(intent, fieldName)
-		g.appendIfBody(intent, op.format, column, op.sign)
-		g.appendArgs(intent, fieldName)
+		g.appendIfStartNil(fieldName)
+		g.appendIfBody(op.format, column, op.sign)
+		g.appendArgs(fieldName)
 	}
-	g.appendIfEnd(intent)
+	g.appendIfEnd()
 }
 
-func (g *SqlGenerator) appendIfStartNil(intent string, fieldName string) {
-	g.appendIfStart(intent, fieldName, " != nil")
-}
-
-func (g *SqlGenerator) appendArgs(intent string, name string) {
-	g.WriteString(intent)
+func (g *SqlGenerator) appendArgs(name string) {
+	g.WriteString(g.intent)
 	g.WriteString(fmt.Sprintf("\targs = append(args, q.%s)", name))
 	g.WriteString(NewLine)
 }
