@@ -2,8 +2,9 @@ package gen
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/doytowin/goooqo/rdb"
 	"go/ast"
+	"reflect"
 	"strings"
 )
 
@@ -20,11 +21,11 @@ func init() {
 	sqlOpMap["Ge"] = operator{name: "Ge", sign: ">="}
 	sqlOpMap["Lt"] = operator{name: "Lt", sign: "<"}
 	sqlOpMap["Le"] = operator{name: "Le", sign: "<="}
-	sqlOpMap["In"] = operator{name: "In", sign: "IN", format: "\tconditions = append(conditions, \"%s%s\"+strings.Repeat(\"?\", len(*q.%s)))"}
-	sqlOpMap["NotIn"] = operator{name: "NotIn", sign: "NOT IN", format: "\tconditions = append(conditions, \"%s%s\" + strings.Repeat(\"?\", len(*q.%s)))"}
-	sqlOpMap["Null"] = operator{name: "Null", sign: "IS NULL", format: "\tconditions = append(conditions, \"%s %s\")"}
-	sqlOpMap["NotNull"] = operator{name: "NotNull", sign: "IS NOT NULL", format: "\tconditions = append(conditions, \"%s %s\")"}
-	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: "\tconditions = append(conditions, \"%s %s ?\")"}
+	sqlOpMap["In"] = operator{name: "In", sign: "IN", format: "conditions = append(conditions, \"%s%s\"+strings.Repeat(\"?\", len(*q.%s)))"}
+	sqlOpMap["NotIn"] = operator{name: "NotIn", sign: "NOT IN", format: "conditions = append(conditions, \"%s%s\" + strings.Repeat(\"?\", len(*q.%s)))"}
+	sqlOpMap["Null"] = operator{name: "Null", sign: "IS NULL", format: "conditions = append(conditions, \"%s %s\")"}
+	sqlOpMap["NotNull"] = operator{name: "NotNull", sign: "IS NOT NULL", format: "conditions = append(conditions, \"%s %s\")"}
+	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: "conditions = append(conditions, \"%s %s ?\")"}
 	opMap["sql"] = sqlOpMap
 }
 
@@ -32,58 +33,64 @@ func NewSqlGenerator() *SqlGenerator {
 	return &SqlGenerator{&generator{
 		Buffer:     bytes.NewBuffer(make([]byte, 0, 1024)),
 		key:        "sql",
-		imports:    []string{`"strings"`},
-		bodyFormat: "\tconditions = append(conditions, \"%s %s ?\")",
+		imports:    []string{`"github.com/doytowin/goooqo/rdb"`, `"strings"`},
+		bodyFormat: "conditions = append(conditions, \"%s %s ?\")",
 		ifFormat:   "if q.%s%s {",
 	}}
 }
 
 func (g *SqlGenerator) appendBuildMethod(ts *ast.TypeSpec) {
-	g.WriteString(fmt.Sprintf("func (q %s) BuildConditions() ([]string, []any) {", ts.Name))
-	g.WriteString(NewLine)
-	g.WriteString("\tconditions := make([]string, 0, 4)")
-	g.WriteString(NewLine)
-	g.WriteString("\targs := make([]any, 0, 4)")
-	g.WriteString(NewLine)
-	g.appendStruct(ts.Type.(*ast.StructType), []string{})
-	g.WriteString("\treturn conditions, args")
-	g.WriteString(NewLine)
-	g.WriteString("}")
-	g.WriteString(NewLine)
+	g.writeInstruction("func (q %s) BuildConditions() ([]string, []any) {", ts.Name)
+	g.appendFuncBody(ts)
+	g.writeInstruction("}")
 }
 
-func (g *SqlGenerator) appendStruct(stp *ast.StructType, path []string) {
+func (g *SqlGenerator) appendFuncBody(ts *ast.TypeSpec) {
+	g.intent = "\t"
+	g.writeInstruction("conditions := make([]string, 0, 4)")
+	g.writeInstruction("args := make([]any, 0, 4)")
+	for _, field := range ts.Type.(*ast.StructType).Fields.List {
+		if field.Names != nil {
+			g.appendCondition(field, field.Names[0].Name)
+		}
+	}
+	g.writeInstruction("return conditions, args")
+	g.intent = ""
+}
+
+func (g *SqlGenerator) appendStruct(stp *ast.StructType) {
 	for _, field := range stp.Fields.List {
 		if field.Names != nil {
-			g.appendCondition(toStructPointer(field), path, field.Names[0].Name)
+			g.appendCondition(field, field.Names[0].Name)
 		}
 	}
 }
 
-func (g *SqlGenerator) appendCondition(stp *ast.StructType, path []string, fieldName string) {
-	g.intent = strings.Repeat("\t", len(path)+1)
-
+func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 	column, op := g.suffixMatch(fieldName)
 
-	if stp != nil {
+	stp := toStructPointer(field)
+	if stp != nil && field.Tag != nil {
 		g.appendIfStartNil(fieldName)
+		tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
+		if subqueryTag, ok := tag.Lookup("subquery"); ok {
+			fpSubquery := rdb.BuildSubquery(subqueryTag, fieldName)
+			g.appendIfBody("whereClause, args1 := rdb.BuildWhereClause(q.%s)", fieldName)
+			g.appendIfBody("condition := \"" + fpSubquery.Subquery() + "\" + whereClause + \")\"")
+			g.appendIfBody("conditions = append(conditions, condition)")
+			g.appendIfBody("args = append(args, args1...)")
+		}
 	} else if strings.Contains(op.sign, "NULL") {
 		g.appendIfStart(fieldName, "")
 		g.appendIfBody(op.format, column, op.sign)
 	} else if strings.Contains(op.sign, "IN") {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody(op.format, column, op.sign, fieldName)
-		g.appendArgs(fieldName)
+		g.appendIfBody("args = append(args, q.%s)", fieldName)
 	} else {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody(op.format, column, op.sign)
-		g.appendArgs(fieldName)
+		g.appendIfBody("args = append(args, q.%s)", fieldName)
 	}
 	g.appendIfEnd()
-}
-
-func (g *SqlGenerator) appendArgs(name string) {
-	g.WriteString(g.intent)
-	g.WriteString(fmt.Sprintf("\targs = append(args, q.%s)", name))
-	g.WriteString(NewLine)
 }

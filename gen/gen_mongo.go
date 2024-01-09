@@ -2,7 +2,6 @@ package gen
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/doytowin/goooqo/core"
 	"go/ast"
 	"strings"
@@ -17,7 +16,7 @@ func NewMongoGenerator() *MongoGenerator {
 		Buffer:     bytes.NewBuffer(make([]byte, 0, 1024)),
 		key:        "mongo",
 		imports:    []string{`. "go.mongodb.org/mongo-driver/bson/primitive"`},
-		bodyFormat: "\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
+		bodyFormat: "d = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
 		ifFormat:   "if q.%s%s {",
 	}}
 }
@@ -36,44 +35,46 @@ func init() {
 	mongoOpMap["Null"] = operator{
 		name:   "Null",
 		sign:   "$type",
-		format: "\td = append(d, D{{\"%s\", D{{\"%s\", 10}}}})",
+		format: "d = append(d, D{{\"%s\", D{{\"%s\", 10}}}})",
 	}
 	mongoOpMap["NotNull"] = operator{
 		name:   "NotNull",
 		sign:   "$type",
-		format: "\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", 10}}}}}})",
+		format: "d = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", 10}}}}}})",
 	}
 	mongoOpMap["Contain"] = operator{
 		name:   "Contain",
 		sign:   "$regex",
-		format: "\td = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
+		format: "d = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
 	}
 	mongoOpMap["NotContain"] = operator{
 		name:   "NotContain",
 		sign:   "$regex",
-		format: "\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", q.%s}}}}}})",
+		format: "d = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", q.%s}}}}}})",
 	}
 	opMap["mongo"] = mongoOpMap
 }
 
 func (g *MongoGenerator) appendBuildMethod(ts *ast.TypeSpec) {
-	g.WriteString(fmt.Sprintf("func (q %s) BuildFilter() []D {", ts.Name))
-	g.WriteString(NewLine)
-	g.WriteString("\td := make([]D, 0, 4)")
-	g.WriteString(NewLine)
+	g.writeInstruction("func (q %s) BuildFilter() []D {", ts.Name)
+	g.appendFuncBody(ts)
+	g.writeInstruction("}")
+}
+
+func (g *MongoGenerator) appendFuncBody(ts *ast.TypeSpec) {
+	g.appendIfBody("d := make([]D, 0, 4)")
 	g.appendStruct(ts.Type.(*ast.StructType), []string{})
-	g.WriteString("\treturn d")
-	g.WriteString(NewLine)
-	g.WriteString("}")
-	g.WriteString(NewLine)
+	g.appendIfBody("return d")
 }
 
 func (g *MongoGenerator) appendStruct(stp *ast.StructType, path []string) {
+	g.intent = strings.Repeat("\t", len(path)+1)
 	for _, field := range stp.Fields.List {
 		if field.Names != nil {
 			g.appendCondition(toStructPointer(field), path, field.Names[0].Name)
 		}
 	}
+	g.intent = strings.Repeat("\t", len(path))
 }
 
 func buildNestedFieldName(path []string, fieldName string) string {
@@ -90,8 +91,6 @@ func buildNestedProperty(path []string, column string) string {
 }
 
 func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fieldName string) {
-	g.intent = strings.Repeat("\t", len(path)+1)
-
 	column, op := g.suffixMatch(fieldName)
 	if column == "id" {
 		column = "_id"
@@ -103,7 +102,6 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 	if stp != nil {
 		g.appendIfStartNil(structName)
 		g.appendStruct(stp, append(path, fieldName))
-		g.intent = strings.Repeat("\t", len(path)+1)
 	} else if op.sign == "$type" {
 		g.appendIfStart(structName, "")
 		g.appendIfBody(op.format, column, op.sign)

@@ -1,5 +1,6 @@
 package main
 
+import "github.com/doytowin/goooqo/rdb"
 import "strings"
 
 func (q UserQuery) BuildConditions() ([]string, []any) {
@@ -16,6 +17,12 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 	if q.ScoreLt != nil {
 		conditions = append(conditions, "score < ?")
 		args = append(args, q.ScoreLt)
+	}
+	if q.ScoreLt1 != nil {
+		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLt1)
+		condition := "score < (SELECT avg(score) FROM User" + whereClause + ")"
+		conditions = append(conditions, condition)
+		args = append(args, args1...)
 	}
 	if q.MemoNull {
 		conditions = append(conditions, "memo IS NULL")

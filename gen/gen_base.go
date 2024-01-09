@@ -34,8 +34,8 @@ func (g *generator) appendImports() {
 	for _, s := range g.imports {
 		g.WriteString("import " + s)
 		g.WriteString(NewLine)
-		g.WriteString(NewLine)
 	}
+	g.WriteString(NewLine)
 }
 
 func (g *generator) appendIfEnd() {
@@ -54,12 +54,19 @@ func (g *generator) appendIfStartNil(fieldName string) {
 	g.appendIfStart(fieldName, " != nil")
 }
 
-func (g *generator) appendIfBody(format string, args ...any) {
-	if format == "" {
-		format = g.bodyFormat
+func (g *generator) appendIfBody(ins string, args ...any) {
+	if ins == "" {
+		ins = g.bodyFormat
 	}
 	g.WriteString(g.intent)
-	g.WriteString(fmt.Sprintf(format, args...))
+	g.WriteString("\t")
+	g.WriteString(fmt.Sprintf(ins, args...))
+	g.WriteString(NewLine)
+}
+
+func (g *generator) writeInstruction(ins string, args ...any) {
+	g.WriteString(g.intent)
+	g.WriteString(fmt.Sprintf(ins, args...))
 	g.WriteString(NewLine)
 }
 
