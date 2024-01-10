@@ -3,6 +3,7 @@ package gen
 import (
 	"bytes"
 	"github.com/doytowin/goooqo/rdb"
+	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"reflect"
 	"strings"
@@ -69,8 +70,7 @@ func (g *SqlGenerator) appendStruct(stp *ast.StructType) {
 func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 	column, op := g.suffixMatch(fieldName)
 
-	stp := toStructPointer(field)
-	if stp != nil && field.Tag != nil {
+	if field.Tag != nil {
 		g.appendIfStartNil(fieldName)
 		tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
 		if subqueryTag, ok := tag.Lookup("subquery"); ok {
@@ -79,6 +79,13 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 			g.appendIfBody("condition := \"" + fpSubquery.Subquery() + "\" + whereClause + \")\"")
 			g.appendIfBody("conditions = append(conditions, condition)")
 			g.appendIfBody("args = append(args, args1...)")
+		} else if conditionTag, ok := tag.Lookup("condition"); ok {
+			g.appendIfBody("conditions = append(conditions, \"%s\")", conditionTag)
+			for i := 0; i < strings.Count(conditionTag, "?"); i++ {
+				g.appendArg(fieldName)
+			}
+		} else {
+			log.Warn("Unsupported field: ", fieldName, " ", field.Type)
 		}
 	} else if strings.Contains(op.sign, "NULL") {
 		g.appendIfStart(fieldName, "")
@@ -94,7 +101,11 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 	} else {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody(op.format, column, op.sign)
-		g.appendIfBody("args = append(args, q.%s)", fieldName)
+		g.appendArg(fieldName)
 	}
 	g.appendIfEnd()
+}
+
+func (g *SqlGenerator) appendArg(fieldName string) {
+	g.appendIfBody("args = append(args, q.%s)", fieldName)
 }

@@ -104,6 +104,11 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		}
 		conditions = append(conditions, "id NOT IN ("+strings.Join(phs, ", ")+")")
 	}
+	if q.Cond != nil {
+		conditions = append(conditions, "(Score = ? OR Memo = ?)")
+		args = append(args, q.Cond)
+		args = append(args, q.Cond)
+	}
 	if q.ScoreLt != nil {
 		conditions = append(conditions, "score < ?")
 		args = append(args, q.ScoreLt)

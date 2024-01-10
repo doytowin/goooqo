@@ -17,6 +17,7 @@ type UserQuery struct {
 	IdGt     *int
 	IdIn     *[]int
 	IdNotIn  *[]int
+	Cond     *string `condition:"(Score = ? OR Memo = ?)"`
 	ScoreLt  *int
 	ScoreLt1 *UserQuery `subquery:"select:avg(score),from:User"`
 	MemoNull bool
