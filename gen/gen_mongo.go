@@ -21,6 +21,8 @@ func NewMongoGenerator() *MongoGenerator {
 	}}
 }
 
+const regexSign = "$regex"
+
 func init() {
 	mongoOpMap := make(map[string]operator)
 	mongoOpMap["Eq"] = operator{name: "Eq", sign: "$eq"}
@@ -44,13 +46,18 @@ func init() {
 	}
 	mongoOpMap["Contain"] = operator{
 		name:   "Contain",
-		sign:   "$regex",
+		sign:   regexSign,
 		format: "d = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
 	}
 	mongoOpMap["NotContain"] = operator{
 		name:   "NotContain",
-		sign:   "$regex",
+		sign:   regexSign,
 		format: "d = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", q.%s}}}}}})",
+	}
+	mongoOpMap["Start"] = operator{
+		name:   "Start",
+		sign:   regexSign,
+		format: "d = append(d, D{{\"%s\", D{{\"%s\", \"^\" + *q.%s}}}})",
 	}
 	opMap["mongo"] = mongoOpMap
 }
@@ -105,6 +112,9 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 	} else if op.sign == "$type" {
 		g.appendIfStart(structName, "")
 		g.appendIfBody(op.format, column, op.sign)
+	} else if op.sign == regexSign {
+		g.writeInstruction("if q.%s != nil && *q.%s != \"\" {", structName, structName)
+		g.appendIfBody(op.format, column, op.sign, structName)
 	} else {
 		g.appendIfStartNil(structName)
 		g.appendIfBody(op.format, column, op.sign, structName)

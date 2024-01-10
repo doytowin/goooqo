@@ -45,13 +45,11 @@ func (g *generator) appendIfEnd() {
 }
 
 func (g *generator) appendIfStart(structName string, cond string) {
-	g.WriteString(g.intent)
-	g.WriteString(fmt.Sprintf(g.ifFormat, structName, cond))
-	g.WriteString(NewLine)
+	g.writeInstruction(g.ifFormat, structName, cond)
 }
 
 func (g *generator) appendIfStartNil(fieldName string) {
-	g.appendIfStart(fieldName, " != nil")
+	g.writeInstruction(g.ifFormat, fieldName, " != nil")
 }
 
 func (g *generator) appendIfBody(ins string, args ...any) {
