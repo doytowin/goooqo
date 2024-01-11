@@ -29,7 +29,7 @@ func ReadValueForIn(value reflect.Value) (string, []any) {
 	ph := bytes.NewBuffer(make([]byte, 0, 3*arg.Len()))
 	ph.WriteString("(")
 	for i := 0; i < arg.Len(); i++ {
-		args = append(args, arg.Index(i).Int())
+		args = append(args, arg.Index(i).Interface())
 		ph.WriteString("?")
 		if i < arg.Len()-1 {
 			ph.WriteString(", ")
