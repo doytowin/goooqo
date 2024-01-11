@@ -24,6 +24,7 @@ type InventoryQuery struct {
 	ItemContain    *string
 	ItemNotContain *string
 	ItemStart      *string
+	ItemNotStart   *string
 }
 
 type Unit struct {

@@ -65,5 +65,8 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.ItemStart != nil && *q.ItemStart != "" {
 		d = append(d, D{{"item", D{{"$regex", "^" + *q.ItemStart}}}})
 	}
+	if q.ItemNotStart != nil && *q.ItemNotStart != "" {
+		d = append(d, D{{"item", D{{"$not", D{{"$regex", "^" + *q.ItemNotStart}}}}}})
+	}
 	return d
 }
