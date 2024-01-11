@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"fmt"
+	"github.com/doytowin/goooqo/core"
 	"reflect"
 	"testing"
 )
@@ -36,6 +37,8 @@ func TestProcess(t *testing.T) {
 		{"MemoNotEnd", "memo NOT LIKE ?", "[%at]", reflect.ValueOf("at")},
 		{"MemoLike", "memo LIKE ? ESCAPE '\\'", "[%\\_at%]", reflect.ValueOf("%\\_at%")},
 		{"MemoNotLike", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("%at%")},
+		{"memoNull", "memo IS NULL", nil, reflect.ValueOf(core.PBool(true))},
+		{"memoNull", "memo IS NOT NULL", nil, reflect.ValueOf(core.PBool(false))},
 	}
 	for _, useCase := range useCases {
 		t.Run(useCase.field, func(t *testing.T) {

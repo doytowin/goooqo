@@ -43,6 +43,7 @@ func (e TestEntity) SetId(self any, id any) (err error) {
 
 type TestQuery struct {
 	PageQuery
+	EmailNull *bool
 	AccountOr *AccountOr
 	Account   *string `condition:"(username = ? OR email = ?)"`
 	Deleted   *bool
