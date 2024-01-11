@@ -17,6 +17,10 @@ func init() {
 	RegisterConverter(reflect.TypeOf(true), func(v []string) (any, error) {
 		return strings.EqualFold(v[0], "TRue"), nil
 	})
+	RegisterConverter(reflect.PointerTo(reflect.TypeOf(true)), func(v []string) (any, error) {
+		ok := strings.EqualFold(v[0], "TRue")
+		return &ok, nil
+	})
 
 	RegisterConverter(reflect.TypeOf(0), func(v []string) (any, error) {
 		return strconv.Atoi(v[0])
