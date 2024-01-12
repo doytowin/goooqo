@@ -26,6 +26,7 @@ type InventoryQuery struct {
 	ItemNotStart   *string
 	ItemEnd        *string
 	ItemNotEnd     *string
+	CustomFilter   *primitive.M
 }
 
 type Unit struct {

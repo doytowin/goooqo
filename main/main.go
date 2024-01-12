@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/doytowin/goooqo"
 	"github.com/doytowin/goooqo/core"
 	"github.com/doytowin/goooqo/mongodb"
@@ -32,6 +33,11 @@ func init() {
 			}
 		}
 		return &v, nil
+	})
+	web.RegisterConverter(reflect.PointerTo(reflect.TypeOf(primitive.M{})), func(v []string) (any, error) {
+		d := primitive.M{}
+		err := json.Unmarshal([]byte(v[0]), &d)
+		return &d, err
 	})
 }
 

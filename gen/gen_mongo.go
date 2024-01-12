@@ -84,7 +84,7 @@ func (g *MongoGenerator) appendStruct(stp *ast.StructType, path []string) {
 	g.intent = strings.Repeat("\t", len(path)+1)
 	for _, field := range stp.Fields.List {
 		if field.Names != nil {
-			g.appendCondition(toStructPointer(field), path, field.Names[0].Name)
+			g.appendCondition(field, path, field.Names[0].Name)
 		}
 	}
 	g.intent = strings.Repeat("\t", len(path))
@@ -103,7 +103,7 @@ func buildNestedProperty(path []string, column string) string {
 	return strings.Join(append(props, column), ".")
 }
 
-func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fieldName string) {
+func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldName string) {
 	column, op := g.suffixMatch(fieldName)
 	if column == "id" {
 		column = "_id"
@@ -112,6 +112,7 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 	structName := buildNestedFieldName(path, fieldName)
 	column = buildNestedProperty(path, column)
 
+	stp := toStructPointer(field)
 	if stp != nil {
 		g.appendIfStartNil(structName)
 		g.appendStruct(stp, append(path, fieldName))
@@ -127,7 +128,35 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 		g.appendIfBody(op.format, column, op.sign, structName)
 	} else {
 		g.appendIfStartNil(structName)
-		g.appendIfBody(op.format, column, op.sign, structName)
+		if resolveTypeName(field.Type) == "*M" {
+			g.appendIfBody("d = append(d, *q.%s)", structName)
+		} else {
+			g.appendIfBody(op.format, column, op.sign, structName)
+		}
 	}
 	g.appendIfEnd()
+}
+
+func resolveTypeName(expr ast.Expr) string {
+	var stack []string
+loop:
+	for {
+		switch x := expr.(type) {
+		case *ast.StarExpr:
+			expr = x.X
+			stack = append(stack, "*")
+		case *ast.ArrayType:
+			expr = x.Elt
+			stack = append(stack, "[]")
+		case *ast.Ident:
+			stack = append(stack, x.Name)
+			break loop
+		case *ast.SelectorExpr:
+			stack = append(stack, x.Sel.Name)
+			break loop
+		default:
+			break loop
+		}
+	}
+	return strings.Join(stack, "")
 }

@@ -79,5 +79,8 @@ func (q InventoryQuery) BuildFilter() A {
 	if q.ItemNotEnd != nil && *q.ItemNotEnd != "" {
 		d = append(d, D{{"item", D{{"$not", D{{"$regex", *q.ItemNotEnd + "$"}}}}}})
 	}
+	if q.CustomFilter != nil {
+		d = append(d, *q.CustomFilter)
+	}
 	return d
 }
