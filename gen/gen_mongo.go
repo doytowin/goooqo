@@ -34,16 +34,7 @@ func init() {
 	mongoOpMap["Le"] = operator{name: "Le", sign: "$lte"}
 	mongoOpMap["In"] = operator{name: "In", sign: "$in"}
 	mongoOpMap["NotIn"] = operator{name: "NotIn", sign: "$nin"}
-	mongoOpMap["Null"] = operator{
-		name:   "Null",
-		sign:   "$type",
-		format: "d = append(d, D{{\"%s\", D{{\"%s\", 10}}}})",
-	}
-	mongoOpMap["NotNull"] = operator{
-		name:   "NotNull",
-		sign:   "$type",
-		format: "d = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", 10}}}}}})",
-	}
+	mongoOpMap["Null"] = operator{name: "Null", sign: "$type"}
 	mongoOpMap["Contain"] = operator{
 		name:   "Contain",
 		sign:   regexSign,
@@ -115,8 +106,12 @@ func (g *MongoGenerator) appendCondition(stp *ast.StructType, path []string, fie
 		g.appendIfStartNil(structName)
 		g.appendStruct(stp, append(path, fieldName))
 	} else if op.sign == "$type" {
-		g.appendIfStart(structName, "")
-		g.appendIfBody(op.format, column, op.sign)
+		g.appendIfStartNil(structName)
+		g.writeInstruction("\tif *q.%s {", structName)
+		g.writeInstruction("\t\td = append(d, D{{\"%s\", D{{\"$type\", 10}}}})", column)
+		g.writeInstruction("\t} else {")
+		g.writeInstruction("\t\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"$type\", 10}}}}}})", column)
+		g.writeInstruction("\t}")
 	} else if op.sign == regexSign {
 		g.writeInstruction("if q.%s != nil && *q.%s != \"\" {", structName, structName)
 		g.appendIfBody(op.format, column, op.sign, structName)

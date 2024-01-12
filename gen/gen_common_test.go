@@ -56,16 +56,21 @@ func (q InventoryQuery) BuildFilter() []D {
 			if q.Size.Unit.Name != nil {
 				d = append(d, D{{"size.unit.name", D{{"$eq", q.Size.Unit.Name}}}})
 			}
-			if q.Size.Unit.NameNull {
-				d = append(d, D{{"size.unit.name", D{{"$type", 10}}}})
+			if q.Size.Unit.NameNull != nil {
+				if *q.Size.Unit.NameNull {
+					d = append(d, D{{"size.unit.name", D{{"$type", 10}}}})
+				} else {
+					d = append(d, D{{"size.unit.name", D{{"$not", D{{"$type", 10}}}}}})
+				}
 			}
 		}
 	}
-	if q.StatusNull {
-		d = append(d, D{{"status", D{{"$type", 10}}}})
-	}
-	if q.StatusNotNull {
-		d = append(d, D{{"status", D{{"$not", D{{"$type", 10}}}}}})
+	if q.StatusNull != nil {
+		if *q.StatusNull {
+			d = append(d, D{{"status", D{{"$type", 10}}}})
+		} else {
+			d = append(d, D{{"status", D{{"$not", D{{"$type", 10}}}}}})
+		}
 	}
 	if q.ItemContain != nil && *q.ItemContain != "" {
 		d = append(d, D{{"item", D{{"$regex", q.ItemContain}}}})

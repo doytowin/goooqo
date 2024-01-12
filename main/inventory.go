@@ -19,8 +19,7 @@ type InventoryQuery struct {
 	QtyGe          *int
 	QtyLe          *int
 	Size           *SizeQuery
-	StatusNull     bool
-	StatusNotNull  bool
+	StatusNull     *bool
 	ItemContain    *string
 	ItemNotContain *string
 	ItemStart      *string
@@ -29,7 +28,7 @@ type InventoryQuery struct {
 
 type Unit struct {
 	Name     *string
-	NameNull bool
+	NameNull *bool
 }
 
 type SizeQuery struct {
