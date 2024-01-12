@@ -55,6 +55,16 @@ func init() {
 		sign:   regexSign,
 		format: "d = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", \"^\" + *q.%s}}}}}})",
 	}
+	mongoOpMap["End"] = operator{
+		name:   "End",
+		sign:   regexSign,
+		format: "d = append(d, D{{\"%s\", D{{\"%s\", *q.%s + \"$\"}}}})",
+	}
+	mongoOpMap["NotEnd"] = operator{
+		name:   "NotEnd",
+		sign:   regexSign,
+		format: "d = append(d, D{{\"%s\", D{{\"$not\", D{{\"%s\", *q.%s + \"$\"}}}}}})",
+	}
 	opMap["mongo"] = mongoOpMap
 }
 

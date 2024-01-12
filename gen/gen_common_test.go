@@ -84,6 +84,12 @@ func (q InventoryQuery) BuildFilter() []D {
 	if q.ItemNotStart != nil && *q.ItemNotStart != "" {
 		d = append(d, D{{"item", D{{"$not", D{{"$regex", "^" + *q.ItemNotStart}}}}}})
 	}
+	if q.ItemEnd != nil && *q.ItemEnd != "" {
+		d = append(d, D{{"item", D{{"$regex", *q.ItemEnd + "$"}}}})
+	}
+	if q.ItemNotEnd != nil && *q.ItemNotEnd != "" {
+		d = append(d, D{{"item", D{{"$not", D{{"$regex", *q.ItemNotEnd + "$"}}}}}})
+	}
 	return d
 }
 `, generator: NewMongoGenerator()},
