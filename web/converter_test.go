@@ -28,6 +28,10 @@ func TestConverter(t *testing.T) {
 			"Support *float64", 22.5, func(a any) any { return *a.(*float64) },
 			args{typeName: reflect.PointerTo(reflect.TypeOf(0.1)), params: []string{"22.5"}},
 		},
+		{
+			"Support *bool", true, func(a any) any { return *a.(*bool) },
+			args{typeName: reflect.PointerTo(reflect.TypeOf(true)), params: []string{"true"}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

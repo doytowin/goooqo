@@ -117,7 +117,7 @@ func convertAndSet(field reflect.Value, v []string) {
 	log.Debug("field.Type: ", field.Type())
 	fieldType := field.Type()
 	v0, err := converterMap[fieldType](v)
-	if NoError(err) {
+	if NoError(err) || v0 != nil {
 		field.Set(reflect.ValueOf(v0))
 	}
 }

@@ -26,22 +26,11 @@ func TestWeb(t *testing.T) {
 	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 	rs := NewRestService[UserEntity, UserQuery]("/user/", userDataAccess)
 
-	t.Run("Page /user/", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?PageNumber=1&PageSize=2", nil)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":2,"score":40,"memo":"Bad"}],"total":4},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
 	t.Run("Should return empty array instead of null when no data found.", func(t *testing.T) {
+		tc, _ := tm.StartTransaction(ctx)
+		defer tc.Rollback()
 		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?PageNumber=10", nil)
+		request := httptest.NewRequest("GET", "/user/?PageNumber=10", nil).WithContext(tc)
 
 		rs.ServeHTTP(writer, request)
 
@@ -49,102 +38,35 @@ func TestWeb(t *testing.T) {
 		expect := `{"data":{"list":[],"total":4},"success":true}`
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
-	t.Run("Get /user/", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&test=test", nil)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[{"id":2,"score":40,"memo":"Bad"},{"id":3,"score":55,"memo":null}],"total":2},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
-	t.Run("Get /user/?Sort=id,desc", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&Sort=id,desc", nil)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[{"id":3,"score":55,"memo":null},{"id":2,"score":40,"memo":"Bad"}],"total":2},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
-	t.Run("Get /user/ ", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?ScoreLt=60&MemoNull=true", nil)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[{"id":3,"score":55,"memo":null}],"total":1},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
-	t.Run("Get /user/?MemoLike=%oo%", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?MemoLike=%25oo%25", nil)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"}],"total":1},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
-	t.Run("Get /user/?IdIn=1,4", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?IdIn=1,4", nil)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
-
-	t.Run("Get /user/1", func(t *testing.T) {
-		tc, _ := tm.StartTransaction(ctx)
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/1", nil).WithContext(tc)
-
-		rs.ServeHTTP(writer, request)
-
-		actual := writer.Body.String()
-		expect := `{"data":{"id":1,"score":85,"memo":"Good"},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		} else {
 			_ = tc.Commit()
 		}
 	})
 
-	t.Run("Get /user/100", func(t *testing.T) {
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/100", nil)
+	tests := []struct{ method, url, expect string }{
+		{"Get", "/user/?PageNumber=1&PageSize=2", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":2,"score":40,"memo":"Bad"}],"total":4},"success":true}`},
+		{"Get", "/user/?ScoreLt=60&test=test", `{"data":{"list":[{"id":2,"score":40,"memo":"Bad"},{"id":3,"score":55,"memo":null}],"total":2},"success":true}`},
+		{"Get", "/user/?ScoreLt=60&Sort=id,desc", `{"data":{"list":[{"id":3,"score":55,"memo":null},{"id":2,"score":40,"memo":"Bad"}],"total":2},"success":true}`},
+		{"Get", "/user/?ScoreLt=60&MemoNull=true", `{"data":{"list":[{"id":3,"score":55,"memo":null}],"total":1},"success":true}`},
+		{"Get", "/user/?MemoLike=%25oo%25", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"}],"total":1},"success":true}`},
+		{"Get", "/user/?IdIn=1,4", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`},
+		{"Get", "/user/?IdIn=1&IdIn=4&IdIn=a5", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`},
+		{"Get", "/user/1", `{"data":{"id":1,"score":85,"memo":"Good"},"success":true}`},
+		{"Get", "/user/100", `{"success":false,"error":"record not found. id: 100"}`},
+	}
+	for _, test := range tests {
+		t.Run(test.method+" "+test.url, func(t *testing.T) {
+			writer := httptest.NewRecorder()
+			request := httptest.NewRequest(test.method, test.url, nil)
 
-		rs.ServeHTTP(writer, request)
+			rs.ServeHTTP(writer, request)
+			actual := writer.Body.String()
 
-		actual := writer.Body.String()
-		expect := `{"success":false,"error":"record not found. id: 100"}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		}
-	})
+			if actual != test.expect {
+				t.Errorf("\nExpected: %s\nBut got : %s", test.expect, actual)
+			}
+		})
+	}
 
 	t.Run("PUT /user/1", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
@@ -160,7 +82,7 @@ func TestWeb(t *testing.T) {
 		actual := writer.Body.String()
 		expect := `{"data":1,"success":true}`
 		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			t.Fatalf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 
 		writer = httptest.NewRecorder()
@@ -186,7 +108,7 @@ func TestWeb(t *testing.T) {
 		actual := writer.Body.String()
 		expect := `{"data":1,"success":true}`
 		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			t.Fatalf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 
 		writer = httptest.NewRecorder()
@@ -214,8 +136,7 @@ func TestWeb(t *testing.T) {
 		actual := writer.Body.String()
 		expect := `{"data":1,"success":true}`
 		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-			return
+			t.Fatalf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 
 		writer = httptest.NewRecorder()
@@ -241,8 +162,7 @@ func TestWeb(t *testing.T) {
 		actual := writer.Body.String()
 		expect := `{"data":1,"success":true}`
 		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-			return
+			t.Fatalf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 
 		writer = httptest.NewRecorder()

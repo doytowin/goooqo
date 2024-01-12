@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"fmt"
+	"github.com/doytowin/goooqo/core"
 	"reflect"
 	"testing"
 )
@@ -25,6 +26,7 @@ func TestProcess(t *testing.T) {
 		{"idNull", "id IS NULL", nil, reflect.ValueOf(true)},
 		{"idNotNull", "id IS NOT NULL", nil, reflect.ValueOf(true)},
 		{"idIn", "id IN (?, ?, ?)", []int64{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
+		{"memoIn", "memo IN (?, ?)", []string{"Good", "Bad"}, reflect.ValueOf([]string{"Good", "Bad"})},
 		{"idNotIn", "id NOT IN (?, ?, ?)", []int{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
 		{"MemoContain", "memo LIKE ?", "[%at%]", reflect.ValueOf("at")},
 		{"MemoContain", "memo LIKE ? ESCAPE '\\'", "[%a\\_\\%t%]", reflect.ValueOf("a_%t")},
@@ -35,6 +37,8 @@ func TestProcess(t *testing.T) {
 		{"MemoNotEnd", "memo NOT LIKE ?", "[%at]", reflect.ValueOf("at")},
 		{"MemoLike", "memo LIKE ? ESCAPE '\\'", "[%\\_at%]", reflect.ValueOf("%\\_at%")},
 		{"MemoNotLike", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("%at%")},
+		{"memoNull", "memo IS NULL", nil, reflect.ValueOf(core.PBool(true))},
+		{"memoNull", "memo IS NOT NULL", nil, reflect.ValueOf(core.PBool(false))},
 	}
 	for _, useCase := range useCases {
 		t.Run(useCase.field, func(t *testing.T) {

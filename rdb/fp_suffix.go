@@ -29,7 +29,7 @@ func ReadValueForIn(value reflect.Value) (string, []any) {
 	ph := bytes.NewBuffer(make([]byte, 0, 3*arg.Len()))
 	ph.WriteString("(")
 	for i := 0; i < arg.Len(); i++ {
-		args = append(args, arg.Index(i).Int())
+		args = append(args, arg.Index(i).Interface())
 		ph.WriteString("?")
 		if i < arg.Len()-1 {
 			ph.WriteString(", ")
@@ -37,9 +37,6 @@ func ReadValueForIn(value reflect.Value) (string, []any) {
 	}
 	ph.WriteString(")")
 	return ph.String(), args
-}
-func EmptyValue(reflect.Value) (string, []any) {
-	return "", []any{}
 }
 
 func ReadLikeValue(value reflect.Value) string {
@@ -58,8 +55,15 @@ func CreateOpMap() map[string]operator {
 	opMap["Not"] = operator{"Not", " != ", ReadValueToArray}
 	opMap["Ne"] = operator{"Ne", " <> ", ReadValueToArray}
 	opMap["Eq"] = operator{"Eq", " = ", ReadValueToArray}
-	opMap["Null"] = operator{"Null", " IS NULL", EmptyValue}
-	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", EmptyValue}
+	opMap["Null"] = operator{"Null", "", func(rv reflect.Value) (string, []any) {
+		if rv.Kind() == reflect.Pointer && rv.Elem().Bool() == false {
+			return " IS NOT NULL", []any{}
+		}
+		return " IS NULL", []any{}
+	}}
+	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", func(reflect.Value) (string, []any) {
+		return "", []any{}
+	}}
 	opMap["In"] = operator{"In", " IN ", ReadValueForIn}
 	opMap["NotIn"] = operator{"NotIn", " NOT IN ", ReadValueForIn}
 	opMap["Like"] = operator{"Like", Like, func(value reflect.Value) (string, []any) {
