@@ -13,8 +13,8 @@ func TestExampleCommentMap(t *testing.T) {
 
 import . "go.mongodb.org/mongo-driver/bson/primitive"
 
-func (q InventoryQuery) BuildFilter() []D {
-	d := make([]D, 0, 4)
+func (q InventoryQuery) BuildFilter() A {
+	d := make(A, 0, 4)
 	if q.Id != nil {
 		d = append(d, D{{"_id", D{{"$eq", q.Id}}}})
 	}

@@ -69,13 +69,13 @@ func init() {
 }
 
 func (g *MongoGenerator) appendBuildMethod(ts *ast.TypeSpec) {
-	g.writeInstruction("func (q %s) BuildFilter() []D {", ts.Name)
+	g.writeInstruction("func (q %s) BuildFilter() A {", ts.Name)
 	g.appendFuncBody(ts)
 	g.writeInstruction("}")
 }
 
 func (g *MongoGenerator) appendFuncBody(ts *ast.TypeSpec) {
-	g.appendIfBody("d := make([]D, 0, 4)")
+	g.appendIfBody("d := make(A, 0, 4)")
 	g.appendStruct(ts.Type.(*ast.StructType), []string{})
 	g.appendIfBody("return d")
 }

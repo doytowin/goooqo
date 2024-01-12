@@ -20,7 +20,7 @@ type MongoEntity interface {
 }
 
 type QueryBuilder interface {
-	BuildFilter() []D
+	BuildFilter() A
 }
 
 type mongoDataAccess[C context.Context, E MongoEntity] struct {

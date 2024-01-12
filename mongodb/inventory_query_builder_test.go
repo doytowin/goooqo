@@ -1,11 +1,13 @@
 package mongodb
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	. "go.mongodb.org/mongo-driver/bson/primitive"
+)
 
-func (q InventoryQuery) BuildFilter() []bson.D {
-	d := make([]bson.D, 0, 10)
+func (q InventoryQuery) BuildFilter() A {
+	d := make(A, 0, 4)
 	if q.QtyGt != nil {
-		d = append(d, bson.D{{"qty", bson.D{{"$gt", q.QtyGt}}}})
+		d = append(d, D{{"qty", D{{"$gt", q.QtyGt}}}})
 	}
 	return d
 }
