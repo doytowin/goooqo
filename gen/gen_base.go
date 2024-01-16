@@ -22,6 +22,22 @@ type generator struct {
 	bodyFormat string
 	ifFormat   string
 	intent     string
+	replaceIns func(string) string
+}
+
+func newGenerator(key string, imports []string, bodyFormat string) *generator {
+	return &generator{
+		Buffer:     bytes.NewBuffer(make([]byte, 0, 1024)),
+		key:        key,
+		imports:    imports,
+		bodyFormat: bodyFormat,
+		ifFormat:   "if q.%s%s {",
+		replaceIns: keep,
+	}
+}
+
+func keep(ins string) string {
+	return ins
 }
 
 func (g *generator) appendPackage(pkg string) {
@@ -56,10 +72,9 @@ func (g *generator) appendIfBody(ins string, args ...any) {
 	if ins == "" {
 		ins = g.bodyFormat
 	}
-	g.WriteString(g.intent)
+	ins = g.replaceIns(ins)
 	g.WriteString("\t")
-	g.WriteString(fmt.Sprintf(ins, args...))
-	g.WriteString(NewLine)
+	g.writeInstruction(ins, args...)
 }
 
 func (g *generator) writeInstruction(ins string, args ...any) {

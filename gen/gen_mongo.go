@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"bytes"
 	"github.com/doytowin/goooqo/core"
 	"go/ast"
 	"strings"
@@ -12,13 +11,10 @@ type MongoGenerator struct {
 }
 
 func NewMongoGenerator() *MongoGenerator {
-	return &MongoGenerator{&generator{
-		Buffer:     bytes.NewBuffer(make([]byte, 0, 1024)),
-		key:        "mongo",
-		imports:    []string{`. "go.mongodb.org/mongo-driver/bson/primitive"`},
-		bodyFormat: "d = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
-		ifFormat:   "if q.%s%s {",
-	}}
+	return &MongoGenerator{newGenerator("mongo",
+		[]string{`. "go.mongodb.org/mongo-driver/bson/primitive"`},
+		"d = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
+	)}
 }
 
 const regexSign = "$regex"
@@ -85,6 +81,8 @@ func (g *MongoGenerator) appendStruct(stp *ast.StructType, path []string) {
 	for _, field := range stp.Fields.List {
 		if field.Names != nil {
 			g.appendCondition(field, path, field.Names[0].Name)
+		} else if tn := resolveTypeName(field.Type); strings.HasSuffix(tn, "Or") {
+			g.appendCondition(field, path, strings.TrimPrefix(tn, "*"))
 		}
 	}
 	g.intent = strings.Repeat("\t", len(path))
@@ -97,6 +95,9 @@ func buildNestedFieldName(path []string, fieldName string) string {
 func buildNestedProperty(path []string, column string) string {
 	props := make([]string, 0, len(path)+1)
 	for _, fieldName := range path {
+		if strings.HasSuffix(fieldName, "Or") {
+			continue
+		}
 		// LATER: determine property by tag
 		props = append(props, core.ConvertToColumnCase(fieldName))
 	}
@@ -115,7 +116,11 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	stp := toStructPointer(field)
 	if stp != nil {
 		g.appendIfStartNil(structName)
-		g.appendStruct(stp, append(path, fieldName))
+		if strings.HasSuffix(fieldName, "Or") {
+			g.appendOrBody(stp, path, fieldName)
+		} else {
+			g.appendStruct(stp, append(path, fieldName))
+		}
 	} else if op.sign == "$type" {
 		g.appendIfStartNil(structName)
 		g.writeInstruction("\tif *q.%s {", structName)
@@ -135,6 +140,20 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 		}
 	}
 	g.appendIfEnd()
+}
+
+func (g *MongoGenerator) appendOrBody(stp *ast.StructType, path []string, fieldName string) {
+	g.writeInstruction("\tor := make(A, 0, 4)")
+	g.replaceIns = func(ins string) string {
+		return strings.ReplaceAll(ins, "d = append(d", "or = append(or")
+	}
+	g.appendStruct(stp, append(path, fieldName))
+	g.replaceIns = keep
+	g.writeInstruction("\tif len(or) > 1 {")
+	g.writeInstruction("\t\td = append(d, D{{\"$or\", or}})")
+	g.writeInstruction("\t} else if len(or) == 1 {")
+	g.writeInstruction("\t\td = append(d, or[0])")
+	g.writeInstruction("\t}")
 }
 
 func resolveTypeName(expr ast.Expr) string {

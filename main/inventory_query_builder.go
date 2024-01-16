@@ -82,5 +82,19 @@ func (q InventoryQuery) BuildFilter() A {
 	if q.CustomFilter != nil {
 		d = append(d, *q.CustomFilter)
 	}
+	if q.QtyOr != nil {
+		or := make(A, 0, 4)
+		if q.QtyOr.QtyLt != nil {
+			or = append(or, D{{"qty", D{{"$lt", q.QtyOr.QtyLt}}}})
+		}
+		if q.QtyOr.QtyGe != nil {
+			or = append(or, D{{"qty", D{{"$gte", q.QtyOr.QtyGe}}}})
+		}
+		if len(or) > 1 {
+			d = append(d, D{{"$or", or}})
+		} else if len(or) == 1 {
+			d = append(d, or[0])
+		}
+	}
 	return d
 }

@@ -27,6 +27,7 @@ type InventoryQuery struct {
 	ItemEnd        *string
 	ItemNotEnd     *string
 	CustomFilter   *primitive.M
+	*QtyOr
 }
 
 type Unit struct {
@@ -44,6 +45,11 @@ type SizeDoc struct {
 	H   float64 `json:"h,omitempty" bson:"h"`
 	W   float64 `json:"w,omitempty" bson:"w"`
 	Uom string  `json:"uom,omitempty" bson:"uom"`
+}
+
+type QtyOr struct {
+	QtyLt *int
+	QtyGe *int
 }
 
 type InventoryEntity struct {

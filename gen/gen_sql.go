@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"bytes"
 	"github.com/doytowin/goooqo/rdb"
 	log "github.com/sirupsen/logrus"
 	"go/ast"
@@ -31,13 +30,10 @@ func init() {
 }
 
 func NewSqlGenerator() *SqlGenerator {
-	return &SqlGenerator{&generator{
-		Buffer:     bytes.NewBuffer(make([]byte, 0, 1024)),
-		key:        "sql",
-		imports:    []string{`"github.com/doytowin/goooqo/rdb"`, `"strings"`},
-		bodyFormat: "conditions = append(conditions, \"%s %s ?\")",
-		ifFormat:   "if q.%s%s {",
-	}}
+	return &SqlGenerator{newGenerator("sql",
+		[]string{`"github.com/doytowin/goooqo/rdb"`, `"strings"`},
+		"conditions = append(conditions, \"%s %s ?\")",
+	)}
 }
 
 func (g *SqlGenerator) appendBuildMethod(ts *ast.TypeSpec) {
