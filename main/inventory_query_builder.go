@@ -90,6 +90,32 @@ func (q InventoryQuery) BuildFilter() A {
 		if q.QtyOr.QtyGe != nil {
 			or = append(or, D{{"qty", D{{"$gte", q.QtyOr.QtyGe}}}})
 		}
+		if q.QtyOr.Size != nil {
+			and := make(A, 0, 4)
+			if q.QtyOr.Size.HLt != nil {
+				and = append(and, D{{"size.h", D{{"$lt", q.QtyOr.Size.HLt}}}})
+			}
+			if q.QtyOr.Size.HGe != nil {
+				and = append(and, D{{"size.h", D{{"$gte", q.QtyOr.Size.HGe}}}})
+			}
+			if q.QtyOr.Size.Unit != nil {
+				if q.QtyOr.Size.Unit.Name != nil {
+					and = append(and, D{{"size.unit.name", D{{"$eq", q.QtyOr.Size.Unit.Name}}}})
+				}
+				if q.QtyOr.Size.Unit.NameNull != nil {
+					if *q.QtyOr.Size.Unit.NameNull {
+						and = append(and, D{{"size.unit.name", D{{"$type", 10}}}})
+					} else {
+						and = append(and, D{{"size.unit.name", D{{"$not", D{{"$type", 10}}}}}})
+					}
+				}
+			}
+			if len(and) > 1 {
+				or = append(or, D{{"$and", and}})
+			} else if len(and) == 1 {
+				or = append(or, and[0])
+			}
+		}
 		if len(or) > 1 {
 			d = append(d, D{{"$or", or}})
 		} else if len(or) == 1 {

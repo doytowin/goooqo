@@ -116,7 +116,9 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	stp := toStructPointer(field)
 	if stp != nil {
 		g.appendIfStartNil(structName)
-		if strings.HasSuffix(fieldName, "Or") {
+		if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
+			g.appendAndBody(stp, path, fieldName)
+		} else if strings.HasSuffix(fieldName, "Or") {
 			g.appendOrBody(stp, path, fieldName)
 		} else {
 			g.appendStruct(stp, append(path, fieldName))
@@ -124,9 +126,9 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	} else if op.sign == "$type" {
 		g.appendIfStartNil(structName)
 		g.writeInstruction("\tif *q.%s {", structName)
-		g.writeInstruction("\t\td = append(d, D{{\"%s\", D{{\"$type\", 10}}}})", column)
+		g.writeInstruction(g.replaceIns("\t\td = append(d, D{{\"%s\", D{{\"$type\", 10}}}})"), column)
 		g.writeInstruction("\t} else {")
-		g.writeInstruction("\t\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"$type\", 10}}}}}})", column)
+		g.writeInstruction(g.replaceIns("\t\td = append(d, D{{\"%s\", D{{\"$not\", D{{\"$type\", 10}}}}}})"), column)
 		g.writeInstruction("\t}")
 	} else if op.sign == regexSign {
 		g.writeInstruction("if q.%s != nil && *q.%s != \"\" {", structName, structName)
@@ -153,6 +155,20 @@ func (g *MongoGenerator) appendOrBody(stp *ast.StructType, path []string, fieldN
 	g.writeInstruction("\t\td = append(d, D{{\"$or\", or}})")
 	g.writeInstruction("\t} else if len(or) == 1 {")
 	g.writeInstruction("\t\td = append(d, or[0])")
+	g.writeInstruction("\t}")
+}
+
+func (g *MongoGenerator) appendAndBody(stp *ast.StructType, path []string, fieldName string) {
+	g.writeInstruction("\tand := make(A, 0, 4)")
+	g.replaceIns = func(ins string) string {
+		return strings.ReplaceAll(ins, "d = append(d", "and = append(and")
+	}
+	g.appendStruct(stp, append(path, fieldName))
+	g.replaceIns = keep
+	g.writeInstruction("\tif len(and) > 1 {")
+	g.writeInstruction("\t\tor = append(or, D{{\"$and\", and}})")
+	g.writeInstruction("\t} else if len(and) == 1 {")
+	g.writeInstruction("\t\tor = append(or, and[0])")
 	g.writeInstruction("\t}")
 }
 

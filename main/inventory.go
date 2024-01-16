@@ -50,6 +50,7 @@ type SizeDoc struct {
 type QtyOr struct {
 	QtyLt *int
 	QtyGe *int
+	Size  *SizeQuery
 }
 
 type InventoryEntity struct {
