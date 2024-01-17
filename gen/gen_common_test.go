@@ -92,6 +92,9 @@ func (q InventoryQuery) BuildFilter() A {
 				or = append(or, and[0])
 			}
 		}
+		if q.QtyOr.SizeOr != nil {
+			or = append(or, q.QtyOr.SizeOr.BuildFilter()...)
+		}
 		if len(or) > 1 {
 			d = append(d, D{{"$or", or}})
 		} else if len(or) == 1 {

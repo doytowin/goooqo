@@ -30,6 +30,13 @@ type InventoryQuery struct {
 	*QtyOr
 }
 
+type QtyOr struct {
+	QtyLt  *int
+	QtyGe  *int
+	Size   *SizeQuery
+	SizeOr *SizeQuery
+}
+
 type Unit struct {
 	Name     *string
 	NameNull *bool
@@ -45,12 +52,6 @@ type SizeDoc struct {
 	H   float64 `json:"h,omitempty" bson:"h"`
 	W   float64 `json:"w,omitempty" bson:"w"`
 	Uom string  `json:"uom,omitempty" bson:"uom"`
-}
-
-type QtyOr struct {
-	QtyLt *int
-	QtyGe *int
-	Size  *SizeQuery
 }
 
 type InventoryEntity struct {

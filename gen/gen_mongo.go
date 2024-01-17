@@ -2,6 +2,7 @@ package gen
 
 import (
 	"github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"strings"
 )
@@ -85,6 +86,8 @@ func (g *MongoGenerator) appendStruct(ts *ast.TypeSpec, path []string) {
 			g.appendCondition(field, path, field.Names[0].Name)
 		} else if tn := resolveTypeName(field.Type); strings.HasSuffix(tn, "Or") {
 			g.appendCondition(field, path, strings.TrimPrefix(tn, "*"))
+		} else {
+			log.Info("[MongoGenerator#appendStruct] Unresolved TypeName: ", tn)
 		}
 	}
 	g.intent = strings.Repeat("\t", len(path))
@@ -122,12 +125,16 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	if ts := toTypePointer(field); ts != nil {
 		g.appendIfStartNil(structName)
 		if strings.HasSuffix(fieldName, "Or") {
-			g.appendOrBody(ts, path, fieldName)
+			if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
+				g.appendOrOrBody(path, fieldName)
+			} else {
+				g.appendOrBody(ts, path, fieldName)
+			}
 		} else {
-			g.addStruct(column, ts)
 			if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
 				g.appendAndBody(path, fieldName)
 			} else {
+				g.addStruct(column, ts)
 				g.writeInstruction("\td = append(d, q.%s.BuildFilter()...)", structName)
 			}
 		}
@@ -164,6 +171,11 @@ func (g *MongoGenerator) appendOrBody(ts *ast.TypeSpec, path []string, fieldName
 	g.writeInstruction("\t} else if len(or) == 1 {")
 	g.writeInstruction("\t\td = append(d, or[0])")
 	g.writeInstruction("\t}")
+}
+
+func (g *MongoGenerator) appendOrOrBody(path []string, fieldName string) {
+	structName := buildNestedFieldName(path, fieldName)
+	g.writeInstruction("\tor = append(or, q.%s.BuildFilter()...)", structName)
 }
 
 func (g *MongoGenerator) appendAndBody(path []string, fieldName string) {
