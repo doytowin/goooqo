@@ -32,10 +32,13 @@ func GenerateCode(filename string, gen Generator) string {
 		panic(err)
 	}
 	tsList := lookupQueryStruct(f)
+	for _, ts := range tsList {
+		gen.addStruct("", ts)
+	}
 
 	gen.appendPackage(f.Name.String())
 	gen.appendImports()
-	for _, ts := range tsList {
+	for ts := gen.nextStruct(); ts != nil; ts = gen.nextStruct() {
 		gen.appendBuildMethod(ts)
 	}
 	return gen.String()
@@ -60,13 +63,11 @@ func lookupQueryStruct(f *ast.File) (result []*ast.TypeSpec) {
 	return
 }
 
-func toStructPointer(field *ast.Field) *ast.StructType {
+func toTypePointer(field *ast.Field) *ast.TypeSpec {
 	if expr, ok := field.Type.(*ast.StarExpr); ok {
 		if ident, ok := expr.X.(*ast.Ident); ok && ident.Obj != nil {
-			if tp, ok := ident.Obj.Decl.(*ast.TypeSpec); ok {
-				if stp, ok := tp.Type.(*ast.StructType); ok && stp.Struct.IsValid() {
-					return stp
-				}
+			if ts, ok := ident.Obj.Decl.(*ast.TypeSpec); ok {
+				return ts
 			}
 		}
 	}

@@ -37,6 +37,7 @@ func NewSqlGenerator() *SqlGenerator {
 }
 
 func (g *SqlGenerator) appendBuildMethod(ts *ast.TypeSpec) {
+	g.WriteString(NewLine)
 	g.writeInstruction("func (q %s) BuildConditions() ([]string, []any) {", ts.Name)
 	g.appendFuncBody(ts)
 	g.writeInstruction("}")

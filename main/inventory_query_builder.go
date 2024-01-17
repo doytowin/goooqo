@@ -35,24 +35,7 @@ func (q InventoryQuery) BuildFilter() A {
 		d = append(d, D{{"qty", D{{"$lte", q.QtyLe}}}})
 	}
 	if q.Size != nil {
-		if q.Size.HLt != nil {
-			d = append(d, D{{"size.h", D{{"$lt", q.Size.HLt}}}})
-		}
-		if q.Size.HGe != nil {
-			d = append(d, D{{"size.h", D{{"$gte", q.Size.HGe}}}})
-		}
-		if q.Size.Unit != nil {
-			if q.Size.Unit.Name != nil {
-				d = append(d, D{{"size.unit.name", D{{"$eq", q.Size.Unit.Name}}}})
-			}
-			if q.Size.Unit.NameNull != nil {
-				if *q.Size.Unit.NameNull {
-					d = append(d, D{{"size.unit.name", D{{"$type", 10}}}})
-				} else {
-					d = append(d, D{{"size.unit.name", D{{"$not", D{{"$type", 10}}}}}})
-				}
-			}
-		}
+		d = append(d, q.Size.BuildFilter()...)
 	}
 	if q.StatusNull != nil {
 		if *q.StatusNull {
@@ -91,25 +74,7 @@ func (q InventoryQuery) BuildFilter() A {
 			or = append(or, D{{"qty", D{{"$gte", q.QtyOr.QtyGe}}}})
 		}
 		if q.QtyOr.Size != nil {
-			and := make(A, 0, 4)
-			if q.QtyOr.Size.HLt != nil {
-				and = append(and, D{{"size.h", D{{"$lt", q.QtyOr.Size.HLt}}}})
-			}
-			if q.QtyOr.Size.HGe != nil {
-				and = append(and, D{{"size.h", D{{"$gte", q.QtyOr.Size.HGe}}}})
-			}
-			if q.QtyOr.Size.Unit != nil {
-				if q.QtyOr.Size.Unit.Name != nil {
-					and = append(and, D{{"size.unit.name", D{{"$eq", q.QtyOr.Size.Unit.Name}}}})
-				}
-				if q.QtyOr.Size.Unit.NameNull != nil {
-					if *q.QtyOr.Size.Unit.NameNull {
-						and = append(and, D{{"size.unit.name", D{{"$type", 10}}}})
-					} else {
-						and = append(and, D{{"size.unit.name", D{{"$not", D{{"$type", 10}}}}}})
-					}
-				}
-			}
+			and := q.QtyOr.Size.BuildFilter()
 			if len(and) > 1 {
 				or = append(or, D{{"$and", and}})
 			} else if len(and) == 1 {
@@ -120,6 +85,35 @@ func (q InventoryQuery) BuildFilter() A {
 			d = append(d, D{{"$or", or}})
 		} else if len(or) == 1 {
 			d = append(d, or[0])
+		}
+	}
+	return d
+}
+
+func (q SizeQuery) BuildFilter() A {
+	d := make(A, 0, 4)
+	if q.HLt != nil {
+		d = append(d, D{{"size.h", D{{"$lt", q.HLt}}}})
+	}
+	if q.HGe != nil {
+		d = append(d, D{{"size.h", D{{"$gte", q.HGe}}}})
+	}
+	if q.Unit != nil {
+		d = append(d, q.Unit.BuildFilter()...)
+	}
+	return d
+}
+
+func (q Unit) BuildFilter() A {
+	d := make(A, 0, 4)
+	if q.Name != nil {
+		d = append(d, D{{"size.unit.name", D{{"$eq", q.Name}}}})
+	}
+	if q.NameNull != nil {
+		if *q.NameNull {
+			d = append(d, D{{"size.unit.name", D{{"$type", 10}}}})
+		} else {
+			d = append(d, D{{"size.unit.name", D{{"$not", D{{"$type", 10}}}}}})
 		}
 	}
 	return d

@@ -13,6 +13,8 @@ type Generator interface {
 	appendImports()
 	appendBuildMethod(ts *ast.TypeSpec)
 	String() string
+	addStruct(string, *ast.TypeSpec)
+	nextStruct() *ast.TypeSpec
 }
 
 type generator struct {
@@ -23,6 +25,9 @@ type generator struct {
 	ifFormat   string
 	intent     string
 	replaceIns func(string) string
+	structList []*ast.TypeSpec
+	structIdx  int
+	prefix     []string
 }
 
 func newGenerator(key string, imports []string, bodyFormat string) *generator {
@@ -51,7 +56,6 @@ func (g *generator) appendImports() {
 		g.WriteString("import " + s)
 		g.WriteString(NewLine)
 	}
-	g.WriteString(NewLine)
 }
 
 func (g *generator) appendIfEnd() {
@@ -91,4 +95,26 @@ func (g *generator) suffixMatch(fieldName string) (string, operator) {
 		return column, op
 	}
 	return core.ConvertToColumnCase(fieldName), opMap[g.key]["Eq"]
+}
+
+func (g *generator) addStruct(prefix string, spec *ast.TypeSpec) {
+	for _, ts := range g.structList {
+		if ts == spec {
+			return
+		}
+	}
+	g.structList = append(g.structList, spec)
+	g.prefix = append(g.prefix, prefix)
+}
+
+func (g *generator) nextStruct() *ast.TypeSpec {
+	if len(g.structList) == g.structIdx {
+		return nil
+	}
+	g.structIdx++
+	return g.structList[g.structIdx-1]
+}
+
+func (g *generator) appendBuildMethod(*ast.TypeSpec) {
+	panic("implement me")
 }
