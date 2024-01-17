@@ -24,7 +24,6 @@ func TestProcess(t *testing.T) {
 		{"idNe", "id <> ?", []int64{5}, reflect.ValueOf(5)},
 		{"idEq", "id = ?", []int64{5}, reflect.ValueOf(5)},
 		{"idNull", "id IS NULL", nil, reflect.ValueOf(true)},
-		{"idNotNull", "id IS NOT NULL", nil, reflect.ValueOf(true)},
 		{"idIn", "id IN (?, ?, ?)", []int64{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},
 		{"memoIn", "memo IN (?, ?)", []string{"Good", "Bad"}, reflect.ValueOf([]string{"Good", "Bad"})},
 		{"idNotIn", "id NOT IN (?, ?, ?)", []int{5, 6, 7}, reflect.ValueOf([]int{5, 6, 7})},

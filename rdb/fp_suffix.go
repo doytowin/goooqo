@@ -10,7 +10,7 @@ import (
 
 var (
 	opMap     = CreateOpMap()
-	suffixRgx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|NotNull|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd)$`)
+	suffixRgx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd)$`)
 	escapeRgx = regexp.MustCompile("[\\\\_%]")
 )
 
@@ -60,9 +60,6 @@ func CreateOpMap() map[string]operator {
 			return " IS NOT NULL", []any{}
 		}
 		return " IS NULL", []any{}
-	}}
-	opMap["NotNull"] = operator{"NotNull", " IS NOT NULL", func(reflect.Value) (string, []any) {
-		return "", []any{}
 	}}
 	opMap["In"] = operator{"In", " IN ", ReadValueForIn}
 	opMap["NotIn"] = operator{"NotIn", " NOT IN ", ReadValueForIn}
