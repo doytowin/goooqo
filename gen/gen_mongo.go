@@ -4,6 +4,7 @@ import (
 	"github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"go/ast"
+	"reflect"
 	"strings"
 )
 
@@ -122,22 +123,14 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	structName := buildNestedFieldName(path, fieldName)
 	column = g.buildNestedProperty(path, column)
 
-	if ts := toTypePointer(field); ts != nil {
-		g.appendIfStartNil(structName)
-		if strings.HasSuffix(fieldName, "Or") {
-			if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
-				g.appendOrOrBody(path, fieldName)
-			} else {
-				g.appendOrBody(ts, path, fieldName)
-			}
-		} else {
-			if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
-				g.appendAndBody(path, fieldName)
-			} else {
-				g.addStruct(column, ts)
-				g.writeInstruction("\td = append(d, q.%s.BuildFilter()...)", structName)
-			}
+	if field.Tag != nil {
+		if columnTag, ok := reflect.StructTag(strings.Trim(field.Tag.Value, "`")).Lookup("column"); ok {
+			column = columnTag
 		}
+	}
+
+	if ts := toTypePointer(field); ts != nil {
+		g.appendSubStruct(ts, structName, fieldName, path, column)
 	} else if op.sign == "$type" {
 		g.appendIfStartNil(structName)
 		g.writeInstruction("\tif *q.%s {", structName)
@@ -157,6 +150,24 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 		}
 	}
 	g.appendIfEnd()
+}
+
+func (g *MongoGenerator) appendSubStruct(ts *ast.TypeSpec, structName string, fieldName string, path []string, column string) {
+	g.appendIfStartNil(structName)
+	if strings.HasSuffix(fieldName, "Or") {
+		if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
+			g.appendOrOrBody(path, fieldName)
+		} else {
+			g.appendOrBody(ts, path, fieldName)
+		}
+	} else {
+		if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
+			g.appendAndBody(path, fieldName)
+		} else {
+			g.addStruct(column, ts) // generate for type recursively
+			g.writeInstruction("\td = append(d, q.%s.BuildFilter()...)", structName)
+		}
+	}
 }
 
 func (g *MongoGenerator) appendOrBody(ts *ast.TypeSpec, path []string, fieldName string) {

@@ -39,7 +39,7 @@ type QtyOr struct {
 
 type Unit struct {
 	Name     *string
-	NameNull *bool
+	NameNull *bool `column:"size.unit.name"`
 }
 
 type SizeQuery struct {
