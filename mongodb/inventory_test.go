@@ -17,8 +17,8 @@ type SizeDoc struct {
 
 type InventoryEntity struct {
 	MongoId `bson:",inline"`
-	Item    *string  `json:"item,omitempty" bson:"item"`
-	Size    *SizeDoc `json:"size"`
+	Item    *string  `json:"item,omitempty" bson:"item" column:"item,index"`
+	Size    *SizeDoc `json:"size" column:"size"`
 	Qty     *int     `json:"qty,omitempty" bson:"qty"`
 	Status  *string  `json:"status,omitempty" bson:"status"`
 }

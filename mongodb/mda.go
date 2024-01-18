@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	. "github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 	. "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -32,10 +33,46 @@ func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E, Qu
 	entity := *new(E)
 	client := tm.GetClient().(*mongo.Client)
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
+	entityType := reflect.TypeOf(entity)
+	createIndex(entityType, collection)
 	return &mongoDataAccess[context.Context, E]{
 		TransactionManager: tm,
 		collection:         collection,
 	}
+}
+
+func createIndex(entityType reflect.Type, collection *mongo.Collection) {
+	indexModel := createIndexModel(entityType)
+	if len(indexModel) > 0 {
+		indexName, err := collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: indexModel})
+		if NoError(err) {
+			log.Infof("Index created: %s:%s", collection.Name(), indexName)
+		}
+	}
+}
+
+func createIndexModel(entityType reflect.Type) D {
+	ret := make(D, 0, 4)
+	for i := 0; i < entityType.NumField(); i++ {
+		field := entityType.Field(i)
+		if columnTag, ok := field.Tag.Lookup("column"); ok {
+			column, indexed := resolveColumnTag(columnTag, field.Name)
+			if indexed {
+				ret = append(ret, E{column, "text"})
+			}
+		}
+	}
+	return ret
+}
+
+func resolveColumnTag(columnTag string, fieldName string) (string, bool) {
+	values := strings.Split(columnTag, ",")
+	column := values[0]
+	if column == "" {
+		column = ConvertToColumnCase(fieldName)
+	}
+	indexed := strings.Contains(columnTag, ",index")
+	return column, indexed
 }
 
 func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {

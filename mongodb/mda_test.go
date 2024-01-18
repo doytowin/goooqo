@@ -6,6 +6,7 @@ import (
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"reflect"
 	"testing"
 )
 
@@ -311,5 +312,22 @@ func assertNoError(t *testing.T, err error) {
 func assertEquals(t *testing.T, expect any, actual any) {
 	if !(actual == expect) {
 		t.Error("\nExpected: ", expect, "\n\t Got: ", actual)
+	}
+}
+
+func Test_createIndexModel(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  reflect.Type
+		expect primitive.D
+	}{
+		{"Index", reflect.TypeOf(InventoryEntity{}), primitive.D{{"item", "text"}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := createIndexModel(tt.input); !reflect.DeepEqual(got, tt.expect) {
+				t.Errorf("createIndexModel() = %v, want %v", got, tt.expect)
+			}
+		})
 	}
 }
