@@ -141,6 +141,9 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	} else if op.sign == regexSign {
 		g.writeInstruction("if q.%s != nil && *q.%s != \"\" {", structName, structName)
 		g.appendIfBody(op.format, column, op.sign, structName)
+	} else if fieldName == "Search" {
+		g.appendIfStartNil(structName)
+		g.appendIfBody("d = append(d, D{{\"$text\", D{{\"$search\", *q.%s}}}})", structName)
 	} else {
 		g.appendIfStartNil(structName)
 		if resolveTypeName(field.Type) == "*M" {

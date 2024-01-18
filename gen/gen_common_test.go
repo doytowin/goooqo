@@ -101,6 +101,9 @@ func (q InventoryQuery) BuildFilter() A {
 			d = append(d, or[0])
 		}
 	}
+	if q.Search != nil {
+		d = append(d, D{{"$text", D{{"$search", *q.Search}}}})
+	}
 	return d
 }
 

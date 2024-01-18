@@ -28,6 +28,7 @@ type InventoryQuery struct {
 	ItemNotEnd     *string
 	CustomFilter   *primitive.M
 	*QtyOr
+	Search *string
 }
 
 type QtyOr struct {
@@ -56,7 +57,7 @@ type SizeDoc struct {
 
 type InventoryEntity struct {
 	mongodb.MongoId `bson:",inline"`
-	Item            string  `json:"item,omitempty" bson:"item"`
+	Item            string  `json:"item,omitempty" bson:"item" column:"item,index"`
 	Size            SizeDoc `json:"size" bson:"size"`
 	Qty             int     `json:"qty,omitempty" bson:"qty"`
 	Status          string  `json:"status,omitempty" bson:"status"`
