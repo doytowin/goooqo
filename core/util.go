@@ -56,6 +56,10 @@ func NoError(err error) bool {
 	return err == nil
 }
 
+func HasError(err error) bool {
+	return !NoError(err)
+}
+
 func Close(db io.Closer) {
 	NoError(db.Close())
 }
