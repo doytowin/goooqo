@@ -17,31 +17,50 @@ type ConnectionCtx interface {
 	Connection
 }
 
-type relationalDataAccess[C ConnectionCtx, E Entity] struct {
-	em EntityMetadata[E]
+type relationalDataAccess[E Entity] struct {
+	TransactionManager
+	conn Connection
+	em   EntityMetadata[E]
 }
 
-func newRelationalDataAccess[E RdbEntity]() DataAccess[ConnectionCtx, E] {
-	return &relationalDataAccess[ConnectionCtx, E]{
-		em: buildEntityMetadata[E](),
+func NewTxDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E] {
+	return newRelationalDataAccess[E](tm)
+}
+
+func newRelationalDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E] {
+	return &relationalDataAccess[E]{
+		TransactionManager: tm,
+		conn:               tm.GetClient().(Connection),
+		em:                 buildEntityMetadata[E](),
 	}
 }
 
-func (da *relationalDataAccess[C, E]) Get(connCtx C, id any) (*E, error) {
+// getConn get connection from ctx, wrap the ctx and
+// connection by ConnectionCtx as return value.
+// ctx could be a TransactionContext with an active tx.
+func (da *relationalDataAccess[E]) getConn(ctx context.Context) Connection {
+	connection := da.conn
+	if tc, ok := ctx.(*rdbTransactionContext); ok {
+		connection = tc.tx
+	}
+	return connection
+}
+
+func (da *relationalDataAccess[E]) Get(ctx context.Context, id any) (*E, error) {
 	sqlStr := da.em.buildSelectById()
-	rows, err := da.doQuery(connCtx, sqlStr, []any{id}, 1)
+	rows, err := da.doQuery(ctx, sqlStr, []any{id}, 1)
 	if len(rows) == 1 {
 		return &rows[0], err
 	}
 	return nil, err
 }
 
-func (da *relationalDataAccess[C, E]) Query(connCtx C, query Query) ([]E, error) {
+func (da *relationalDataAccess[E]) Query(ctx context.Context, query Query) ([]E, error) {
 	sqlStr, args := da.em.buildSelect(query)
-	return da.doQuery(connCtx, sqlStr, args, query.GetPageSize())
+	return da.doQuery(ctx, sqlStr, args, query.GetPageSize())
 }
 
-func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []any, size int) ([]E, error) {
+func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, args []any, size int) ([]E, error) {
 	log.Debug("SQL: ", sqlStr)
 	log.Debug("ARG: ", args)
 
@@ -55,11 +74,11 @@ func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []a
 		pointers[i] = elem.FieldByName(cm.Field.Name).Addr().Interface()
 	}
 
-	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)
+	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
 	if NoError(err) {
 		defer Close(stmt)
 		var rows *sql.Rows
-		rows, err = stmt.QueryContext(connCtx, args...)
+		rows, err = stmt.QueryContext(ctx, args...)
 		if NoError(err) {
 			for rows.Next() {
 				err = rows.Scan(pointers...)
@@ -73,49 +92,49 @@ func (da *relationalDataAccess[C, E]) doQuery(connCtx C, sqlStr string, args []a
 	return result, err
 }
 
-func (da *relationalDataAccess[C, E]) Count(connCtx C, query Query) (int64, error) {
+func (da *relationalDataAccess[E]) Count(ctx context.Context, query Query) (int64, error) {
 	var cnt int64
 	sqlStr, args := da.em.buildCount(query)
-	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)
+	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
 	if NoError(err) {
 		defer Close(stmt)
-		row := stmt.QueryRowContext(connCtx, args...)
+		row := stmt.QueryRowContext(ctx, args...)
 		err = row.Scan(&cnt)
 	}
 	return cnt, err
 }
 
-func (da *relationalDataAccess[C, E]) Page(connCtx C, query Query) (PageList[E], error) {
+func (da *relationalDataAccess[E]) Page(ctx context.Context, query Query) (PageList[E], error) {
 	var cnt int64
-	data, err := da.Query(connCtx, query)
+	data, err := da.Query(ctx, query)
 	if NoError(err) {
-		cnt, err = da.Count(connCtx, query)
+		cnt, err = da.Count(ctx, query)
 	}
 	return PageList[E]{List: data, Total: cnt}, err
 }
 
-func (da *relationalDataAccess[C, E]) Delete(connCtx C, id any) (int64, error) {
+func (da *relationalDataAccess[E]) Delete(ctx context.Context, id any) (int64, error) {
 	sqlStr := da.em.buildDeleteById()
-	return parse(da.doUpdate(connCtx, sqlStr, []any{id}))
+	return parse(da.doUpdate(ctx, sqlStr, []any{id}))
 }
 
-func (da *relationalDataAccess[C, E]) DeleteByQuery(connCtx C, query Query) (int64, error) {
+func (da *relationalDataAccess[E]) DeleteByQuery(ctx context.Context, query Query) (int64, error) {
 	sqlStr, args := da.em.buildDelete(query)
-	return parse(da.doUpdate(connCtx, sqlStr, args))
+	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
-func (da *relationalDataAccess[C, E]) doUpdate(connCtx C, sqlStr string, args []any) (sql.Result, error) {
-	stmt, err := connCtx.PrepareContext(connCtx, sqlStr)
+func (da *relationalDataAccess[E]) doUpdate(ctx context.Context, sqlStr string, args []any) (sql.Result, error) {
+	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
 	if NoError(err) {
 		defer Close(stmt)
-		return stmt.ExecContext(connCtx, args...)
+		return stmt.ExecContext(ctx, args...)
 	}
 	return nil, err
 }
 
-func (da *relationalDataAccess[C, E]) Create(connCtx C, entity *E) (int64, error) {
+func (da *relationalDataAccess[E]) Create(ctx context.Context, entity *E) (int64, error) {
 	sqlStr, args := da.em.buildCreate(*entity)
-	result, err := da.doUpdate(connCtx, sqlStr, args)
+	result, err := da.doUpdate(ctx, sqlStr, args)
 	var id int64
 	if NoError(err) {
 		id, err = result.LastInsertId()
@@ -126,27 +145,27 @@ func (da *relationalDataAccess[C, E]) Create(connCtx C, entity *E) (int64, error
 	return id, err
 }
 
-func (da *relationalDataAccess[C, E]) CreateMulti(connCtx C, entities []E) (int64, error) {
+func (da *relationalDataAccess[E]) CreateMulti(ctx context.Context, entities []E) (int64, error) {
 	if len(entities) == 0 {
 		return 0, nil
 	}
 	sqlStr, args := da.em.buildCreateMulti(entities)
-	return parse(da.doUpdate(connCtx, sqlStr, args))
+	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
-func (da *relationalDataAccess[C, E]) Update(connCtx C, entity E) (int64, error) {
+func (da *relationalDataAccess[E]) Update(ctx context.Context, entity E) (int64, error) {
 	sqlStr, args := da.em.buildUpdate(entity)
-	return parse(da.doUpdate(connCtx, sqlStr, args))
+	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
-func (da *relationalDataAccess[C, E]) Patch(connCtx C, entity E) (int64, error) {
+func (da *relationalDataAccess[E]) Patch(ctx context.Context, entity E) (int64, error) {
 	sqlStr, args := da.em.buildPatchById(entity)
-	return parse(da.doUpdate(connCtx, sqlStr, args))
+	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
-func (da *relationalDataAccess[C, E]) PatchByQuery(connCtx C, entity E, query Query) (int64, error) {
+func (da *relationalDataAccess[E]) PatchByQuery(ctx context.Context, entity E, query Query) (int64, error) {
 	args, sqlStr := da.em.buildPatchByQuery(entity, query)
-	return parse(da.doUpdate(connCtx, sqlStr, args))
+	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
 func parse(result sql.Result, err error) (int64, error) {

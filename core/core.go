@@ -33,18 +33,18 @@ type Entity interface {
 	SetId(self any, id any) error
 }
 
-type DataAccess[C context.Context, E Entity] interface {
-	Get(ctx C, id any) (*E, error)
-	Delete(ctx C, id any) (int64, error)
-	Query(ctx C, query Query) ([]E, error)
-	Count(ctx C, query Query) (int64, error)
-	DeleteByQuery(ctx C, query Query) (int64, error)
-	Page(ctx C, query Query) (PageList[E], error)
-	Create(ctx C, entity *E) (int64, error)
-	CreateMulti(ctx C, entities []E) (int64, error)
-	Update(ctx C, entity E) (int64, error)
-	Patch(ctx C, entity E) (int64, error)
-	PatchByQuery(ctx C, entity E, query Query) (int64, error)
+type DataAccess[E Entity] interface {
+	Get(ctx context.Context, id any) (*E, error)
+	Delete(ctx context.Context, id any) (int64, error)
+	Query(ctx context.Context, query Query) ([]E, error)
+	Count(ctx context.Context, query Query) (int64, error)
+	DeleteByQuery(ctx context.Context, query Query) (int64, error)
+	Page(ctx context.Context, query Query) (PageList[E], error)
+	Create(ctx context.Context, entity *E) (int64, error)
+	CreateMulti(ctx context.Context, entities []E) (int64, error)
+	Update(ctx context.Context, entity E) (int64, error)
+	Patch(ctx context.Context, entity E) (int64, error)
+	PatchByQuery(ctx context.Context, entity E, query Query) (int64, error)
 }
 
 type TransactionManager interface {
@@ -60,7 +60,7 @@ type TransactionContext interface {
 	RollbackTo(name string) error
 }
 
-type TxDataAccess[E Entity, Q Query] interface {
+type TxDataAccess[E Entity] interface {
 	TransactionManager
-	DataAccess[context.Context, E]
+	DataAccess[E]
 }

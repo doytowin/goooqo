@@ -7,21 +7,18 @@ import (
 	"testing"
 )
 
-func newConnCtx(coon Connection) ConnectionCtx {
-	return &connectionCtx{context.Background(), coon}
-}
-
 func TestSQLite(t *testing.T) {
 	db := Connect()
 	InitDB(db)
 	defer Disconnect(db)
-	cc := newConnCtx(db)
+	ctx := context.Background()
+	tm := NewTransactionManager(db)
 
-	userDataAccess := newRelationalDataAccess[UserEntity]()
+	userDataAccess := newRelationalDataAccess[UserEntity](tm)
 
 	t.Run("Query Entities", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(80)}
-		users, err := userDataAccess.Query(cc, &userQuery)
+		users, err := userDataAccess.Query(ctx, &userQuery)
 
 		if err != nil {
 			t.Error("Error", err)
@@ -32,7 +29,7 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Query By Id", func(t *testing.T) {
-		user, err := userDataAccess.Get(cc, 3)
+		user, err := userDataAccess.Get(ctx, 3)
 
 		if err != nil {
 			t.Error("Error", err)
@@ -43,7 +40,7 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Query By Non-Existent Id", func(t *testing.T) {
-		user, err := userDataAccess.Get(cc, -1)
+		user, err := userDataAccess.Get(ctx, -1)
 
 		if err != nil {
 			t.Error("Error", err)
@@ -54,33 +51,33 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Delete By Id", func(t *testing.T) {
-		tx, err := db.Begin()
-		cnt, err := userDataAccess.Delete(newConnCtx(tx), 3)
+		tc, err := tm.StartTransaction(ctx)
+		cnt, err := userDataAccess.Delete(tc, 3)
 		if err != nil {
 			t.Error("Error", err)
 		}
 		if cnt != 1 {
 			t.Errorf("Delete failed. Deleted: %v", cnt)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Delete By Query", func(t *testing.T) {
-		tx, err := db.Begin()
+		tc, err := tm.StartTransaction(ctx)
 		userQuery := UserQuery{ScoreLt: PInt(80)}
-		cnt, err := userDataAccess.DeleteByQuery(newConnCtx(tx), userQuery)
+		cnt, err := userDataAccess.DeleteByQuery(tc, userQuery)
 		if err != nil {
 			t.Error("Error", err)
 		}
 		if cnt != 3 {
 			t.Errorf("Delete failed. Deleted: %v", cnt)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Count By Query", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: PInt(60)}
-		cnt, err := userDataAccess.Count(cc, &userQuery)
+		cnt, err := userDataAccess.Count(ctx, &userQuery)
 		if err != nil {
 			t.Error("Error", err)
 		}
@@ -94,7 +91,7 @@ func TestSQLite(t *testing.T) {
 			PageQuery: PageQuery{PageSize: PInt(2)},
 			ScoreLt:   PInt(80),
 		}
-		page, err := userDataAccess.Page(cc, &userQuery)
+		page, err := userDataAccess.Page(ctx, &userQuery)
 		if err != nil {
 			t.Error("Error", err)
 			return
@@ -105,9 +102,9 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Create Entity", func(t *testing.T) {
-		tx, err := db.Begin()
+		tc, err := tm.StartTransaction(ctx)
 		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
-		id, err := userDataAccess.Create(newConnCtx(tx), &entity)
+		id, err := userDataAccess.Create(tc, &entity)
 		if err != nil {
 			t.Error("Error", err)
 			return
@@ -115,13 +112,13 @@ func TestSQLite(t *testing.T) {
 		if !(id == 5 && entity.Id == 5) {
 			t.Errorf("\nExpected: %d\nBut got : %d", 5, id)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Create Entities", func(t *testing.T) {
-		tx, err := db.Begin()
+		tc, err := tm.StartTransaction(ctx)
 		entities := []UserEntity{{Score: PInt(90), Memo: PStr("Great")}, {Score: PInt(55), Memo: PStr("Bad")}}
-		cnt, err := userDataAccess.CreateMulti(newConnCtx(tx), entities)
+		cnt, err := userDataAccess.CreateMulti(tc, entities)
 		if err != nil {
 			t.Error("Error", err)
 			return
@@ -129,13 +126,13 @@ func TestSQLite(t *testing.T) {
 		if !(cnt == 2) {
 			t.Errorf("\nExpected: %d\nBut got : %d", 2, cnt)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Create 0 Entity", func(t *testing.T) {
-		tx, err := db.Begin()
+		tc, err := tm.StartTransaction(ctx)
 		var entities []UserEntity
-		cnt, err := userDataAccess.CreateMulti(newConnCtx(tx), entities)
+		cnt, err := userDataAccess.CreateMulti(tc, entities)
 		if err != nil {
 			t.Error("Error", err)
 			return
@@ -143,62 +140,59 @@ func TestSQLite(t *testing.T) {
 		if cnt != 0 {
 			t.Errorf("\nExpected: %d\nBut got : %d", 0, cnt)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Update Entity", func(t *testing.T) {
-		tx, err := db.Begin()
-		cc := newConnCtx(tx)
+		tc, err := tm.StartTransaction(ctx)
 		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
 		entity.Id = 2
-		cnt, err := userDataAccess.Update(cc, entity)
+		cnt, err := userDataAccess.Update(tc, entity)
 		if err != nil {
 			t.Error("Error", err)
 			return
 		}
-		userEntity, err := userDataAccess.Get(cc, 2)
+		userEntity, err := userDataAccess.Get(tc, 2)
 
 		if !(cnt == 1 && *userEntity.Score == 90) {
 			t.Errorf("\nExpected: %d\n     Got: %d", 1, cnt)
 			t.Errorf("\nExpected: %d\n     Got: %d", 90, *userEntity.Score)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Patch Entity", func(t *testing.T) {
-		tx, err := db.Begin()
-		cc := newConnCtx(tx)
+		tc, err := tm.StartTransaction(ctx)
 		entity := UserEntity{Score: PInt(90)}
 		entity.Id = 2
-		cnt, err := userDataAccess.Patch(cc, entity)
+		cnt, err := userDataAccess.Patch(ctx, entity)
 		if err != nil {
 			t.Error("Error", err)
 			return
 		}
-		userEntity, err := userDataAccess.Get(cc, 2)
+		userEntity, err := userDataAccess.Get(ctx, 2)
 
 		if !(cnt == 1 && *userEntity.Score == 90 && *userEntity.Memo == "Bad") {
 			t.Errorf("\nExpected: %d %d %s\nBut got : %d %d %s",
 				2, 90, "Bad", userEntity.Id, *userEntity.Score, *userEntity.Memo)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 
 	t.Run("Patch Entity By Query", func(t *testing.T) {
-		tx, err := db.Begin()
-		cc := newConnCtx(tx)
+		tc, err := tm.StartTransaction(ctx)
 		entity := UserEntity{Memo: PStr("Add Memo")}
 		query := UserQuery{MemoNull: true}
-		cnt, err := userDataAccess.PatchByQuery(cc, entity, &query)
+		cnt, err := userDataAccess.PatchByQuery(tc, entity, &query)
 
 		if cnt != 1 {
 			t.Errorf("\nExpected: %d\nBut got : %d", 1, err)
 		}
-		count, err := userDataAccess.Count(cc, &query)
+		count, err := userDataAccess.Count(tc, &query)
 
 		if count != 0 {
 			t.Errorf("\nExpected: %d\nBut got : %d", 0, count)
 		}
-		_ = tx.Rollback()
+		_ = tc.Rollback()
 	})
 }

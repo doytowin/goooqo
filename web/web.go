@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	. "github.com/doytowin/goooqo/core"
@@ -15,13 +14,13 @@ import (
 )
 
 type restService[E Entity, Q Query] struct {
-	DataAccess[context.Context, E]
+	DataAccess[E]
 	idRgx *regexp.Regexp
 }
 
 func NewRestService[E Entity, Q Query](
 	prefix string,
-	dataAccess DataAccess[context.Context, E],
+	dataAccess DataAccess[E],
 ) http.Handler {
 	return &restService[E, Q]{
 		DataAccess: dataAccess,

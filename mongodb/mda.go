@@ -24,18 +24,18 @@ type QueryBuilder interface {
 	BuildFilter() A
 }
 
-type mongoDataAccess[C context.Context, E MongoEntity] struct {
+type mongoDataAccess[E MongoEntity] struct {
 	TransactionManager
 	collection *mongo.Collection
 }
 
-func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E, Query] {
+func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E] {
 	entity := *new(E)
 	client := tm.GetClient().(*mongo.Client)
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
 	entityType := reflect.TypeOf(entity)
 	createIndex(entityType, collection)
-	return &mongoDataAccess[context.Context, E]{
+	return &mongoDataAccess[E]{
 		TransactionManager: tm,
 		collection:         collection,
 	}
@@ -75,11 +75,11 @@ func resolveColumnTag(columnTag string, fieldName string) (string, bool) {
 	return column, indexed
 }
 
-func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
+func (m *mongoDataAccess[E]) Get(ctx context.Context, id any) (*E, error) {
 	ID, err := ResolveId(id)
 	if NoError(err) {
 		e := *new(E)
-		err = m.collection.FindOne(c, buildIdFilter(ID)).Decode(&e)
+		err = m.collection.FindOne(ctx, buildIdFilter(ID)).Decode(&e)
 		if NoError(err) {
 			return &e, err
 		}
@@ -87,7 +87,7 @@ func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 	return nil, err
 }
 
-func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
+func (m *mongoDataAccess[E]) Delete(ctx context.Context, id any) (int64, error) {
 	ID, err := ResolveId(id)
 	if NoError(err) {
 		return unwrap(m.collection.DeleteOne(ctx, buildIdFilter(ID)))
@@ -109,12 +109,12 @@ func ResolveId(id any) (ObjectID, error) {
 	return NilObjectID, errors.New("unknown type of id: " + reflect.TypeOf(id).String())
 }
 
-func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
+func (m *mongoDataAccess[E]) Query(ctx context.Context, query Query) ([]E, error) {
 	filter := buildFilter(query)
 	return m.doQuery(ctx, query, filter)
 }
 
-func (m *mongoDataAccess[C, E]) doQuery(ctx C, query Query, filter D) ([]E, error) {
+func (m *mongoDataAccess[E]) doQuery(ctx context.Context, query Query, filter D) ([]E, error) {
 	result := make([]E, 0, query.GetPageSize())
 	cursor, err := m.collection.Find(ctx, filter, buildPageOpt(query))
 	if NoError(err) {
@@ -152,16 +152,16 @@ func buildFilter(query Query) D {
 	panic(errors.New("Query object should be type of QueryBuilder"))
 }
 
-func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
+func (m *mongoDataAccess[E]) Count(ctx context.Context, query Query) (int64, error) {
 	filter := buildFilter(query)
 	return m.doCount(ctx, filter)
 }
 
-func (m *mongoDataAccess[C, E]) doCount(ctx C, filter D) (int64, error) {
+func (m *mongoDataAccess[E]) doCount(ctx context.Context, filter D) (int64, error) {
 	return m.collection.CountDocuments(ctx, filter)
 }
 
-func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
+func (m *mongoDataAccess[E]) DeleteByQuery(ctx context.Context, query Query) (int64, error) {
 	filter := buildFilter(query)
 	if query.NeedPaging() {
 		IDs, err := m.doQueryIds(ctx, query, filter)
@@ -173,12 +173,12 @@ func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error)
 	return unwrap(m.collection.DeleteMany(ctx, filter))
 }
 
-func (m *mongoDataAccess[C, E]) QueryIds(ctx C, query Query) ([]any, error) {
+func (m *mongoDataAccess[E]) QueryIds(ctx context.Context, query Query) ([]any, error) {
 	filter := buildFilter(query)
 	return m.doQueryIds(ctx, query, filter)
 }
 
-func (m *mongoDataAccess[C, E]) doQueryIds(ctx C, query Query, filter any) ([]any, error) {
+func (m *mongoDataAccess[E]) doQueryIds(ctx context.Context, query Query, filter any) ([]any, error) {
 	pageOpt := buildPageOpt(query).SetProjection(M{MID: 1})
 	cursor, err := m.collection.Find(ctx, filter, pageOpt)
 	if NoError(err) {
@@ -202,7 +202,7 @@ func unwrap(result *mongo.DeleteResult, err error) (int64, error) {
 	return 0, err
 }
 
-func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
+func (m *mongoDataAccess[E]) Page(ctx context.Context, query Query) (PageList[E], error) {
 	var count int64
 	filter := buildFilter(query)
 	data, err := m.doQuery(ctx, query, filter)
@@ -212,7 +212,7 @@ func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 	return PageList[E]{List: data, Total: count}, err
 }
 
-func (m *mongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
+func (m *mongoDataAccess[E]) Create(ctx context.Context, entity *E) (int64, error) {
 	result, err := m.collection.InsertOne(ctx, entity)
 	if NoError(err) {
 		err = (*entity).SetId(entity, result.InsertedID)
@@ -220,7 +220,7 @@ func (m *mongoDataAccess[C, E]) Create(ctx C, entity *E) (int64, error) {
 	return 0, err
 }
 
-func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) {
+func (m *mongoDataAccess[E]) CreateMulti(ctx context.Context, entities []E) (int64, error) {
 	docs := make([]any, len(entities))
 	for i := range entities {
 		docs[i] = entities[i]
@@ -236,7 +236,7 @@ func (m *mongoDataAccess[C, E]) CreateMulti(ctx C, entities []E) (int64, error) 
 	return 0, err
 }
 
-func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
+func (m *mongoDataAccess[E]) Update(ctx context.Context, entity E) (int64, error) {
 	result, err := m.collection.ReplaceOne(ctx, buildIdFilter(entity.GetId()), entity)
 	if NoError(err) {
 		return result.MatchedCount, err
@@ -244,7 +244,7 @@ func (m *mongoDataAccess[C, E]) Update(ctx C, entity E) (int64, error) {
 	return 0, err
 }
 
-func (m *mongoDataAccess[C, E]) Patch(ctx C, entity E) (int64, error) {
+func (m *mongoDataAccess[E]) Patch(ctx context.Context, entity E) (int64, error) {
 	doc := buildPatch(entity)
 	idFilter := buildIdFilter(entity.GetId())
 	return unwrapPatch(m.collection.UpdateMany(ctx, idFilter, doc))
@@ -287,7 +287,7 @@ func readFieldName(field reflect.StructField) string {
 	return ConvertToColumnCase(field.Name)
 }
 
-func (m *mongoDataAccess[C, E]) PatchByQuery(ctx C, entity E, query Query) (int64, error) {
+func (m *mongoDataAccess[E]) PatchByQuery(ctx context.Context, entity E, query Query) (int64, error) {
 	doc := buildPatch(entity)
 	filter := buildFilter(query)
 	if query.NeedPaging() {
