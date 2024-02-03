@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	. "github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 	. "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -32,14 +33,50 @@ func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E, Qu
 	entity := *new(E)
 	client := tm.GetClient().(*mongo.Client)
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
+	entityType := reflect.TypeOf(entity)
+	createIndex(entityType, collection)
 	return &mongoDataAccess[context.Context, E]{
 		TransactionManager: tm,
 		collection:         collection,
 	}
 }
 
+func createIndex(entityType reflect.Type, collection *mongo.Collection) {
+	indexModel := createIndexModel(entityType)
+	if len(indexModel) > 0 {
+		indexName, err := collection.Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: indexModel})
+		if NoError(err) {
+			log.Infof("Index created: %s:%s", collection.Name(), indexName)
+		}
+	}
+}
+
+func createIndexModel(entityType reflect.Type) D {
+	ret := make(D, 0, 4)
+	for i := 0; i < entityType.NumField(); i++ {
+		field := entityType.Field(i)
+		if columnTag, ok := field.Tag.Lookup("column"); ok {
+			column, indexed := resolveColumnTag(columnTag, field.Name)
+			if indexed {
+				ret = append(ret, E{column, "text"})
+			}
+		}
+	}
+	return ret
+}
+
+func resolveColumnTag(columnTag string, fieldName string) (string, bool) {
+	values := strings.Split(columnTag, ",")
+	column := values[0]
+	if column == "" {
+		column = ConvertToColumnCase(fieldName)
+	}
+	indexed := strings.Contains(columnTag, ",index")
+	return column, indexed
+}
+
 func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
-	ID, err := resolveId(id)
+	ID, err := ResolveId(id)
 	if NoError(err) {
 		e := *new(E)
 		err = m.collection.FindOne(c, buildIdFilter(ID)).Decode(&e)
@@ -51,7 +88,7 @@ func (m *mongoDataAccess[C, E]) Get(c C, id any) (*E, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Delete(ctx C, id any) (int64, error) {
-	ID, err := resolveId(id)
+	ID, err := ResolveId(id)
 	if NoError(err) {
 		return unwrap(m.collection.DeleteOne(ctx, buildIdFilter(ID)))
 	}
@@ -62,7 +99,7 @@ func buildIdFilter(objectID any) D {
 	return D{{MID, objectID}}
 }
 
-func resolveId(id any) (ObjectID, error) {
+func ResolveId(id any) (ObjectID, error) {
 	switch x := id.(type) {
 	case ObjectID:
 		return x, nil
@@ -73,8 +110,13 @@ func resolveId(id any) (ObjectID, error) {
 }
 
 func (m *mongoDataAccess[C, E]) Query(ctx C, query Query) ([]E, error) {
-	var result []E
-	cursor, err := m.collection.Find(ctx, buildFilter(query), buildPageOpt(query))
+	filter := buildFilter(query)
+	return m.doQuery(ctx, query, filter)
+}
+
+func (m *mongoDataAccess[C, E]) doQuery(ctx C, query Query, filter D) ([]E, error) {
+	result := make([]E, 0, query.GetPageSize())
+	cursor, err := m.collection.Find(ctx, filter, buildPageOpt(query))
 	if NoError(err) {
 		err = cursor.All(ctx, &result)
 	}
@@ -111,7 +153,12 @@ func buildFilter(query Query) D {
 }
 
 func (m *mongoDataAccess[C, E]) Count(ctx C, query Query) (int64, error) {
-	return m.collection.CountDocuments(ctx, buildFilter(query))
+	filter := buildFilter(query)
+	return m.doCount(ctx, filter)
+}
+
+func (m *mongoDataAccess[C, E]) doCount(ctx C, filter D) (int64, error) {
+	return m.collection.CountDocuments(ctx, filter)
 }
 
 func (m *mongoDataAccess[C, E]) DeleteByQuery(ctx C, query Query) (int64, error) {
@@ -157,9 +204,10 @@ func unwrap(result *mongo.DeleteResult, err error) (int64, error) {
 
 func (m *mongoDataAccess[C, E]) Page(ctx C, query Query) (PageList[E], error) {
 	var count int64
-	data, err := m.Query(ctx, query)
+	filter := buildFilter(query)
+	data, err := m.doQuery(ctx, query, filter)
 	if NoError(err) {
-		count, err = m.Count(ctx, query)
+		count, err = m.doCount(ctx, filter)
 	}
 	return PageList[E]{List: data, Total: count}, err
 }

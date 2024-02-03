@@ -17,7 +17,7 @@ func (e MongoId) GetId() any {
 }
 
 func (e MongoId) SetId(self any, id any) error {
-	ID, err := resolveId(id)
+	ID, err := ResolveId(id)
 	self.(IdSetter).setId(ID)
 	return err
 }
