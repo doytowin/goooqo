@@ -182,7 +182,7 @@ func TestSQLite(t *testing.T) {
 	t.Run("Patch Entity By Query", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
 		entity := UserEntity{Memo: PStr("Add Memo")}
-		query := UserQuery{MemoNull: true}
+		query := UserQuery{MemoNull: PBool(true)}
 		cnt, err := userDataAccess.PatchByQuery(tc, entity, &query)
 
 		if cnt != 1 {

@@ -29,9 +29,21 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Where Clause", func(t *testing.T) {
-		query := UserQuery{IdGt: PInt(5), MemoNull: true}
+		query := UserQuery{IdGt: PInt(5), MemoNull: PBool(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE id > ? AND memo IS NULL"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if !(len(args) == 1 && args[0] == 5) {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
+	t.Run("Build Where Clause", func(t *testing.T) {
+		query := UserQuery{IdGt: PInt(5), MemoNull: PBool(false)}
+		actual, args := BuildWhereClause(query)
+		expect := " WHERE id > ? AND memo IS NOT NULL"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
