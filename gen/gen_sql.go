@@ -44,7 +44,7 @@ func (g *SqlGenerator) appendBuildMethod(ts *ast.TypeSpec) {
 }
 
 func (g *SqlGenerator) appendFuncBody(ts *ast.TypeSpec) {
-	g.intent = "\t"
+	intent := g.incIntent()
 	g.writeInstruction("conditions := make([]string, 0, 4)")
 	g.writeInstruction("args := make([]any, 0, 4)")
 	for _, field := range ts.Type.(*ast.StructType).Fields.List {
@@ -53,7 +53,7 @@ func (g *SqlGenerator) appendFuncBody(ts *ast.TypeSpec) {
 		}
 	}
 	g.writeInstruction("return conditions, args")
-	g.intent = ""
+	g.restoreIntent(intent)
 }
 
 func (g *SqlGenerator) appendStruct(stp *ast.StructType) {
@@ -85,8 +85,14 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 			log.Warn("Unsupported field: ", fieldName, " ", field.Type)
 		}
 	} else if strings.Contains(op.sign, "NULL") {
-		g.appendIfStart(fieldName, "")
-		g.appendIfBody(op.format, column, op.sign)
+		g.appendIfStartNil(fieldName)
+		intent := g.incIntent()
+		g.writeInstruction("if *q.%s {", fieldName)
+		g.appendIfBody(op.format, column, "IS NULL")
+		g.writeInstruction("} else {")
+		g.appendIfBody(op.format, column, "IS NOT NULL")
+		g.appendIfEnd()
+		g.restoreIntent(intent)
 	} else if strings.Contains(op.sign, "IN") {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody("phs := make([]string, 0, len(*q.%s))", fieldName)

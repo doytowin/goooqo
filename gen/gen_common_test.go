@@ -179,8 +179,12 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		conditions = append(conditions, condition)
 		args = append(args, args1...)
 	}
-	if q.MemoNull {
-		conditions = append(conditions, "memo IS NULL")
+	if q.MemoNull != nil {
+		if *q.MemoNull {
+			conditions = append(conditions, "memo IS NULL")
+		} else {
+			conditions = append(conditions, "memo IS NOT NULL")
+		}
 	}
 	if q.MemoLike != nil {
 		conditions = append(conditions, "memo LIKE ?")
