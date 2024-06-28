@@ -18,6 +18,11 @@ var NewLine = func() string {
 	return "\n"
 }()
 
+func GenerateQueryBuilder(gen Generator, inputFilepath string, outputFilepath string) error {
+	code := GenerateCode(inputFilepath, gen)
+	return WriteFile(outputFilepath, code)
+}
+
 func WriteFile(filename string, code string) error {
 	f, _ := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
 	_, err := io.WriteString(f, code)
