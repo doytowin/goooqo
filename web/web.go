@@ -33,6 +33,7 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 	var data any
 	var err error
 	if len(match) > 0 {
+		// Process requests for /<model>/{id}
 		id := match[1]
 		data, err = s.process(request, id)
 		writeResult(writer, err, data)
@@ -52,6 +53,16 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 	query := *new(Q)
 	queryMap := request.URL.Query()
 	resolveQuery(queryMap, &query)
+	if request.Method == "PATCH" {
+		body, _ := io.ReadAll(request.Body)
+		var entity E
+		err = json.Unmarshal(body, &entity)
+		if NoError(err) {
+			data, err = s.PatchByQuery(request.Context(), entity, query)
+		}
+		writeResult(writer, err, data)
+		return
+	}
 	pageList, err := s.Page(request.Context(), query)
 	writeResult(writer, err, pageList)
 }

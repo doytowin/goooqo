@@ -150,6 +150,33 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
+	t.Run("PATCH /user/?MemoNull=true", func(t *testing.T) {
+		tc, _ := tm.StartTransaction(ctx)
+		defer tc.Rollback()
+
+		writer := httptest.NewRecorder()
+		body := bytes.NewBufferString(`{"memo":"New Memo"}`)
+		request := httptest.NewRequest("PATCH", "/user/?MemoNull=true", body).WithContext(tc)
+		request.Header.Set("content-type", "application/json; charset=utf-8")
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":1,"success":true}`
+		if actual != expect {
+			t.Fatalf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+
+		writer = httptest.NewRecorder()
+		request = httptest.NewRequest("GET", "/user/?MemoNull=true", nil).WithContext(tc)
+		rs.ServeHTTP(writer, request)
+
+		actual = writer.Body.String()
+		expect = `{"data":{"list":[],"total":0},"success":true}`
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+	})
+
 	t.Run("POST /user/", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
