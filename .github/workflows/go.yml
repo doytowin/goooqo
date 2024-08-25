@@ -5,9 +5,9 @@ name: Go
 
 on:
   push:
-    branches: [ "master", "workflow", "mongodb" ]
+    branches: [ "main", "workflow", "mongodb" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Start Container
-        run: docker-compose -f "${{github.workspace}}/mongodb/docker-compose.yml" up -d
+        run: docker compose -f "${{github.workspace}}/mongodb/docker-compose.yml" up -d
 
       - name: Set up Go
         uses: actions/setup-go@v4
