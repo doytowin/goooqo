@@ -10,7 +10,7 @@ import (
 
 var (
 	opMap     = CreateOpMap()
-	suffixRgx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd)$`)
+	suffixRgx = regexp.MustCompile(`(Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd|Rx)$`)
 	escapeRgx = regexp.MustCompile("[\\\\_%]")
 )
 
@@ -98,11 +98,12 @@ func CreateOpMap() map[string]operator {
 		ph := resolvePlaceHolder(escape)
 		return ph, []any{"%" + escape}
 	}}
-	opMap["NotEnd"] = operator{"End", NotLike, func(value reflect.Value) (string, []any) {
+	opMap["NotEnd"] = operator{"NotEnd", NotLike, func(value reflect.Value) (string, []any) {
 		escape := ReadLikeValue(value)
 		ph := resolvePlaceHolder(escape)
 		return ph, []any{"%" + escape}
 	}}
+	opMap["Rx"] = operator{"Rx", " REGEXP ", ReadValueToArray}
 	return opMap
 }
 

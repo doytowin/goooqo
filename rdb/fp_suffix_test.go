@@ -36,6 +36,7 @@ func TestProcess(t *testing.T) {
 		{"MemoNotEnd", "memo NOT LIKE ?", "[%at]", reflect.ValueOf("at")},
 		{"MemoLike", "memo LIKE ? ESCAPE '\\'", "[%\\_at%]", reflect.ValueOf("%\\_at%")},
 		{"MemoNotLike", "memo NOT LIKE ?", "[%at%]", reflect.ValueOf("%at%")},
+		{"MemoRx", "memo REGEXP ?", "[test\\d]", reflect.ValueOf("test\\d")},
 		{"memoNull", "memo IS NULL", nil, reflect.ValueOf(core.PBool(true))},
 		{"memoNull", "memo IS NOT NULL", nil, reflect.ValueOf(core.PBool(false))},
 	}
