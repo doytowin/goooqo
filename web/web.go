@@ -5,6 +5,8 @@ import (
 	"fmt"
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"io"
 	"net/http"
 	"net/url"
@@ -41,10 +43,10 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 	}
 	if request.Method == "POST" {
 		body, _ := io.ReadAll(request.Body)
-		var entity []E
-		err = json.Unmarshal(body, &entity)
+		var entities []E
+		err = json.Unmarshal(body, &entities)
 		if NoError(err) {
-			data, err = s.CreateMulti(request.Context(), entity)
+			data, err = s.CreateMulti(request.Context(), entities)
 		}
 		writeResult(writer, err, data)
 		return
@@ -106,7 +108,7 @@ func resolveQuery(queryMap url.Values, query any) {
 	elem := reflect.ValueOf(query).Elem()
 	for name, v := range queryMap {
 		path := strings.Split(name, ".")
-		field := elem.FieldByName(path[0])
+		field := resolveParam(elem, path[0])
 		for i := 1; i < len(path); i++ {
 			if !field.IsValid() {
 				break
@@ -115,13 +117,24 @@ func resolveQuery(queryMap url.Values, query any) {
 				fieldType := field.Type().Elem()
 				field.Set(reflect.New(fieldType))
 			}
-			field = field.Elem().FieldByName(path[i])
+			field = resolveParam(field.Elem(), path[i])
 		}
 
 		if field.IsValid() {
 			convertAndSet(field, v)
 		}
 	}
+}
+
+var capitalizer = cases.Title(language.English, cases.NoLower)
+
+func resolveParam(elem reflect.Value, fieldName string) reflect.Value {
+	field := elem.FieldByName(fieldName)
+	if !field.IsValid() {
+		title := capitalizer.String(fieldName)
+		field = elem.FieldByName(title)
+	}
+	return field
 }
 
 func convertAndSet(field reflect.Value, v []string) {

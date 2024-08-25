@@ -176,13 +176,13 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
-	t.Run("PATCH /user/?MemoNull=true", func(t *testing.T) {
+	t.Run("PATCH /user/?memoNull=true", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
 		writer := httptest.NewRecorder()
 		body := bytes.NewBufferString(`{"memo":"New Memo"}`)
-		request := httptest.NewRequest("PATCH", "/user/?MemoNull=true", body).WithContext(tc)
+		request := httptest.NewRequest("PATCH", "/user/?memoNull=true", body).WithContext(tc)
 		request.Header.Set("content-type", "application/json; charset=utf-8")
 		rs.ServeHTTP(writer, request)
 
@@ -193,7 +193,7 @@ func TestWeb(t *testing.T) {
 		}
 
 		writer = httptest.NewRecorder()
-		request = httptest.NewRequest("GET", "/user/?MemoNull=true", nil).WithContext(tc)
+		request = httptest.NewRequest("GET", "/user/?memoNull=true", nil).WithContext(tc)
 		rs.ServeHTTP(writer, request)
 
 		actual = writer.Body.String()
