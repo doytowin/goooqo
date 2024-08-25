@@ -133,7 +133,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Update Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		entity := UserEntity{Int64Id: NewIntId(2), Score: PInt(90), Memo: PStr("Great")}
+		entity := UserEntity{Int64Id: NewInt64Id(2), Score: PInt(90), Memo: PStr("Great")}
 		actual, args := em.buildUpdate(entity)
 		expect := "UPDATE User SET score = ?, memo = ? WHERE id = ?"
 		if actual != expect {
@@ -146,7 +146,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Patch Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		entity := UserEntity{Int64Id: NewIntId(2), Memo: PStr("Great")}
+		entity := UserEntity{Int64Id: NewInt64Id(2), Memo: PStr("Great")}
 		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
 		if actual != expect {

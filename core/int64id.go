@@ -12,7 +12,7 @@ func (e Int64Id) GetId() any {
 	return e.Id
 }
 
-func NewIntId(id int64) Int64Id {
+func NewInt64Id(id int64) Int64Id {
 	return Int64Id{Id: id}
 }
 
