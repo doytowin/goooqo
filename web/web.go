@@ -60,11 +60,12 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 		if NoError(err) {
 			data, err = s.PatchByQuery(request.Context(), entity, query)
 		}
-		writeResult(writer, err, data)
-		return
+	} else if request.Method == "DELETE" {
+		data, err = s.DeleteByQuery(request.Context(), query)
+	} else {
+		data, err = s.Page(request.Context(), query)
 	}
-	pageList, err := s.Page(request.Context(), query)
-	writeResult(writer, err, pageList)
+	writeResult(writer, err, data)
 }
 
 func (s *restService[E, Q]) process(request *http.Request, id string) (any, error) {

@@ -123,6 +123,32 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
+	t.Run("DELETE /user/?MemoNull=false", func(t *testing.T) {
+		tc, _ := tm.StartTransaction(ctx)
+		defer tc.Rollback()
+		writer := httptest.NewRecorder()
+		request := httptest.NewRequest("DELETE", "/user/?MemoNull=false", nil).WithContext(tc)
+
+		rs.ServeHTTP(writer, request)
+
+		actual := writer.Body.String()
+		expect := `{"data":3,"success":true}`
+		if actual != expect {
+			t.Fatalf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+
+		writer = httptest.NewRecorder()
+		request = httptest.NewRequest("GET", "/user/", nil).WithContext(tc)
+		rs.ServeHTTP(writer, request)
+
+		pageList := core.PageList[UserEntity]{}
+		response := core.Response{Data: &pageList}
+		_ = json.Unmarshal(writer.Body.Bytes(), &response)
+		if pageList.Total != 1 {
+			t.Errorf("\nExpected: %d\nBut got : %v", 3, pageList.Total)
+		}
+	})
+
 	t.Run("PATCH /user/{id}", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
