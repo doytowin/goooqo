@@ -5,18 +5,20 @@ import (
 	"strings"
 )
 
-type fpOr struct {
+// build multiple conditions and connect them by the Connector
+type fpMulti struct {
+	Connector string
 }
 
 func buildFpOr() FieldProcessor {
-	return &fpOr{}
+	return &fpMulti{Connector: " OR "}
 }
 
-func (f *fpOr) Process(value reflect.Value) (string, []any) {
-	return ProcessOr(value.Elem().Interface())
-}
-
-func ProcessOr(or any) (string, []any) {
-	conditions, args := buildConditions(or)
-	return "(" + strings.Join(conditions, " OR ") + ")", args
+func (f *fpMulti) Process(value reflect.Value) (string, []any) {
+	conditions, args := buildConditions(value.Elem().Interface())
+	condition := strings.Join(conditions, f.Connector)
+	if f.Connector == " OR " {
+		condition = "(" + condition + ")"
+	}
+	return condition, args
 }

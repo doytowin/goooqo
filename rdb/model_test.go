@@ -7,12 +7,6 @@ import (
 	"time"
 )
 
-type AccountOr struct {
-	Username *string
-	Email    *string
-	Mobile   *string
-}
-
 type TestEntity struct {
 	Id         *int
 	Username   *string
@@ -41,10 +35,17 @@ func (e TestEntity) SetId(self any, id any) (err error) {
 	return
 }
 
+type TestCond struct {
+	Username *string
+	Email    *string
+	Mobile   *string
+	TestAnd  *TestCond
+}
+
 type TestQuery struct {
 	PageQuery
 	EmailNull *bool
-	AccountOr *AccountOr
+	TestOr    *TestCond
 	Account   *string `condition:"(username = ? OR email = ?)"`
 	Deleted   *bool
 }

@@ -53,7 +53,8 @@ func buildConditions(query any) ([]string, []any) {
 		fieldName := field.Name
 		value := rvalue.FieldByName(fieldName)
 		if isValidValue(value) {
-			processor := fpMap[buildFpKey(rtype, field)]
+			fpKey := buildFpKey(rtype, field)
+			processor := fpMap[fpKey]
 			condition, arr := processor.Process(value)
 			conditions = append(conditions, condition)
 			args = append(args, arr...)

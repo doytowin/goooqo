@@ -26,18 +26,25 @@ func registerFpByType(queryType reflect.Type) {
 	for i := 0; i < queryType.NumField(); i++ {
 		field := queryType.Field(i)
 
+		fpKey := buildFpKey(queryType, field)
 		if strings.HasSuffix(field.Name, "Or") {
-			fpMap[buildFpKey(queryType, field)] = buildFpOr()
+			fpMap[fpKey] = buildFpOr()
+		} else if strings.HasSuffix(field.Name, "And") {
+			fpMap[fpKey] = buildFpAnd()
 		} else if _, ok := field.Tag.Lookup("subquery"); ok {
-			fpMap[buildFpKey(queryType, field)] = buildFpSubquery(field)
+			fpMap[fpKey] = buildFpSubquery(field)
 		} else if _, ok := field.Tag.Lookup("condition"); ok {
-			fpMap[buildFpKey(queryType, field)] = buildFpCustom(field)
+			fpMap[fpKey] = buildFpCustom(field)
 		} else if field.Type.Kind() == reflect.Ptr &&
 			field.Type.Elem().Kind() == reflect.Struct {
 			log.Info("[registerFpByType] field: ", field.Type.Elem().Name(), " ", field.Type.Elem().Kind())
 			registerFpByType(field.Type.Elem())
 		} else if field.Type.Name() != "PageQuery" {
-			fpMap[buildFpKey(queryType, field)] = &fpSuffix{field}
+			fpMap[fpKey] = &fpSuffix{field}
 		}
 	}
+}
+
+func buildFpAnd() FieldProcessor {
+	return &fpMulti{Connector: " AND "}
 }
