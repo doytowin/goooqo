@@ -22,3 +22,23 @@ func (f *fpMulti) Process(value reflect.Value) (string, []any) {
 	}
 	return condition, args
 }
+
+type fpOr struct {
+	fpSuffix fpSuffix
+}
+
+func buildFpOrForBasicArray(fieldName string) FieldProcessor {
+	return &fpOr{fpSuffix: fpSuffix{fieldName: strings.TrimSuffix(fieldName, "Or")}}
+}
+
+func (fp *fpOr) Process(value reflect.Value) (condition string, args []any) {
+	value = value.Elem()
+	conditions := make([]string, value.Len())
+	var arr []any
+	for i := 0; i < value.Len(); i++ {
+		conditions[i], arr = fp.fpSuffix.Process(value.Index(i))
+		args = append(args, arr...)
+	}
+	condition = strings.Join(conditions, " OR ")
+	return "(" + condition + ")", args
+}

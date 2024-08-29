@@ -42,4 +42,17 @@ func TestOr(t *testing.T) {
 		}
 	})
 
+	t.Run("Build Or Clause for array", func(t *testing.T) {
+		query := TestQuery{EmailEndOr: &[]string{"icloud.com", "gmail.com"}, Deleted: PBool(true)}
+		actual, args := BuildWhereClause(query)
+		expect := " WHERE (email LIKE ? OR email LIKE ?) AND deleted = ?"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if !(len(args) == 3 && args[0] == "%icloud.com" &&
+			args[1] == "%gmail.com" && args[2] == true) {
+			t.Errorf("Unexpected args: %v", args)
+		}
+	})
+
 }

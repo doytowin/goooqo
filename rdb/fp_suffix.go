@@ -116,11 +116,11 @@ func resolvePlaceHolder(arg string) string {
 }
 
 type fpSuffix struct {
-	field reflect.StructField
+	fieldName string
 }
 
 func (s fpSuffix) Process(value reflect.Value) (string, []any) {
-	return Process(s.field.Name, value)
+	return Process(s.fieldName, value)
 }
 
 func Process(fieldName string, value reflect.Value) (string, []any) {

@@ -44,8 +44,9 @@ type TestCond struct {
 
 type TestQuery struct {
 	PageQuery
-	EmailNull *bool
-	TestOr    *TestCond
-	Account   *string `condition:"(username = ? OR email = ?)"`
-	Deleted   *bool
+	EmailNull  *bool
+	TestOr     *TestCond
+	EmailEndOr *[]string
+	Account    *string `condition:"(username = ? OR email = ?)"`
+	Deleted    *bool
 }

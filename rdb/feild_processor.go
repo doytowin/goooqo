@@ -28,7 +28,12 @@ func registerFpByType(queryType reflect.Type) {
 
 		fpKey := buildFpKey(queryType, field)
 		if strings.HasSuffix(field.Name, "Or") {
-			fpMap[fpKey] = buildFpOr()
+			typeName := field.Type.Elem().String()
+			if strings.Contains(typeName, "[]") {
+				fpMap[fpKey] = buildFpOrForBasicArray(field.Name)
+			} else {
+				fpMap[fpKey] = buildFpOr()
+			}
 		} else if strings.HasSuffix(field.Name, "And") {
 			fpMap[fpKey] = buildFpAnd()
 		} else if _, ok := field.Tag.Lookup("subquery"); ok {
@@ -40,7 +45,7 @@ func registerFpByType(queryType reflect.Type) {
 			log.Info("[registerFpByType] field: ", field.Type.Elem().Name(), " ", field.Type.Elem().Kind())
 			registerFpByType(field.Type.Elem())
 		} else if field.Type.Name() != "PageQuery" {
-			fpMap[fpKey] = &fpSuffix{field}
+			fpMap[fpKey] = &fpSuffix{field.Name}
 		}
 	}
 }
