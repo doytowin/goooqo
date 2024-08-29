@@ -12,18 +12,12 @@ type QueryBuilder interface {
 
 func isValidValue(value reflect.Value) bool {
 	typeName := value.Type().Name()
-	if typeName == "bool" {
-		return value.Bool()
-	} else if typeName == "string" {
-		return value.String() != ""
-	} else if typeName == "flag" {
-		return value.IsValid()
-	} else if typeName == "PageQuery" {
+	if typeName == "PageQuery" {
 		return false
-	} else {
-		log.Debug("Type:", typeName)
-		return !value.IsNil()
+	} else if typeName != "" {
+		log.Debug("Value Type:", typeName)
 	}
+	return !value.IsNil()
 }
 
 func BuildWhereClause(query any) (string, []any) {
@@ -55,7 +49,7 @@ func buildConditions(query any) ([]string, []any) {
 		if isValidValue(value) {
 			fpKey := buildFpKey(rtype, field)
 			processor := fpMap[fpKey]
-			condition, arr := processor.Process(value)
+			condition, arr := processor.Process(value.Elem())
 			conditions = append(conditions, condition)
 			args = append(args, arr...)
 		}

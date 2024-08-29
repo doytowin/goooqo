@@ -19,6 +19,6 @@ var fpForAnd = &fpMultiConditions{connect: func(conditions []string) string {
 }}
 
 func (fp *fpMultiConditions) Process(value reflect.Value) (string, []any) {
-	conditions, args := buildConditions(value.Elem().Interface())
+	conditions, args := buildConditions(value.Interface())
 	return fp.connect(conditions), args
 }

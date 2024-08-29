@@ -14,7 +14,6 @@ func buildFpBasicArrayByOr(fieldName string) FieldProcessor {
 }
 
 func (fp *fpBasicArrayByOr) Process(value reflect.Value) (string, []any) {
-	value = value.Elem()
 	var args, arr []any
 	conditions := make([]string, value.Len())
 	for i := 0; i < value.Len(); i++ {

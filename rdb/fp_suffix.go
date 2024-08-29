@@ -56,7 +56,7 @@ func CreateOpMap() map[string]operator {
 	opMap["Ne"] = operator{"Ne", " <> ", ReadValueToArray}
 	opMap["Eq"] = operator{"Eq", " = ", ReadValueToArray}
 	opMap["Null"] = operator{"Null", "", func(rv reflect.Value) (string, []any) {
-		if rv.Kind() == reflect.Pointer && rv.Elem().Bool() == false {
+		if rv.Bool() == false {
 			return " IS NOT NULL", []any{}
 		}
 		return " IS NULL", []any{}

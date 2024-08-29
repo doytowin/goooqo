@@ -12,7 +12,7 @@ type fpSubquery struct {
 }
 
 func (fp *fpSubquery) Process(value reflect.Value) (string, []any) {
-	where, args := BuildWhereClause(value.Elem().Interface())
+	where, args := BuildWhereClause(value.Interface())
 	return fp.buildCondition(where), args
 }
 
