@@ -7,7 +7,7 @@ import (
 )
 
 type fpSubquery struct {
-	column, op    string
+	column, sign  string
 	select_, from string
 }
 
@@ -20,7 +20,7 @@ func (fp *fpSubquery) Subquery() string {
 	if em := emMap[fp.from]; em != nil {
 		fp.from = em.TableName
 	}
-	return fp.column + fp.op + "(SELECT " + fp.select_ + " FROM " + fp.from
+	return fp.column + fp.sign + "(SELECT " + fp.select_ + " FROM " + fp.from
 }
 
 func (fp *fpSubquery) buildCondition(where string) string {
@@ -47,7 +47,7 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 	fieldName = strings.TrimRightFunc(fieldName, func(r rune) bool {
 		return 0x30 < r && r <= 0x39 // remove trailing digits, such as 1 in ScoreGt1
 	})
-	column, op := suffixMatch(fieldName)
-	fp.column, fp.op = column, op.sign
+	FpSuffix := buildFpSuffix(fieldName)
+	fp.column, fp.sign = FpSuffix.col, FpSuffix.op.sign
 	return
 }

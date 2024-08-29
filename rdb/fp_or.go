@@ -5,40 +5,21 @@ import (
 	"strings"
 )
 
-// build multiple conditions and connect them by the Connector
-type fpMulti struct {
-	Connector string
+type fpBasicArrayByOr struct {
+	fpSuffix FieldProcessor
 }
 
-func buildFpOr() FieldProcessor {
-	return &fpMulti{Connector: " OR "}
+func buildFpBasicArrayByOr(fieldName string) FieldProcessor {
+	return &fpBasicArrayByOr{fpSuffix: buildFpSuffix(strings.TrimSuffix(fieldName, "Or"))}
 }
 
-func (f *fpMulti) Process(value reflect.Value) (string, []any) {
-	conditions, args := buildConditions(value.Elem().Interface())
-	condition := strings.Join(conditions, f.Connector)
-	if f.Connector == " OR " {
-		condition = "(" + condition + ")"
-	}
-	return condition, args
-}
-
-type fpOr struct {
-	fpSuffix fpSuffix
-}
-
-func buildFpOrForBasicArray(fieldName string) FieldProcessor {
-	return &fpOr{fpSuffix: fpSuffix{fieldName: strings.TrimSuffix(fieldName, "Or")}}
-}
-
-func (fp *fpOr) Process(value reflect.Value) (condition string, args []any) {
+func (fp *fpBasicArrayByOr) Process(value reflect.Value) (string, []any) {
 	value = value.Elem()
+	var args, arr []any
 	conditions := make([]string, value.Len())
-	var arr []any
 	for i := 0; i < value.Len(); i++ {
 		conditions[i], arr = fp.fpSuffix.Process(value.Index(i))
 		args = append(args, arr...)
 	}
-	condition = strings.Join(conditions, " OR ")
-	return "(" + condition + ")", args
+	return fpForOr.connect(conditions), args
 }

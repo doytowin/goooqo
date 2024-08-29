@@ -42,7 +42,7 @@ func TestProcess(t *testing.T) {
 	}
 	for _, useCase := range useCases {
 		t.Run(useCase.field, func(t *testing.T) {
-			actual, arg := Process(useCase.field, useCase.value)
+			actual, arg := buildFpSuffix(useCase.field).Process(useCase.value)
 			if actual != useCase.expect {
 				t.Errorf("Expected: %s, but got %s", useCase.expect, actual)
 			}

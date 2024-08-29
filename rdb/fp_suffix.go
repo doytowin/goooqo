@@ -116,25 +116,21 @@ func resolvePlaceHolder(arg string) string {
 }
 
 type fpSuffix struct {
-	fieldName string
+	col string
+	op  operator
 }
 
-func (s fpSuffix) Process(value reflect.Value) (string, []any) {
-	return Process(s.fieldName, value)
-}
-
-func Process(fieldName string, value reflect.Value) (string, []any) {
-	column, op := suffixMatch(fieldName)
-	placeholder, args := op.process(value)
-	return column + op.sign + placeholder, args
-}
-
-func suffixMatch(fieldName string) (string, operator) {
+func buildFpSuffix(fieldName string) fpSuffix {
 	if match := suffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
 		op := opMap[match[1]]
 		column := strings.TrimSuffix(fieldName, match[1])
 		column = ConvertToColumnCase(column)
-		return column, op
+		return fpSuffix{column, op}
 	}
-	return ConvertToColumnCase(fieldName), opMap["Eq"]
+	return fpSuffix{ConvertToColumnCase(fieldName), opMap["Eq"]}
+}
+
+func (fp fpSuffix) Process(value reflect.Value) (string, []any) {
+	placeholder, args := fp.op.process(value)
+	return fp.col + fp.op.sign + placeholder, args
 }

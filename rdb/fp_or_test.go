@@ -9,7 +9,7 @@ import (
 func TestOr(t *testing.T) {
 
 	t.Run("Or Clause", func(t *testing.T) {
-		actual, _ := buildFpOr().Process(reflect.ValueOf(&TestCond{Username: PStr("f0rb"), Email: PStr("f0rb")}))
+		actual, _ := fpForOr.Process(reflect.ValueOf(&TestCond{Username: PStr("f0rb"), Email: PStr("f0rb")}))
 		expect := "(username = ? OR email = ?)"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
