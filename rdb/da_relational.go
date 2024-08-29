@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	. "github.com/doytowin/goooqo/core"
-	log "github.com/sirupsen/logrus"
 	"reflect"
 )
 
@@ -61,8 +60,7 @@ func (da *relationalDataAccess[E]) Query(ctx context.Context, query Query) ([]E,
 }
 
 func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, args []any, size int) ([]E, error) {
-	log.Debug("SQL: ", sqlStr)
-	log.Debug("ARG: ", args)
+	logSqlWithArgs(sqlStr, args)
 
 	result := make([]E, 0, size)
 
