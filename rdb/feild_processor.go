@@ -29,7 +29,11 @@ func registerFpByType(queryType reflect.Type) {
 		fpKey := buildFpKey(queryType, field)
 		if strings.HasSuffix(field.Name, "Or") {
 			if field.Type.Elem().Kind() == reflect.Slice {
-				fpMap[fpKey] = buildFpBasicArrayByOr(field.Name)
+				if field.Type.Elem().Elem().Kind() == reflect.Struct {
+					fpMap[fpKey] = buildFpStructArrayByOr()
+				} else {
+					fpMap[fpKey] = buildFpBasicArrayByOr(field.Name)
+				}
 			} else {
 				fpMap[fpKey] = fpForOr
 			}

@@ -47,6 +47,7 @@ type TestQuery struct {
 	EmailNull  *bool
 	TestOr     *TestCond
 	EmailEndOr *[]string
+	TestsOr    *[]TestCond
 	Account    *string `condition:"(username = ? OR email = ?)"`
 	Deleted    *bool
 }

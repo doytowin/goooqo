@@ -22,3 +22,21 @@ func (fp *fpBasicArrayByOr) Process(value reflect.Value) (string, []any) {
 	}
 	return fpForOr.connect(conditions), args
 }
+
+type fpStructArrayByOr struct {
+	fpForAnd FieldProcessor
+}
+
+func buildFpStructArrayByOr() FieldProcessor {
+	return &fpStructArrayByOr{fpForAnd}
+}
+
+func (fp *fpStructArrayByOr) Process(value reflect.Value) (condition string, args []any) {
+	conditions := make([]string, value.Len())
+	var arr []any
+	for i := 0; i < value.Len(); i++ {
+		conditions[i], arr = fp.fpForAnd.Process(value.Index(i))
+		args = append(args, arr...)
+	}
+	return fpForOr.connect(conditions), args
+}
