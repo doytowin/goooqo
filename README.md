@@ -7,8 +7,8 @@ GoooQo - An OQM Implementation That Can Automatically Build SQL Statements from 
 
 ## Introduction to OQM
 
-OQM is a technology that focuses on studying the Mapping relationship between Object-oriented 
-programming languages and database Query languages.
+OQM technology focuses on studying the mapping relationship between object-oriented programming languages and
+database query languages. It is a technology that constructs database query statements only through objects.
 
 The biggest difference between OQM (object-query mapping) technology and traditional 
 ORM (object-relational mapping) technology is that OQM proposes to build CRUD statements directly through objects.

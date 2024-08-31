@@ -3,26 +3,28 @@
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
 
 GoooQo - OQM技术的Golang实现
----
+===
 
 ## 项目介绍
 
 GoooQo是一个可以自动从对象构建SQL语句的OQM框架。
 
-OQM是一门专注于研究面向对象编程语言和数据库查询语言之间的映射关系的技术，主要依靠以下三个对象来映射数据库查询语句：
+OQM技术专注于研究面向对象编程语言和数据库查询语言之间的映射关系，
+是一项仅通过对象来构建数据库查询语句的技术。
+OQM主要依靠以下三类对象来映射数据库查询语句：
 - `Entity Object`用于映射SQL语句中的静态部分，例如表名和列名；
 - `Query Object`用于映射SQL语句中的动态部分，例如过滤条件、分页和排序；
 - `View Object`用于映射复杂查询语句中的静态部分，例如表名、列名、嵌套视图和分组列。
 
-GoooQo中的前三个o即代表上述三个对象，`Qo`代表`Query Object`，是OQM技术中最核心的对象概念。
+GoooQo中的前三个o即代表上述三类对象，`Qo`代表`Query Object`，是OQM技术中最核心的对象概念。
 
-查看这篇 [文章](https://blog.doyto.win/post/introduction-to-goooqo-en/) ，了解更多详情。
+查看这篇[文章](https://blog.doyto.win/post/introduction-to-goooqo-en/)，了解更多详情。
 
-访问 [demo](https://github.com/doytowin/goooqo-demo) 快速上手。
+访问[demo](https://github.com/doytowin/goooqo-demo)，快速上手。
 
-访问[wiki](https://github.com/doytowin/goooqo/wiki) ，查阅产品文档。
+访问[wiki](https://github.com/doytowin/goooqo/wiki)，查阅产品文档。
 
-## 快速使用
+## 快速开始
 
 首先，使用`go mod init`初始化项目后，添加GoooQo：
 ```bash
