@@ -1,0 +1,6 @@
+<component name="CopyrightManager">
+  <copyright>
+    <option name="notice" value="The Clear BSD License&#10;&#10;Copyright (c) &amp;#36;originalComment.match(&quot;Copyright \(c\) (\d+)&quot;, 1, &quot;-&quot;, &quot;&amp;#36;today.year&quot;)&amp;#36;today.year, DoytoWin, Inc.&#10;All rights reserved.&#10;&#10;This source code is licensed under the BSD-style license found in the&#10;LICENSE file in the root directory of this source tree." />
+    <option name="myName" value="GoooQo" />
+  </copyright>
+</component>
