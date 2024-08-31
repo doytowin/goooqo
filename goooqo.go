@@ -22,6 +22,8 @@ type PageQuery = core.PageQuery
 
 type Entity = core.Entity
 
+type IntId = core.IntId
+
 type Int64Id = core.Int64Id
 
 type DataAccess[E Entity] core.DataAccess[E]
