@@ -63,16 +63,6 @@ type TransactionManager interface {
 	SubmitTransaction(ctx context.Context, callback func(tc TransactionContext) error) error
 }
 
-func TransactionCallback(tc TransactionContext, callback func(tc TransactionContext) error) (err error) {
-	err = callback(tc)
-	if NoError(err) {
-		err = tc.Commit()
-	} else {
-		NoError(tc.Rollback())
-	}
-	return
-}
-
 type TransactionContext interface {
 	context.Context
 	driver.Tx
