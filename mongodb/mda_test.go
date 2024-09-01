@@ -35,18 +35,19 @@ func TestMongoDataAccess(t *testing.T) {
 	inventoryDataAccess := NewMongoDataAccess[InventoryEntity](tm)
 
 	t.Run("Support Basic Query", func(t *testing.T) {
-		tc, _ := inventoryDataAccess.StartTransaction(ctx)
-		defer tc.Rollback()
-		actual, err := inventoryDataAccess.Query(tc, InventoryQuery{})
-		expect := "journal"
-		if !(err == nil && len(actual) == 5) {
-			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 5, len(actual))
-		} else if !(*actual[0].Item == expect) {
-			t.Errorf("%s\nExpected: %s\n     Got: %s", err, expect, *actual[0].Item)
-		} else if !(*actual[0].Size.H == 14.) {
-			t.Errorf("%s\nExpected: %f\n     Got: %f", err, 14., *actual[0].Size.H)
-		}
-		log.Debugln(actual)
+		inventoryDataAccess.SubmitTransaction(ctx, func(tc TransactionContext) error {
+			actual, err := inventoryDataAccess.Query(tc, InventoryQuery{})
+			expect := "journal"
+			if !(err == nil && len(actual) == 5) {
+				t.Errorf("%s\nExpected: %d\n     Got: %d", err, 5, len(actual))
+			} else if !(*actual[0].Item == expect) {
+				t.Errorf("%s\nExpected: %s\n     Got: %s", err, expect, *actual[0].Item)
+			} else if !(*actual[0].Size.H == 14.) {
+				t.Errorf("%s\nExpected: %f\n     Got: %f", err, 14., *actual[0].Size.H)
+			}
+			log.Debugln(actual)
+			return err
+		})
 	})
 
 	t.Run("Support Basic Query", func(t *testing.T) {

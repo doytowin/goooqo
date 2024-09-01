@@ -39,6 +39,14 @@ func (tm *mongoTransactionManager) StartTransaction(ctx context.Context) (Transa
 	return ssnCtx, err
 }
 
+func (tm *mongoTransactionManager) SubmitTransaction(ctx context.Context, callback func(tc TransactionContext) error) error {
+	tc, err := tm.StartTransaction(ctx)
+	if NoError(err) {
+		err = TransactionCallback(tc, callback)
+	}
+	return err
+}
+
 func (tm *mongoTransactionManager) resolveCtx(ctx context.Context) (*mongoTransactionContext, error) {
 	ssnCtx, ok := ctx.(*mongoTransactionContext)
 	if !ok {

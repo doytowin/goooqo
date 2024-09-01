@@ -37,20 +37,19 @@ func TestWeb(t *testing.T) {
 	rs := NewRestService[UserEntity, UserQuery]("/user/", userDataAccess)
 
 	t.Run("Should return empty array instead of null when no data found.", func(t *testing.T) {
-		tc, _ := tm.StartTransaction(ctx)
-		defer tc.Rollback()
-		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", "/user/?PageNumber=10", nil).WithContext(tc)
+		tm.SubmitTransaction(ctx, func(tc core.TransactionContext) error {
+			writer := httptest.NewRecorder()
+			request := httptest.NewRequest("GET", "/user/?PageNumber=10", nil).WithContext(tc)
 
-		rs.ServeHTTP(writer, request)
+			rs.ServeHTTP(writer, request)
 
-		actual := writer.Body.String()
-		expect := `{"data":{"list":[],"total":4},"success":true}`
-		if actual != expect {
-			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
-		} else {
-			_ = tc.Commit()
-		}
+			actual := writer.Body.String()
+			expect := `{"data":{"list":[],"total":4},"success":true}`
+			if actual != expect {
+				t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			}
+			return nil
+		})
 	})
 
 	tests := []struct{ method, url, expect string }{

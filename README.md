@@ -107,18 +107,26 @@ SELECT count(0) FROM t_user WHERE score < ? AND memo LIKE ? -- args="[80 Well%]"
 
 #### Transaction Example
 
+Use `TransactionManager#StartTransaction` to start a transaction, then manually commit or rollback the transaction:
 ```go
 tc, err := userDataAccess.StartTransaction(ctx)
 userQuery := UserQuery{ScoreLt: PInt(80)}
 cnt, err := userDataAccess.DeleteByQuery(tc, userQuery)
 if err != nil {
 	err = tc.Rollback()
-	return 0
+	return 0, err
 }
-_ = tc.Commit()
-return cnt
+err = tc.Commit()
+return cnt, err
 ```
 
+Or use `TransactionManager#SubmitTransaction` to commit the transaction via callback function:
+```go
+err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
+    // transaction body
+    return
+})
+```
 
 ---
 > This is currently an experimental project and is not suitable for production usage.

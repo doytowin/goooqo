@@ -12,6 +12,7 @@ package rdb
 
 import (
 	"context"
+	"errors"
 	. "github.com/doytowin/goooqo/core"
 	. "github.com/doytowin/goooqo/test"
 	"testing"
@@ -83,6 +84,19 @@ func TestSQLite(t *testing.T) {
 			t.Errorf("Delete failed. Deleted: %v", cnt)
 		}
 		_ = tc.Rollback()
+	})
+
+	t.Run("Rollback: Delete By Query", func(t *testing.T) {
+		var userQuery Query
+		err := tm.SubmitTransaction(ctx, func(tc TransactionContext) error {
+			userQuery = UserQuery{ScoreLt: PInt(80)}
+			userDataAccess.DeleteByQuery(tc, userQuery)
+			return errors.New("Rollback")
+		})
+		count, err := userDataAccess.Count(ctx, userQuery)
+		if count != 3 {
+			t.Error("Error: rollback failed: ", err)
+		}
 	})
 
 	t.Run("Count By Query", func(t *testing.T) {

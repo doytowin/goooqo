@@ -46,6 +46,14 @@ func (t *rdbTransactionManager) StartTransaction(ctx context.Context) (Transacti
 	return &rdbTransactionContext{Context: ctx, tx: tx, sn: sn}, nil
 }
 
+func (t *rdbTransactionManager) SubmitTransaction(ctx context.Context, callback func(tc TransactionContext) error) error {
+	tc, err := t.StartTransaction(ctx)
+	if NoError(err) {
+		err = TransactionCallback(tc, callback)
+	}
+	return err
+}
+
 func (t *rdbTransactionManager) fetchSn() int64 {
 	var val = t.sn.Load().(int64)
 	for !t.sn.CompareAndSwap(val, val+1) {

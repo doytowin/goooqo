@@ -32,7 +32,6 @@ go get -u github.com/doytowin/goooqo
 ```
 
 然后，为用户表定义实体对象和查询对象：
-
 ```go
 type UserEntity struct {
 	Int64Id
@@ -81,6 +80,7 @@ func main() {
 userQuery := UserQuery{PageQuery: PageQuery{PageSize: PInt(2)}, ScoreLt: PInt(80), MemoStart: PStr("Well")}
 page, err := userDataAccess.Page(ctx, &userQuery)
 ```
+
 这段代码将会执行以下SQL语句：
 ```sql
 SELECT id, score, memo FROM t_user WHERE score < ? AND memo LIKE ? LIMIT 2 OFFSET 0; -- args="[80 Well%]"
@@ -89,6 +89,7 @@ SELECT count(0) FROM t_user WHERE score < ? AND memo LIKE ? -- args="[80 Well%]"
 
 #### 事务示例：
 
+使用`TransactionManager#StartTransaction`开启事务，手动提交或者回滚事务：
 ```go
 tc, err := userDataAccess.StartTransaction(ctx)
 userQuery := UserQuery{ScoreLt: PInt(80)}
@@ -99,6 +100,14 @@ if err != nil {
 }
 err = tc.Commit()
 return cnt
+```
+
+或者使用`TransactionManager#SubmitTransaction`通过回调的方式提交事务：
+```go
+err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
+    // transaction body
+    return
+})
 ```
 
 ---
