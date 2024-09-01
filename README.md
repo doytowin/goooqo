@@ -7,8 +7,8 @@ GoooQo - An OQM Implementation That Can Automatically Build SQL Statements from 
 
 ## Introduction to OQM
 
-OQM technology focuses on studying the mapping relationship between object-oriented programming languages and
-database query languages. It is a technology that constructs database query statements only through objects.
+OQM is a technology that constructs database query statements only through objects, 
+focusing on the mapping relationship between object-oriented programming languages and database query languages.
 
 The biggest difference between OQM (object-query mapping) technology and traditional 
 ORM (object-relational mapping) technology is that OQM proposes to build CRUD statements directly through objects.
@@ -48,7 +48,6 @@ go get -u github.com/doytowin/goooqo
 ```
 
 Then, define entity objects and query objects for the user table:
-
 ```go
 type UserEntity struct {
 	Int64Id
@@ -127,6 +126,10 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
     return
 })
 ```
+
+License
+---
+This project is under the [BSD 3-Clause Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear).
 
 ---
 > This is currently an experimental project and is not suitable for production usage.

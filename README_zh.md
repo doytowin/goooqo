@@ -9,8 +9,8 @@ GoooQo - OQM技术的Golang实现
 
 GoooQo是一个可以自动从对象构建SQL语句的OQM框架。
 
-OQM技术专注于研究面向对象编程语言和数据库查询语言之间的映射关系，
-是一项仅通过对象来构建数据库查询语句的技术。
+OQM是一项仅通过对象来构建数据库查询语句的技术，专注于研究面向对象编程语言和数据库查询语言之间的映射关系。
+
 OQM主要依靠以下三类对象来映射数据库查询语句：
 - `Entity Object`用于映射SQL语句中的静态部分，例如表名和列名；
 - `Query Object`用于映射SQL语句中的动态部分，例如过滤条件、分页和排序；
@@ -109,6 +109,10 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
     return
 })
 ```
+
+许可证
+---
+本项目遵循[BSD 3-Clause Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear)。
 
 ---
 > 本产品目前尚处于验证阶段，请谨慎用于生产环境。
