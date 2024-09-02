@@ -26,19 +26,19 @@ func TestBuildWhereClause(t *testing.T) {
 	}{
 		{
 			name:       "Support custom condition",
-			query:      TestQuery{Account: PStr("f0rb"), Deleted: PBool(true)},
+			query:      TestQuery{Account: P("f0rb"), Deleted: P(true)},
 			expect:     " WHERE (username = ? OR email = ?) AND deleted = ?",
 			expectArgs: []any{"f0rb", "f0rb", true},
 		},
 		{
 			name:       "Given field with type *bool and suffix Null, when assigned true, then map to IS NULL",
-			query:      TestQuery{EmailNull: PBool(true)},
+			query:      TestQuery{EmailNull: P(true)},
 			expect:     " WHERE email IS NULL",
 			expectArgs: []any{},
 		},
 		{
 			name:       "Given field with type *bool and suffix Null, when assigned false, then map to IS NOT NULL",
-			query:      TestQuery{EmailNull: PBool(false)},
+			query:      TestQuery{EmailNull: P(false)},
 			expect:     " WHERE email IS NOT NULL",
 			expectArgs: []any{},
 		},

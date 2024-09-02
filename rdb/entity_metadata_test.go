@@ -39,7 +39,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Where Clause", func(t *testing.T) {
-		query := UserQuery{IdGt: PInt(5), MemoNull: PBool(true)}
+		query := UserQuery{IdGt: P(5), MemoNull: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE id > ? AND memo IS NULL"
 		if actual != expect {
@@ -51,7 +51,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Where Clause", func(t *testing.T) {
-		query := UserQuery{IdGt: PInt(5), MemoNull: PBool(false)}
+		query := UserQuery{IdGt: P(5), MemoNull: P(false)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE id > ? AND memo IS NOT NULL"
 		if actual != expect {
@@ -64,7 +64,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Select Statement", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		query := UserQuery{IdGt: PInt(5), ScoreLt: PInt(60)}
+		query := UserQuery{IdGt: P(5), ScoreLt: P(60)}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
 		if actual != expect {
@@ -90,7 +90,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		query := UserQuery{PageQuery: PageQuery{PageNumber: PInt(1), PageSize: PInt(10)}}
+		query := UserQuery{PageQuery: PageQuery{PageNumber: P(1), PageSize: P(10)}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
 		if actual != expect {
@@ -103,7 +103,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Select with Sort Clause", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		query := UserQuery{PageQuery: PageQuery{PageSize: PInt(5), Sort: PStr("id")}}
+		query := UserQuery{PageQuery: PageQuery{PageSize: P(5), Sort: P("id")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User ORDER BY id LIMIT 5 OFFSET 0"
 		if actual != expect {
@@ -117,7 +117,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Count", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		query := UserQuery{ScoreLt: PInt(60)}
+		query := UserQuery{ScoreLt: P(60)}
 		actual, args := em.buildCount(&query)
 		expect := "SELECT count(0) FROM User WHERE score < ?"
 		if actual != expect {
@@ -130,7 +130,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Create Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
+		entity := UserEntity{Score: P(90), Memo: P("Great")}
 		actual, args := em.buildCreate(entity)
 		expect := "INSERT INTO User (score, memo) VALUES (?, ?)"
 		if actual != expect {
@@ -143,7 +143,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Update Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		entity := UserEntity{Int64Id: NewInt64Id(2), Score: PInt(90), Memo: PStr("Great")}
+		entity := UserEntity{Int64Id: NewInt64Id(2), Score: P(90), Memo: P("Great")}
 		actual, args := em.buildUpdate(entity)
 		expect := "UPDATE User SET score = ?, memo = ? WHERE id = ?"
 		if actual != expect {
@@ -156,7 +156,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Build Patch Stmt", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		entity := UserEntity{Int64Id: NewInt64Id(2), Memo: PStr("Great")}
+		entity := UserEntity{Int64Id: NewInt64Id(2), Memo: P("Great")}
 		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
 		if actual != expect {
@@ -169,7 +169,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Support tag subquery", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		query := UserQuery{ScoreLt1: &UserQuery{MemoLike: PStr("Well")}}
+		query := UserQuery{ScoreLt1: &UserQuery{MemoLike: P("Well")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE score < (SELECT avg(score) FROM User WHERE memo LIKE ?)"
 		if actual != expect {

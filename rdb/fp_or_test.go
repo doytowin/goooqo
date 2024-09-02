@@ -19,7 +19,7 @@ import (
 func TestOr(t *testing.T) {
 
 	t.Run("Build Or Condition", func(t *testing.T) {
-		actual, _ := fpForOr.Process(reflect.ValueOf(&TestCond{Username: PStr("f0rb"), Email: PStr("f0rb")}))
+		actual, _ := fpForOr.Process(reflect.ValueOf(&TestCond{Username: P("f0rb"), Email: P("f0rb")}))
 		expect := "(username = ? OR email = ?)"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -27,7 +27,7 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause for struct", func(t *testing.T) {
-		query := TestQuery{TestOr: &TestCond{Username: PStr("f0rb"), Email: PStr("f0rb")}, Deleted: PBool(true)}
+		query := TestQuery{TestOr: &TestCond{Username: P("f0rb"), Email: P("f0rb")}, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR email = ?) AND deleted = ?"
 		if actual != expect {
@@ -39,8 +39,8 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause with And", func(t *testing.T) {
-		accountAnd := TestCond{Email: PStr("f0rb@qq.com"), Mobile: PStr("01008888")}
-		query := TestQuery{TestOr: &TestCond{Username: PStr("f0rb"), TestAnd: &accountAnd}, Deleted: PBool(true)}
+		accountAnd := TestCond{Email: P("f0rb@qq.com"), Mobile: P("01008888")}
+		query := TestQuery{TestOr: &TestCond{Username: P("f0rb"), TestAnd: &accountAnd}, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR email = ? AND mobile = ?) AND deleted = ?"
 		if actual != expect {
@@ -52,7 +52,7 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause for basic array", func(t *testing.T) {
-		query := TestQuery{EmailEndOr: &[]string{"icloud.com", "gmail.com"}, Deleted: PBool(true)}
+		query := TestQuery{EmailEndOr: &[]string{"icloud.com", "gmail.com"}, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (email LIKE ? OR email LIKE ?) AND deleted = ?"
 		if actual != expect {
@@ -64,8 +64,8 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause for struct array", func(t *testing.T) {
-		condArr := []TestCond{{Username: PStr("f0rb")}, {Username: PStr("test2"), Email: PStr("test2@qq.com")}}
-		query := TestQuery{TestsOr: &condArr, Deleted: PBool(true)}
+		condArr := []TestCond{{Username: P("f0rb")}, {Username: P("test2"), Email: P("test2@qq.com")}}
+		query := TestQuery{TestsOr: &condArr, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR username = ? AND email = ?) AND deleted = ?"
 		if actual != expect {

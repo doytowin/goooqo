@@ -40,7 +40,7 @@ func (e TestEntity) SetId(self any, id any) (err error) {
 		v, err = strconv.ParseInt(s, 10, 64)
 	}
 	if NoError(err) {
-		self.(*TestEntity).Id = PInt(int(v))
+		self.(*TestEntity).Id = P(int(v))
 	}
 	return
 }

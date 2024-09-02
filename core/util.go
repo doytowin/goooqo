@@ -16,17 +16,7 @@ import (
 	"reflect"
 )
 
-func PStr(s string) *string {
-	return &s
-}
-
-func PBool(b bool) *bool {
-	return &b
-}
-
-func PInt(i int) *int {
-	return &i
-}
+func P[T any](t T) *T { return &t }
 
 func ReadValue(value reflect.Value) any {
 	typeStr := value.Type().String()
@@ -56,7 +46,7 @@ func ReadError(err error) *string {
 	if err == nil {
 		return nil
 	}
-	return PStr(err.Error())
+	return P(err.Error())
 }
 
 func NoError(err error) bool {

@@ -28,7 +28,7 @@ func TestSQLite(t *testing.T) {
 	userDataAccess := newRelationalDataAccess[UserEntity](tm)
 
 	t.Run("Query Entities", func(t *testing.T) {
-		userQuery := UserQuery{ScoreLt: PInt(80)}
+		userQuery := UserQuery{ScoreLt: P(80)}
 		users, err := userDataAccess.Query(ctx, &userQuery)
 
 		if err != nil {
@@ -75,7 +75,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Delete By Query", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		userQuery := UserQuery{ScoreLt: PInt(80)}
+		userQuery := UserQuery{ScoreLt: P(80)}
 		cnt, err := userDataAccess.DeleteByQuery(tc, userQuery)
 		if err != nil {
 			t.Error("Error", err)
@@ -89,7 +89,7 @@ func TestSQLite(t *testing.T) {
 	t.Run("Rollback: Delete By Query", func(t *testing.T) {
 		var userQuery Query
 		err := tm.SubmitTransaction(ctx, func(tc TransactionContext) error {
-			userQuery = UserQuery{ScoreLt: PInt(80)}
+			userQuery = UserQuery{ScoreLt: P(80)}
 			userDataAccess.DeleteByQuery(tc, userQuery)
 			return errors.New("Rollback")
 		})
@@ -102,7 +102,7 @@ func TestSQLite(t *testing.T) {
 	t.Run("Rollback for panic: Delete By Query", func(t *testing.T) {
 		var userQuery Query
 		err := tm.SubmitTransaction(ctx, func(tc TransactionContext) error {
-			userQuery = UserQuery{ScoreLt: PInt(80)}
+			userQuery = UserQuery{ScoreLt: P(80)}
 			userDataAccess.DeleteByQuery(tc, userQuery)
 			panic("Recover")
 		})
@@ -116,7 +116,7 @@ func TestSQLite(t *testing.T) {
 	})
 
 	t.Run("Count By Query", func(t *testing.T) {
-		userQuery := UserQuery{ScoreLt: PInt(60)}
+		userQuery := UserQuery{ScoreLt: P(60)}
 		cnt, err := userDataAccess.Count(ctx, &userQuery)
 		if err != nil {
 			t.Error("Error", err)
@@ -128,8 +128,8 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Page By Query", func(t *testing.T) {
 		userQuery := UserQuery{
-			PageQuery: PageQuery{PageSize: PInt(2)},
-			ScoreLt:   PInt(80),
+			PageQuery: PageQuery{PageSize: P(2)},
+			ScoreLt:   P(80),
 		}
 		page, err := userDataAccess.Page(ctx, &userQuery)
 		if err != nil {
@@ -143,7 +143,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Create Entity", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
+		entity := UserEntity{Score: P(90), Memo: P("Great")}
 		id, err := userDataAccess.Create(tc, &entity)
 		if err != nil {
 			t.Error("Error", err)
@@ -157,7 +157,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Create Entities", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		entities := []UserEntity{{Score: PInt(90), Memo: PStr("Great")}, {Score: PInt(55), Memo: PStr("Bad")}}
+		entities := []UserEntity{{Score: P(90), Memo: P("Great")}, {Score: P(55), Memo: P("Bad")}}
 		cnt, err := userDataAccess.CreateMulti(tc, entities)
 		if err != nil {
 			t.Error("Error", err)
@@ -185,7 +185,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Update Entity", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		entity := UserEntity{Score: PInt(90), Memo: PStr("Great")}
+		entity := UserEntity{Score: P(90), Memo: P("Great")}
 		entity.Id = 2
 		cnt, err := userDataAccess.Update(tc, entity)
 		if err != nil {
@@ -203,7 +203,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Patch Entity", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		entity := UserEntity{Score: PInt(90)}
+		entity := UserEntity{Score: P(90)}
 		entity.Id = 2
 		cnt, err := userDataAccess.Patch(ctx, entity)
 		if err != nil {
@@ -221,8 +221,8 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Patch Entity By Query", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		entity := UserEntity{Memo: PStr("Add Memo")}
-		query := UserQuery{MemoNull: PBool(true)}
+		entity := UserEntity{Memo: P("Add Memo")}
+		query := UserQuery{MemoNull: P(true)}
 		cnt, err := userDataAccess.PatchByQuery(tc, entity, &query)
 
 		if cnt != 1 {

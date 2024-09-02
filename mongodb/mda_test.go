@@ -54,7 +54,7 @@ func TestMongoDataAccess(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		actual, _ := inventoryDataAccess.Query(tc, InventoryQuery{QtyGt: PInt(100)})
+		actual, _ := inventoryDataAccess.Query(tc, InventoryQuery{QtyGt: P(100)})
 
 		if !(actual != nil && len(actual) == 0) {
 			t.Errorf("should return empty array: %v", actual)
@@ -64,7 +64,7 @@ func TestMongoDataAccess(t *testing.T) {
 	t.Run("Support Custom Query Builder", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
-		actual, err := inventoryDataAccess.Query(tc, InventoryQuery{QtyGt: PInt(70)})
+		actual, err := inventoryDataAccess.Query(tc, InventoryQuery{QtyGt: P(70)})
 		expect := 2
 		if !(err == nil && len(actual) == expect) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, len(actual))
@@ -77,7 +77,7 @@ func TestMongoDataAccess(t *testing.T) {
 	t.Run("Support Page Query", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
-		actual, err := inventoryDataAccess.Page(tc, InventoryQuery{QtyGt: PInt(70)})
+		actual, err := inventoryDataAccess.Page(tc, InventoryQuery{QtyGt: P(70)})
 		expect := 2
 		if !(err == nil && len(actual.List) == expect) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, len(actual.List))
@@ -92,9 +92,9 @@ func TestMongoDataAccess(t *testing.T) {
 	t.Run("Support Page Query with Pagination", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
-		inventoryQuery := InventoryQuery{QtyGt: PInt(70)}
-		inventoryQuery.PageSize = PInt(1)
-		inventoryQuery.PageNumber = PInt(2)
+		inventoryQuery := InventoryQuery{QtyGt: P(70)}
+		inventoryQuery.PageSize = P(1)
+		inventoryQuery.PageNumber = P(2)
 		actual, err := inventoryDataAccess.Page(tc, inventoryQuery)
 		if !(err == nil && len(actual.List) == 1) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, 1, len(actual.List))
@@ -110,8 +110,8 @@ func TestMongoDataAccess(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		inventoryQuery := InventoryQuery{QtyGt: PInt(70)}
-		inventoryQuery.Sort = PStr("qty,desc")
+		inventoryQuery := InventoryQuery{QtyGt: P(70)}
+		inventoryQuery.Sort = P("qty,desc")
 
 		actual, err := inventoryDataAccess.Page(tc, inventoryQuery)
 		if !(err == nil) {
@@ -127,7 +127,7 @@ func TestMongoDataAccess(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		inventoryQuery := InventoryQuery{QtyOr: &QtyOr{QtyLt: PInt(30), QtyGe: PInt(80)}}
+		inventoryQuery := InventoryQuery{QtyOr: &QtyOr{QtyLt: P(30), QtyGe: P(80)}}
 
 		page, err := inventoryDataAccess.Page(tc, inventoryQuery)
 		if !(err == nil) {
@@ -160,7 +160,7 @@ func TestMongoDataAccess(t *testing.T) {
 	t.Run("Support Delete by Query", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
-		actual, err := inventoryDataAccess.DeleteByQuery(tc, InventoryQuery{QtyGt: PInt(70)})
+		actual, err := inventoryDataAccess.DeleteByQuery(tc, InventoryQuery{QtyGt: P(70)})
 		expect := int64(2)
 		if !(err == nil && actual == expect) {
 			t.Errorf("%s\nExpected: %d\n     Got: %d", err, expect, actual)
@@ -175,9 +175,9 @@ func TestMongoDataAccess(t *testing.T) {
 	t.Run("Support Delete by Page", func(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
-		inventoryQuery := InventoryQuery{QtyGt: PInt(30)}
-		inventoryQuery.PageNumber = PInt(2)
-		inventoryQuery.PageSize = PInt(2)
+		inventoryQuery := InventoryQuery{QtyGt: P(30)}
+		inventoryQuery.PageNumber = P(2)
+		inventoryQuery.PageSize = P(2)
 		actual, err := inventoryDataAccess.DeleteByQuery(tc, inventoryQuery)
 		expect := int64(2)
 		if !(err == nil && actual == expect) {
@@ -196,10 +196,10 @@ func TestMongoDataAccess(t *testing.T) {
 		tc, _ := inventoryDataAccess.StartTransaction(ctx)
 		defer tc.Rollback()
 		entity := InventoryEntity{
-			Item:   PStr("eraser"),
-			Size:   &SizeDoc{PF64(3.5), PF64(2), PStr("cm")},
-			Qty:    PInt(20),
-			Status: PStr("A"),
+			Item:   P("eraser"),
+			Size:   &SizeDoc{PF64(3.5), PF64(2), P("cm")},
+			Qty:    P(20),
+			Status: P("A"),
 		}
 		actual, err := inventoryDataAccess.Create(tc, &entity)
 		if !(err == nil && !entity.Id.IsZero()) {
@@ -241,16 +241,16 @@ func TestMongoDataAccess(t *testing.T) {
 		defer tc.Rollback()
 		entities := []InventoryEntity{
 			{
-				Item:   PStr("eraser"),
-				Size:   &SizeDoc{PF64(3.5), PF64(2), PStr("cm")},
-				Qty:    PInt(20),
-				Status: PStr("A"),
+				Item:   P("eraser"),
+				Size:   &SizeDoc{PF64(3.5), PF64(2), P("cm")},
+				Qty:    P(20),
+				Status: P("A"),
 			},
 			{
-				Item:   PStr("keyboard"),
-				Size:   &SizeDoc{PF64(40), PF64(15.5), PStr("cm")},
-				Qty:    PInt(10),
-				Status: PStr("D"),
+				Item:   P("keyboard"),
+				Size:   &SizeDoc{PF64(40), PF64(15.5), P("cm")},
+				Qty:    P(10),
+				Status: P("D"),
 			},
 		}
 		actual, err := inventoryDataAccess.CreateMulti(tc, entities)
@@ -273,7 +273,7 @@ func TestMongoDataAccess(t *testing.T) {
 
 		Id, _ := primitive.ObjectIDFromHex("657bbb49675e5c32a2b8af72")
 		inventory := InventoryEntity{MongoId: NewMongoId(&Id)}
-		inventory.Qty = PInt(123)
+		inventory.Qty = P(123)
 		inventory.Size = &SizeDoc{H: PF64(20.5)}
 
 		cnt, err := inventoryDataAccess.Patch(tc, inventory)
@@ -318,8 +318,8 @@ func TestMongoDataAccess(t *testing.T) {
 
 		newQty := 30
 		inventoryQuery := InventoryQuery{QtyGt: &newQty}
-		inventoryQuery.PageNumber = PInt(2)
-		inventoryQuery.PageSize = PInt(2)
+		inventoryQuery.PageNumber = P(2)
+		inventoryQuery.PageSize = P(2)
 		cnt, err := inventoryDataAccess.PatchByQuery(tc, InventoryEntity{Qty: &newQty}, inventoryQuery)
 
 		assertNoError(t, err)
