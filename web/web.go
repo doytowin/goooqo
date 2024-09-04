@@ -20,6 +20,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -48,34 +49,29 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 		// Process requests for /<model>/{id}
 		id := match[1]
 		data, err = s.process(request, id)
-		writeResult(writer, err, data)
-		return
-	}
-	if request.Method == "POST" {
+	} else if request.Method == "POST" {
 		body, _ := io.ReadAll(request.Body)
 		var entities []E
 		err = json.Unmarshal(body, &entities)
 		if NoError(err) {
 			data, err = s.CreateMulti(request.Context(), entities)
 		}
-		writeResult(writer, err, data)
-		return
-	}
-
-	query := *new(Q)
-	queryMap := request.URL.Query()
-	resolveQuery(queryMap, &query)
-	if request.Method == "PATCH" {
-		body, _ := io.ReadAll(request.Body)
-		var entity E
-		err = json.Unmarshal(body, &entity)
-		if NoError(err) {
-			data, err = s.PatchByQuery(request.Context(), entity, query)
-		}
-	} else if request.Method == "DELETE" {
-		data, err = s.DeleteByQuery(request.Context(), query)
 	} else {
-		data, err = s.Page(request.Context(), query)
+		query := *new(Q)
+		queryMap := request.URL.Query()
+		resolveQuery(queryMap, &query)
+		if request.Method == "PATCH" {
+			body, _ := io.ReadAll(request.Body)
+			var entity E
+			err = json.Unmarshal(body, &entity)
+			if NoError(err) {
+				data, err = s.PatchByQuery(request.Context(), entity, query)
+			}
+		} else if request.Method == "DELETE" {
+			data, err = s.DeleteByQuery(request.Context(), query)
+		} else {
+			data, err = s.Page(request.Context(), query)
+		}
 	}
 	writeResult(writer, err, data)
 }
@@ -158,9 +154,14 @@ func convertAndSet(field reflect.Value, v []string) {
 
 func writeResult(writer http.ResponseWriter, err error, data any) {
 	response := Response{Data: data, Success: NoError(err), Error: ReadError(err)}
-	marshal, err := json.Marshal(response)
+	var bytes []byte
+	if os.Getenv("web_intent") == "true" {
+		bytes, err = json.MarshalIndent(response, "", "  ")
+	} else {
+		bytes, err = json.Marshal(response)
+	}
 	if NoError(err) {
 		writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		_, _ = writer.Write(marshal)
+		_, _ = writer.Write(bytes)
 	}
 }
