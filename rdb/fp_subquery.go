@@ -54,10 +54,15 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 			fp.from = group[2]
 		}
 	}
+	anyAll := ""
+	if strings.HasSuffix(fieldName, "Any") {
+		anyAll = "ANY"
+		fieldName = strings.TrimSuffix(fieldName, "Any")
+	}
 	fieldName = strings.TrimRightFunc(fieldName, func(r rune) bool {
 		return 0x30 < r && r <= 0x39 // remove trailing digits, such as 1 in ScoreGt1
 	})
 	FpSuffix := buildFpSuffix(fieldName)
-	fp.column, fp.sign = FpSuffix.col, FpSuffix.op.sign
+	fp.column, fp.sign = FpSuffix.col, FpSuffix.op.sign+anyAll
 	return
 }

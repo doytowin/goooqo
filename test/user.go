@@ -24,11 +24,12 @@ func (u UserEntity) GetTableName() string {
 
 type UserQuery struct {
 	PageQuery
-	IdGt     *int
-	IdIn     *[]int
-	ScoreLt  *int
-	ScoreLt1 *UserQuery `subquery:"select:avg(score),from:UserEntity"`
-	MemoNull *bool
-	MemoLike *string
-	Deleted  *bool
+	IdGt       *int
+	IdIn       *[]int
+	ScoreLt    *int
+	ScoreLt1   *UserQuery `subquery:"select:avg(score),from:UserEntity"`
+	ScoreLtAny *UserQuery `subquery:"select:score,from:UserEntity"`
+	MemoNull   *bool
+	MemoLike   *string
+	Deleted    *bool
 }
