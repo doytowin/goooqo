@@ -58,6 +58,9 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 	if strings.HasSuffix(fieldName, "Any") {
 		anyAll = "ANY"
 		fieldName = strings.TrimSuffix(fieldName, "Any")
+	} else if strings.HasSuffix(fieldName, "All") {
+		anyAll = "ALL"
+		fieldName = strings.TrimSuffix(fieldName, "All")
 	}
 	fieldName = strings.TrimRightFunc(fieldName, func(r rune) bool {
 		return 0x30 < r && r <= 0x39 // remove trailing digits, such as 1 in ScoreGt1
