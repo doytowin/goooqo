@@ -62,10 +62,21 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 		anyAll = "ALL"
 		fieldName = strings.TrimSuffix(fieldName, "All")
 	}
-	fieldName = strings.TrimRightFunc(fieldName, func(r rune) bool {
-		return 0x30 < r && r <= 0x39 // remove trailing digits, such as 1 in ScoreGt1
-	})
+	fieldName = trimFieldName(fieldName)
 	FpSuffix := buildFpSuffix(fieldName)
 	fp.column, fp.sign = FpSuffix.col, FpSuffix.op.sign+anyAll
 	return
+}
+
+var fieldRgx = regexp.MustCompile("(\\w+" + suffixStr + ")[A-Z\\d]")
+
+// Trim tailing string after the predicate suffix.
+// Examples:
+// `ScoreLtAvg` -> `ScoreLt`
+// `ScoreGeAvg` -> `ScoreGe`
+func trimFieldName(fieldName string) string {
+	if match := fieldRgx.FindStringSubmatch(fieldName); len(match) > 0 {
+		fieldName = match[1]
+	}
+	return fieldName
 }

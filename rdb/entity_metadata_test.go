@@ -169,7 +169,7 @@ func TestBuildStmt(t *testing.T) {
 
 	t.Run("Support tag subquery", func(t *testing.T) {
 		em := buildEntityMetadata[UserEntity]()
-		query := UserQuery{ScoreLt1: &UserQuery{MemoLike: P("Well")}}
+		query := UserQuery{ScoreLtAvg: &UserQuery{MemoLike: P("Well")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE score < (SELECT avg(score) FROM User WHERE memo LIKE ?)"
 		if actual != expect {
