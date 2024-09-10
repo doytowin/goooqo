@@ -12,7 +12,6 @@ package rdb
 
 import (
 	. "github.com/doytowin/goooqo/core"
-	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
 )
@@ -32,11 +31,6 @@ type EntityMetadata[E Entity] struct {
 	createStr       string
 	placeholders    string
 	updateStr       string
-}
-
-func logSqlWithArgs(sqlStr string, args []any) (string, []any) {
-	log.WithFields(log.Fields{"SQL": sqlStr, "args": args}).Info("Executing")
-	return sqlStr, args
 }
 
 func (em *EntityMetadata[E]) buildArgs(entity E) []any {
@@ -66,7 +60,7 @@ func (em *EntityMetadata[E]) buildSelectById() string {
 func (em *EntityMetadata[E]) buildCount(query Query) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
 	sqlStr := "SELECT count(0) FROM " + em.TableName + whereClause
-	return logSqlWithArgs(sqlStr, args)
+	return sqlStr, args
 }
 
 func (em *EntityMetadata[E]) buildDeleteById() string {
@@ -76,13 +70,11 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
 	whereClause, args := BuildWhereClause(query)
 	sqlStr := "DELETE FROM " + em.TableName + whereClause
-	return logSqlWithArgs(sqlStr, args)
+	return sqlStr, args
 }
 
 func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
-	args := em.buildArgs(entity)
-	logSqlWithArgs(em.createStr, args)
-	return em.createStr, args
+	return em.createStr, em.buildArgs(entity)
 }
 
 func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
@@ -91,14 +83,12 @@ func (em *EntityMetadata[E]) buildCreateMulti(entities []E) (string, []any) {
 		args = append(args, em.buildArgs(entity)...)
 	}
 	createStr := em.createStr + strings.Repeat(", "+em.placeholders, len(entities)-1)
-	logSqlWithArgs(createStr, args)
 	return createStr, args
 }
 
 func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	args := em.buildArgs(entity)
 	args = append(args, entity.GetId())
-	logSqlWithArgs(em.updateStr, args)
 	return em.updateStr, args
 }
 
@@ -122,19 +112,17 @@ func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
 	sqlStr, args := em.buildPatch(entity, 1)
 	sqlStr = sqlStr + whereId
 	args = append(args, entity.GetId())
-	logSqlWithArgs(sqlStr, args)
 	return sqlStr, args
 }
 
-func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) ([]any, string) {
+func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) (string, []any) {
 	whereClause, argsQ := BuildWhereClause(query)
 	patchClause, argsE := em.buildPatch(entity, len(argsQ))
 
 	args := append(argsE, argsQ...)
 	sqlStr := patchClause + whereClause
 
-	logSqlWithArgs(sqlStr, args)
-	return args, sqlStr
+	return sqlStr, args
 }
 
 func buildEntityMetadata[E RdbEntity]() EntityMetadata[E] {

@@ -14,6 +14,7 @@ import (
 	"context"
 	"database/sql"
 	. "github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 	"reflect"
 )
 
@@ -30,6 +31,11 @@ type relationalDataAccess[E Entity] struct {
 	TransactionManager
 	conn Connection
 	em   EntityMetadata[E]
+}
+
+func logSqlWithArgs(sqlStr string, args []any) (string, []any) {
+	log.WithFields(log.Fields{"SQL": sqlStr, "args": args}).Info("Executing")
+	return sqlStr, args
 }
 
 func NewTxDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E] {
@@ -103,6 +109,7 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 func (da *relationalDataAccess[E]) Count(ctx context.Context, query Query) (int64, error) {
 	var cnt int64
 	sqlStr, args := da.em.buildCount(query)
+	logSqlWithArgs(sqlStr, args)
 	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
 	if NoError(err) {
 		defer Close(stmt)
@@ -132,6 +139,7 @@ func (da *relationalDataAccess[E]) DeleteByQuery(ctx context.Context, query Quer
 }
 
 func (da *relationalDataAccess[E]) doUpdate(ctx context.Context, sqlStr string, args []any) (sql.Result, error) {
+	logSqlWithArgs(sqlStr, args)
 	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
 	if NoError(err) {
 		defer Close(stmt)
@@ -172,7 +180,7 @@ func (da *relationalDataAccess[E]) Patch(ctx context.Context, entity E) (int64, 
 }
 
 func (da *relationalDataAccess[E]) PatchByQuery(ctx context.Context, entity E, query Query) (int64, error) {
-	args, sqlStr := da.em.buildPatchByQuery(entity, query)
+	sqlStr, args := da.em.buildPatchByQuery(entity, query)
 	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
