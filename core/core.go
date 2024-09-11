@@ -38,8 +38,8 @@ type Entity interface {
 	GetId() any
 
 	// SetId set id to self.
-	// self: the pointer point to the current entity.
-	// id: type could be int64 or string so far.
+	// self: the pointer points to the current entity.
+	// id: type could be int, int64 or string so far.
 	SetId(self any, id any) error
 }
 

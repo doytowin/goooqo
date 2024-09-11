@@ -24,7 +24,13 @@ type Entity = core.Entity
 
 type IntId = core.IntId
 
+var NewIntId = core.NewIntId
+
 type Int64Id = core.Int64Id
+
+var NewInt64Id = core.NewInt64Id
+
+func P[T any](t T) *T { return &t }
 
 type DataAccess[E Entity] core.DataAccess[E]
 
