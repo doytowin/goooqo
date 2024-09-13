@@ -38,72 +38,115 @@ Check this [article](https://blog.doyto.win/post/introduction-to-goooqo-en/) for
 
 Check this [demo](https://github.com/doytowin/goooqo-demo) to take a quick tour.
 
-Check our [wiki](https://github.com/doytowin/goooqo/wiki) for the incoming documentations.
+Product documentation: https://goooqo.docs.doyto.win/
 
-## Quick Tutorial
+## Quick Start
 
-First, use `go mod init` to initialize the project and add GoooQo:
-```bash
+### Init Project
+
+Use `go mod init` to init the project and add GoooQo dependency:
+
+```
 go get -u github.com/doytowin/goooqo
 ```
 
-Then, define entity objects and query objects for the user table:
-```go
-type UserEntity struct {
-	Int64Id
-	Name  *string `json:"name"`
-	Score *int `json:"score"`
-	Memo  *string `json:"memo"`
-}
+Init the database connection and transaction manager:
 
-func (u UserEntity) GetTableName() string {
-	return "t_user"
-}
-
-type UserQuery struct {
-	PageQuery
-	IdIn *[]int
-	ScoreLt *int
-	MemoNull *bool
-	UserOr   *UserQuery
-}
-```
-
-Finally, initialize the database connection, transaction manager, and data access interface as follows, 
-and then we can use `userDataAccess` to access the table `t_user`:
 ```go
 package main
 
 import (
-	"github.com/doytowin/goooqo"
+	"database/sql"
 	"github.com/doytowin/goooqo/rdb"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db := rdb.Connect("local.properties")
-	defer rdb.Disconnect(db)
-	
+	db, _ := sql.Open("sqlite3", "./test.db")
+
 	tm := rdb.NewTransactionManager(db)
-	
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 
 	//...
 }
 ```
 
-#### Paging Query Example
-```go
-userQuery := UserQuery{PageQuery: PageQuery{PageSize: PInt(2)}, ScoreLt: PInt(80), MemoStart: PStr("Well")}
-page, err := userDataAccess.Page(ctx, &userQuery)
-``` 
+### Create a data access interface
 
-This code snippet will execute the following SQL statements:
-```sql
-SELECT id, score, memo FROM t_user WHERE score < ? AND memo LIKE ? LIMIT 2 OFFSET 0; -- args="[80 Well%]"
-SELECT count(0) FROM t_user WHERE score < ? AND memo LIKE ? -- args="[80 Well%]"
+Suppose we have the following user table in `test.db`:
+
+| id | name  | score | memo  | deleted |
+|----|-------|-------|-------|---------|
+| 1  | Alley | 80    | Good  | false   |
+| 2  | Dave  | 75    | Well  | false   |
+| 3  | Bob   | 60    |       | false   |
+| 4  | Tim   | 92    | Great | true    |
+| 5  | Emy   | 100   | Great | false   |
+
+We define an entity object and a query object for this table:
+
+```go
+type UserEntity struct {
+	Int64Id
+	Name    *string `json:"name"`
+	Score   *int    `json:"score"`
+	Memo    *string `json:"memo"`
+	Deleted *bool   `json:"deleted"`
+}
+
+func (u UserEntity) GetTableName() string {
+    return "t_user"
+}
+
+type UserQuery struct {
+    PageQuery
+    IdGt *int64
+    IdIn *[]int64
+    ScoreLt *int
+    MemoNull *bool
+    MemoLike *string
+    Deleted *bool
+    UserOr *[]UserQuery
+    
+    ScoreLtAvg *UserQuery `subquery:"select avg(score) from t_user"`
+    ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
+    ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
+    ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
+}
 ```
 
-#### Transaction Example
+Then we create a `userDataAccess` interface to perform CRUD operations:
+
+```go
+userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
+```
+
+### Query example: 
+
+```go
+userQuery := UserQuery{ScoreLt: P(80)}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score < ?" args="[80]"
+
+userQuery := UserQuery{PageQuery: PageQuery{PageSize: P(20), Sort: P("id,desc;score")}, MemoLike: P("Great")}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE memo LIKE ? ORDER BY id DESC, score LIMIT 20 OFFSET 0" args="[Great]"
+
+userQuery := UserQuery{IdIn: &[]int64{1, 4, 12}, Deleted: P(true)}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE id IN (?, ?, ?) AND deleted = ?" args="[1 4 12 true]"
+
+userQuery := UserQuery{UserOr: &[]UserQuery{{IdGt: P(int64(10)), MemoNull: P(true)}, {ScoreLt: P(80), MemoLike: P("Good")}}}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE (id > ? AND memo IS NULL OR score < ? AND memo LIKE ?)" args="[10 80 Good]"
+
+userQuery := UserQuery{ScoreGtAvg: &UserQuery{Deleted: P(true)}, ScoreLtAny: &UserQuery{}}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score > (SELECT avg(score) FROM t_user WHERE deleted = ?) AND score < ANY(SELECT score FROM t_user)" args="[true]"
+```
+
+For more CRUD examples, please refer to: https://goooqo.docs.doyto.win/v/zh/api/crud
+
+### Transaction Examples
 
 Use `TransactionManager#StartTransaction` to start a transaction, then manually commit or rollback the transaction:
 ```go
@@ -130,5 +173,4 @@ License
 ---
 This project is under the [BSD 3-Clause Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear).
 
----
 > This is currently an experimental project and is not suitable for production usage.

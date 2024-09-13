@@ -22,22 +22,59 @@ GoooQo中的前三个o即代表上述三类对象，`Qo`代表`Query Object`，�
 
 访问[demo](https://github.com/doytowin/goooqo-demo)，快速上手。
 
-访问[wiki](https://github.com/doytowin/goooqo/wiki)，查阅产品文档。
+产品文档: https://goooqo.docs.doyto.win/v/zh
 
 ## 快速开始
 
-首先，使用`go mod init`初始化项目后，添加GoooQo：
-```bash
+### 初始化项目
+
+使用`go mod init`初始化项目并添加GoooQo依赖：
+
+```
 go get -u github.com/doytowin/goooqo
 ```
 
-然后，为用户表定义实体对象和查询对象：
+初始化数据库连接和事务管理器：
+
+```go
+package main
+
+import (
+	"database/sql"
+	"github.com/doytowin/goooqo/rdb"
+	_ "github.com/mattn/go-sqlite3"
+)
+
+func main() {
+	db, _ := sql.Open("sqlite3", "./test.db")
+
+	tm := rdb.NewTransactionManager(db)
+
+	//...
+}
+```
+
+### 创建数据访问接口
+
+假设我们在`test.db`中有以下用户表：
+
+| id | name  | score | memo  | deleted |
+|----|-------|-------|-------|---------|
+| 1  | Alley | 80    | Good  | false   |
+| 2  | Dave  | 75    | Well  | false   |
+| 3  | Bob   | 60    |       | false   |
+| 4  | Tim   | 92    | Great | true    |
+| 5  | Emy   | 100   | Great | false   |
+
+我们为该表定义一个实体对象和一个查询对象：
+
 ```go
 type UserEntity struct {
 	Int64Id
-	Name  *string `json:"name"`
-	Score *int `json:"score"`
-	Memo  *string `json:"memo"`
+	Name    *string `json:"name"`
+	Score   *int    `json:"score"`
+	Memo    *string `json:"memo"`
+	Deleted *bool   `json:"deleted"`
 }
 
 func (u UserEntity) GetTableName() string {
@@ -46,47 +83,54 @@ func (u UserEntity) GetTableName() string {
 
 type UserQuery struct {
 	PageQuery
-	IdIn	 *[]int
+	IdGt     *int64
+	IdIn     *[]int64
 	ScoreLt  *int
 	MemoNull *bool
-	UserOr   *UserQuery
+	MemoLike *string
+	Deleted  *bool
+	UserOr   *[]UserQuery
+
+	ScoreLtAvg *UserQuery `subquery:"select avg(score) from t_user"`
+	ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
+	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
+	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
 }
 ```
 
-最后，初始化数据库连接、事务管理器、数据访问接口如下，即可使用`userDataAccess`访问表`t_user`：
+然后我们创建一个`userDataAccess`接口来执行增删查改操作：
+
 ```go
-package main
-
-import (
-	"github.com/doytowin/goooqo"
-	"github.com/doytowin/goooqo/rdb"
-)
-
-func main() {
-	db := rdb.Connect("local.properties")
-	defer rdb.Disconnect(db)
-
-	tm := rdb.NewTransactionManager(db)
-
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
-
-	//...
-}
+userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 ```
 
-#### 分页查询示例：
+### 查询示例：
+
 ```go
-userQuery := UserQuery{PageQuery: PageQuery{PageSize: PInt(2)}, ScoreLt: PInt(80), MemoStart: PStr("Well")}
-page, err := userDataAccess.Page(ctx, &userQuery)
+userQuery := UserQuery{ScoreLt: P(80)}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score < ?" args="[80]"
+
+userQuery := UserQuery{PageQuery: PageQuery{PageSize: P(20), Sort: P("id,desc;score")}, MemoLike: P("Great")}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE memo LIKE ? ORDER BY id DESC, score LIMIT 20 OFFSET 0" args="[Great]"
+
+userQuery := UserQuery{IdIn: &[]int64{1, 4, 12}, Deleted: P(true)}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE id IN (?, ?, ?) AND deleted = ?" args="[1 4 12 true]"
+
+userQuery := UserQuery{UserOr: &[]UserQuery{{IdGt: P(int64(10)), MemoNull: P(true)}, {ScoreLt: P(80), MemoLike: P("Good")}}}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE (id > ? AND memo IS NULL OR score < ? AND memo LIKE ?)" args="[10 80 Good]"
+
+userQuery := UserQuery{ScoreGtAvg: &UserQuery{Deleted: P(true)}, ScoreLtAny: &UserQuery{}}
+users, err := userDataAccess.Query(ctx, userQuery)
+// SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score > (SELECT avg(score) FROM t_user WHERE deleted = ?) AND score < ANY(SELECT score FROM t_user)" args="[true]"
 ```
 
-这段代码将会执行以下SQL语句：
-```sql
-SELECT id, score, memo FROM t_user WHERE score < ? AND memo LIKE ? LIMIT 2 OFFSET 0; -- args="[80 Well%]"
-SELECT count(0) FROM t_user WHERE score < ? AND memo LIKE ? -- args="[80 Well%]"
-```
+更多接口调用示例请参考：https://goooqo.docs.doyto.win/v/zh/api/crud
 
-#### 事务示例：
+### 事务示例：
 
 使用`TransactionManager#StartTransaction`开启事务，手动提交或者回滚事务：
 ```go
@@ -113,5 +157,4 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
 ---
 本项目遵循[BSD 3-Clause Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear)。
 
----
 > 本产品目前尚处于验证阶段，请谨慎用于生产环境。
