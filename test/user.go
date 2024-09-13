@@ -26,6 +26,8 @@ type UserQuery struct {
 	PageQuery
 	IdGt     *int
 	IdIn     *[]int
+	IdNotIn  *[]int
+	Cond     *string `condition:"(score = ? OR memo = ?)"`
 	ScoreLt  *int
 	MemoNull *bool
 	MemoLike *string
@@ -33,5 +35,6 @@ type UserQuery struct {
 
 	ScoreLtAvg *UserQuery `subquery:"select avg(score) from User"`
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM User"`
-	ScoreLtAll *UserQuery `subquery:"select score from User"`
+	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
+	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
 }

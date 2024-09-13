@@ -19,6 +19,7 @@ import (
 
 func TestBuildStmt(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
+	em := buildEntityMetadata[UserEntity]()
 
 	t.Run("Build with Custom Table Name", func(t *testing.T) {
 		em := buildEntityMetadata[TestEntity]()
@@ -63,7 +64,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select Statement", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{IdGt: P(5), ScoreLt: P(60)}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE id > ? AND score < ?"
@@ -76,7 +76,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select Without Where", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User"
@@ -89,7 +88,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{PageQuery: PageQuery{PageNumber: P(1), PageSize: P(10)}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User LIMIT 10 OFFSET 0"
@@ -102,7 +100,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select with Sort Clause", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{PageQuery: PageQuery{PageSize: P(5), Sort: P("id")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User ORDER BY id LIMIT 5 OFFSET 0"
@@ -116,7 +113,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Count", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{ScoreLt: P(60)}
 		actual, args := em.buildCount(&query)
 		expect := "SELECT count(0) FROM User WHERE score < ?"
@@ -129,7 +125,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Create Stmt", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		entity := UserEntity{Score: P(90), Memo: P("Great")}
 		actual, args := em.buildCreate(entity)
 		expect := "INSERT INTO User (score, memo) VALUES (?, ?)"
@@ -142,7 +137,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Update Stmt", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		entity := UserEntity{Int64Id: NewInt64Id(2), Score: P(90), Memo: P("Great")}
 		actual, args := em.buildUpdate(entity)
 		expect := "UPDATE User SET score = ?, memo = ? WHERE id = ?"
@@ -155,7 +149,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Patch Stmt", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		entity := UserEntity{Int64Id: NewInt64Id(2), Memo: P("Great")}
 		actual, args := em.buildPatchById(entity)
 		expect := "UPDATE User SET memo = ? WHERE id = ?"
@@ -168,7 +161,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Support tag subquery", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{ScoreLtAvg: &UserQuery{MemoLike: P("Well")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE score < (SELECT avg(score) FROM User WHERE memo LIKE ?)"
@@ -182,7 +174,6 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Support tag subquery with Any", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{ScoreLtAny: &UserQuery{MemoLike: P("Well")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE score < ANY(SELECT score FROM User WHERE memo LIKE ?)"
@@ -196,10 +187,22 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Support tag subquery with All", func(t *testing.T) {
-		em := buildEntityMetadata[UserEntity]()
 		query := UserQuery{ScoreLtAll: &UserQuery{MemoLike: P("Well")}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM User WHERE score < ALL(SELECT score FROM User WHERE memo LIKE ?)"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+		if !(len(args) == 1 && args[0] == "Well") {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
+	t.Run("Support tag select and from", func(t *testing.T) {
+		query := UserQuery{ScoreGtAvg: &UserQuery{MemoLike: P("Well")}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User WHERE score > (SELECT avg(score) FROM User WHERE memo LIKE ?)"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 			return

@@ -56,5 +56,23 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		conditions = append(conditions, condition)
 		args = append(args, args1...)
 	}
+	if q.ScoreLtAny != nil {
+		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLtAny)
+		condition := "score < ANY(SELECT score FROM User" + whereClause + ")"
+		conditions = append(conditions, condition)
+		args = append(args, args1...)
+	}
+	if q.ScoreLtAll != nil {
+		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLtAll)
+		condition := "score < ALL(SELECT score FROM User" + whereClause + ")"
+		conditions = append(conditions, condition)
+		args = append(args, args1...)
+	}
+	if q.ScoreGtAvg != nil {
+		whereClause, args1 := rdb.BuildWhereClause(q.ScoreGtAvg)
+		condition := "score > (SELECT avg(score) FROM User" + whereClause + ")"
+		conditions = append(conditions, condition)
+		args = append(args, args1...)
+	}
 	return conditions, args
 }

@@ -54,6 +54,23 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 			fp.from = group[2]
 		}
 	}
+	fp.buildComp(fieldName)
+	return
+}
+
+func buildFpSelect(field reflect.StructField) *fpSubquery {
+	return BuildSubquery2(field.Tag, field.Name)
+}
+
+func BuildSubquery2(tag reflect.StructTag, fieldname string) *fpSubquery {
+	fp := &fpSubquery{}
+	fp.select_ = tag.Get("select")
+	fp.from = tag.Get("from")
+	fp.buildComp(fieldname)
+	return fp
+}
+
+func (fp *fpSubquery) buildComp(fieldName string) {
 	anyAll := ""
 	if strings.HasSuffix(fieldName, "Any") {
 		anyAll = "ANY"

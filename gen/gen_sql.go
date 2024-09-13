@@ -82,10 +82,12 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
 		if subqueryTag, ok := tag.Lookup("subquery"); ok {
 			fpSubquery := rdb.BuildSubquery(subqueryTag, fieldName)
-			g.appendIfBody("whereClause, args1 := rdb.BuildWhereClause(q.%s)", fieldName)
-			g.appendIfBody("condition := \"" + fpSubquery.Subquery() + "\" + whereClause + \")\"")
-			g.appendIfBody("conditions = append(conditions, condition)")
-			g.appendIfBody("args = append(args, args1...)")
+			subSelect := fpSubquery.Subquery()
+			g.genSubquery(fieldName, subSelect)
+		} else if _, ok = tag.Lookup("select"); ok {
+			fpSubquery := rdb.BuildSubquery2(tag, fieldName)
+			subSelect := fpSubquery.Subquery()
+			g.genSubquery(fieldName, subSelect)
 		} else if conditionTag, ok := tag.Lookup("condition"); ok {
 			g.appendIfBody("conditions = append(conditions, \"%s\")", conditionTag)
 			for i := 0; i < strings.Count(conditionTag, "?"); i++ {
@@ -117,6 +119,13 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendArg(fieldName)
 	}
 	g.appendIfEnd()
+}
+
+func (g *SqlGenerator) genSubquery(fieldName string, subSelect string) {
+	g.appendIfBody("whereClause, args1 := rdb.BuildWhereClause(q.%s)", fieldName)
+	g.appendIfBody("condition := \"" + subSelect + "\" + whereClause + \")\"")
+	g.appendIfBody("conditions = append(conditions, condition)")
+	g.appendIfBody("args = append(args, args1...)")
 }
 
 func (g *SqlGenerator) appendArg(fieldName string) {

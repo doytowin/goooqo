@@ -51,6 +51,8 @@ func registerFpByType(queryType reflect.Type) {
 			fpMap[fpKey] = fpForAnd
 		} else if _, ok := field.Tag.Lookup("subquery"); ok {
 			fpMap[fpKey] = buildFpSubquery(field)
+		} else if _, ok := field.Tag.Lookup("select"); ok {
+			fpMap[fpKey] = buildFpSelect(field)
 		} else if _, ok := field.Tag.Lookup("condition"); ok {
 			fpMap[fpKey] = buildFpCustom(field)
 		} else if field.Type.Kind() == reflect.Ptr &&
