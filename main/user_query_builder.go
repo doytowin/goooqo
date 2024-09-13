@@ -27,19 +27,13 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		conditions = append(conditions, "id NOT IN ("+strings.Join(phs, ", ")+")")
 	}
 	if q.Cond != nil {
-		conditions = append(conditions, "(Score = ? OR Memo = ?)")
+		conditions = append(conditions, "(score = ? OR memo = ?)")
 		args = append(args, q.Cond)
 		args = append(args, q.Cond)
 	}
 	if q.ScoreLt != nil {
 		conditions = append(conditions, "score < ?")
 		args = append(args, q.ScoreLt)
-	}
-	if q.ScoreLt1 != nil {
-		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLt1)
-		condition := "score < (SELECT avg(score) FROM User" + whereClause + ")"
-		conditions = append(conditions, condition)
-		args = append(args, args1...)
 	}
 	if q.MemoNull != nil {
 		if *q.MemoNull {
@@ -55,6 +49,12 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 	if q.Deleted != nil {
 		conditions = append(conditions, "deleted = ?")
 		args = append(args, q.Deleted)
+	}
+	if q.ScoreLtAvg != nil {
+		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLtAvg)
+		condition := "score < (SELECT avg(score) FROM User" + whereClause + ")"
+		conditions = append(conditions, condition)
+		args = append(args, args1...)
 	}
 	return conditions, args
 }

@@ -31,7 +31,7 @@ type UserQuery struct {
 	MemoLike *string
 	Deleted  *bool
 
-	ScoreLtAvg *UserQuery `subquery:"select:avg(score),from:UserEntity"`
-	ScoreLtAny *UserQuery `subquery:"select:score,from:UserEntity"`
-	ScoreLtAll *UserQuery `subquery:"select:score,from:UserEntity"`
+	ScoreLtAvg *UserQuery `subquery:"select avg(score) from User"`
+	ScoreLtAny *UserQuery `subquery:"SELECT score FROM User"`
+	ScoreLtAll *UserQuery `subquery:"select score from User"`
 }

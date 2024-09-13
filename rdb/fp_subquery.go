@@ -37,7 +37,7 @@ func (fp *fpSubquery) buildCondition(where string) string {
 	return fp.Subquery() + where + ")"
 }
 
-var sqRegx = regexp.MustCompile(`(select|from):([\w()]+)`)
+var sqRegx = regexp.MustCompile(`(?i)(select|from) ([\w()]+)`)
 
 func buildFpSubquery(field reflect.StructField) *fpSubquery {
 	subqueryStr := field.Tag.Get("subquery")
@@ -48,9 +48,9 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 	fp = &fpSubquery{}
 	submatch := sqRegx.FindAllStringSubmatch(subqueryStr, -1)
 	for _, group := range submatch {
-		if group[1] == "select" {
+		if strings.EqualFold(group[1], "select") {
 			fp.select_ = group[2]
-		} else if group[1] == "from" {
+		} else if strings.EqualFold(group[1], "from") {
 			fp.from = group[2]
 		}
 	}

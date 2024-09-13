@@ -48,7 +48,6 @@ type UserQuery struct {
 	PageQuery
 	IdIn	 *[]int
 	ScoreLt  *int
-	ScoreLt1 *UserQuery `subquery:"select:avg(score),from:UserEntity"`
 	MemoNull *bool
 	UserOr   *UserQuery
 }
