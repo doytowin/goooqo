@@ -11,6 +11,7 @@
 package rdb
 
 import (
+	"github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
@@ -21,6 +22,13 @@ var fpTypeMap = make(map[reflect.Type]bool)
 
 type FieldProcessor interface {
 	Process(value reflect.Value) (string, []any)
+}
+
+type fpLogging struct{ string }
+
+func (fp *fpLogging) Process(reflect.Value) (string, []any) {
+	log.Info("Not supported for: ", fp.string)
+	return "", []any{}
 }
 
 func buildFpKey(queryType reflect.Type, field reflect.StructField) string {
@@ -35,6 +43,9 @@ func registerFpByType(queryType reflect.Type) {
 
 	for i := 0; i < queryType.NumField(); i++ {
 		field := queryType.Field(i)
+		if field.Type.Name() == "PageQuery" {
+			continue
+		}
 
 		fpKey := buildFpKey(queryType, field)
 		if strings.HasSuffix(field.Name, "Or") {
@@ -49,17 +60,23 @@ func registerFpByType(queryType reflect.Type) {
 			}
 		} else if strings.HasSuffix(field.Name, "And") {
 			fpMap[fpKey] = fpForAnd
-		} else if _, ok := field.Tag.Lookup("subquery"); ok {
-			fpMap[fpKey] = buildFpSubquery(field)
-		} else if _, ok := field.Tag.Lookup("select"); ok {
-			fpMap[fpKey] = buildFpSelect(field)
+		} else if field.Type.Implements(reflect.TypeOf((*core.Query)(nil)).Elem()) {
+			if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
+				fpMap[fpKey] = BuildBySubqueryTag(subqueryTag, field.Name)
+			} else if _, ok := field.Tag.Lookup("select"); ok {
+				fpMap[fpKey] = BuildBySelectTag(field.Tag, field.Name)
+			} else if match := subOfRgx.FindStringSubmatch(field.Name); len(match) > 0 {
+				fpMap[fpKey] = BuildByFieldName(match)
+			} else {
+				fpMap[fpKey] = &fpLogging{fpKey}
+			}
 		} else if _, ok := field.Tag.Lookup("condition"); ok {
 			fpMap[fpKey] = buildFpCustom(field)
 		} else if field.Type.Kind() == reflect.Ptr &&
 			field.Type.Elem().Kind() == reflect.Struct {
 			log.Info("[registerFpByType] field: ", field.Type.Elem().Name(), " ", field.Type.Elem().Kind())
 			registerFpByType(field.Type.Elem())
-		} else if field.Type.Name() != "PageQuery" {
+		} else {
 			fpMap[fpKey] = buildFpSuffix(field.Name)
 		}
 	}

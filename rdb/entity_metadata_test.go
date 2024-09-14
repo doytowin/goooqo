@@ -14,6 +14,7 @@ import (
 	. "github.com/doytowin/goooqo/core"
 	. "github.com/doytowin/goooqo/test"
 	log "github.com/sirupsen/logrus"
+	"reflect"
 	"testing"
 )
 
@@ -46,7 +47,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] == 5) {
+		if !reflect.DeepEqual(args, []any{5}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -58,7 +59,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] == 5) {
+		if !reflect.DeepEqual(args, []any{5}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -70,7 +71,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == 5) || args[1] != 60 {
+		if !reflect.DeepEqual(args, []any{5, 60}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -119,7 +120,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 1 && args[0] == 60) {
+		if !reflect.DeepEqual(args, []any{60}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -131,7 +132,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == 90 && args[1] == "Great") {
+		if !reflect.DeepEqual(args, []any{90, "Great"}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -143,7 +144,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 3 && args[0] == 90 && args[1] == "Great" && args[2] == int64(2)) {
+		if !reflect.DeepEqual(args, []any{90, "Great", int64(2)}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -155,7 +156,7 @@ func TestBuildStmt(t *testing.T) {
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
-		if !(len(args) == 2 && args[0] == "Great" && args[1] == int64(2)) {
+		if !reflect.DeepEqual(args, []any{"Great", int64(2)}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -168,7 +169,7 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 			return
 		}
-		if !(len(args) == 1 && args[0] == "Well") {
+		if !reflect.DeepEqual(args, []any{"Well"}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -181,7 +182,7 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 			return
 		}
-		if !(len(args) == 1 && args[0] == "Well") {
+		if !reflect.DeepEqual(args, []any{"Well"}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -194,7 +195,7 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 			return
 		}
-		if !(len(args) == 1 && args[0] == "Well") {
+		if !reflect.DeepEqual(args, []any{"Well"}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
@@ -207,7 +208,20 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 			return
 		}
-		if !(len(args) == 1 && args[0] == "Well") {
+		if !reflect.DeepEqual(args, []any{"Well"}) {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
+
+	t.Run("Support subquery by fieldname: ScoreInScoreOfUser", func(t *testing.T) {
+		query := UserQuery{ScoreInScoreOfUser: &UserQuery{Deleted: P(true)}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User WHERE score IN (SELECT score FROM User WHERE deleted = ?)"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+		if !reflect.DeepEqual(args, []any{true}) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})

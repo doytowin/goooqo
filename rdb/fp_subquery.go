@@ -11,6 +11,7 @@
 package rdb
 
 import (
+	"github.com/doytowin/goooqo/core"
 	"reflect"
 	"regexp"
 	"strings"
@@ -39,13 +40,8 @@ func (fp *fpSubquery) buildCondition(where string) string {
 
 var sqRegx = regexp.MustCompile(`(?i)(select|from) ([\w()]+)`)
 
-func buildFpSubquery(field reflect.StructField) *fpSubquery {
-	subqueryStr := field.Tag.Get("subquery")
-	return BuildSubquery(subqueryStr, field.Name)
-}
-
-func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
-	fp = &fpSubquery{}
+func BuildBySubqueryTag(subqueryStr string, fieldName string) *fpSubquery {
+	fp := &fpSubquery{}
 	submatch := sqRegx.FindAllStringSubmatch(subqueryStr, -1)
 	for _, group := range submatch {
 		if strings.EqualFold(group[1], "select") {
@@ -55,18 +51,24 @@ func BuildSubquery(subqueryStr string, fieldName string) (fp *fpSubquery) {
 		}
 	}
 	fp.buildComp(fieldName)
-	return
+	return fp
 }
 
-func buildFpSelect(field reflect.StructField) *fpSubquery {
-	return BuildSubquery2(field.Tag, field.Name)
-}
-
-func BuildSubquery2(tag reflect.StructTag, fieldname string) *fpSubquery {
+func BuildBySelectTag(tag reflect.StructTag, fieldName string) *fpSubquery {
 	fp := &fpSubquery{}
 	fp.select_ = tag.Get("select")
 	fp.from = tag.Get("from")
-	fp.buildComp(fieldname)
+	fp.buildComp(fieldName)
+	return fp
+}
+
+var subOfRgx = regexp.MustCompile("(\\w+(Any|All|" + suffixStr + "))(([A-Z]\\w+)Of([A-Z]\\w+))")
+
+func BuildByFieldName(match []string) *fpSubquery {
+	fp := &fpSubquery{}
+	fp.select_ = core.ConvertToColumnCase(match[4])
+	fp.from = match[5]
+	fp.buildComp(match[1])
 	return fp
 }
 
@@ -85,7 +87,7 @@ func (fp *fpSubquery) buildComp(fieldName string) {
 	return
 }
 
-var fieldRgx = regexp.MustCompile("(\\w+" + suffixStr + ")[A-Z\\d]")
+var fieldRgx = regexp.MustCompile("(\\w+(" + suffixStr + "))[A-Z\\d]")
 
 // Trim tailing string after the predicate suffix.
 // Examples:

@@ -20,8 +20,8 @@ import (
 
 var (
 	opMap     = CreateOpMap()
-	suffixStr = "(Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd|Rx)"
-	suffixRgx = regexp.MustCompile(suffixStr + "$")
+	suffixStr = "Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd|Rx"
+	suffixRgx = regexp.MustCompile("(" + suffixStr + ")$")
 	escapeRgx = regexp.MustCompile("[\\\\_%]")
 )
 

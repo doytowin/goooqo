@@ -81,11 +81,11 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendIfStartNil(fieldName)
 		tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
 		if subqueryTag, ok := tag.Lookup("subquery"); ok {
-			fpSubquery := rdb.BuildSubquery(subqueryTag, fieldName)
+			fpSubquery := rdb.BuildBySubqueryTag(subqueryTag, fieldName)
 			subSelect := fpSubquery.Subquery()
 			g.genSubquery(fieldName, subSelect)
 		} else if _, ok = tag.Lookup("select"); ok {
-			fpSubquery := rdb.BuildSubquery2(tag, fieldName)
+			fpSubquery := rdb.BuildBySelectTag(tag, fieldName)
 			subSelect := fpSubquery.Subquery()
 			g.genSubquery(fieldName, subSelect)
 		} else if conditionTag, ok := tag.Lookup("condition"); ok {
