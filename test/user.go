@@ -38,5 +38,6 @@ type UserQuery struct {
 	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
 	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
 
-	ScoreInScoreOfUser *UserQuery
+	ScoreInScoreOfUser    *UserQuery
+	ScoreGtAvgScoreOfUser *UserQuery
 }

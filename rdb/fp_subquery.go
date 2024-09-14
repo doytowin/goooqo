@@ -63,13 +63,21 @@ func BuildBySelectTag(tag reflect.StructTag, fieldName string) *fpSubquery {
 }
 
 var subOfRgx = regexp.MustCompile("(\\w+(Any|All|" + suffixStr + "))(([A-Z]\\w+)Of([A-Z]\\w+))")
+var aggregateRgx = regexp.MustCompile("(Avg|Max|Min|Sum|First|Last|Push)(\\w+)")
 
 func BuildByFieldName(match []string) *fpSubquery {
 	fp := &fpSubquery{}
-	fp.select_ = core.ConvertToColumnCase(match[4])
+	fp.select_ = convertForAggColumn(match[4])
 	fp.from = match[5]
 	fp.buildComp(match[1])
 	return fp
+}
+
+func convertForAggColumn(col string) string {
+	if match := aggregateRgx.FindStringSubmatch(col); len(match) > 0 {
+		return strings.ToUpper(match[1]) + "(" + core.ConvertToColumnCase(match[2]) + ")"
+	}
+	return core.ConvertToColumnCase(col)
 }
 
 func (fp *fpSubquery) buildComp(fieldName string) {

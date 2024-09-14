@@ -225,4 +225,17 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
+
+	t.Run("Support subquery by fieldname: ScoreGtAvgScoreOfUser", func(t *testing.T) {
+		query := UserQuery{ScoreGtAvgScoreOfUser: &UserQuery{Deleted: P(true)}}
+		actual, args := em.buildSelect(&query)
+		expect := "SELECT id, score, memo FROM User WHERE score > (SELECT AVG(score) FROM User WHERE deleted = ?)"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+			return
+		}
+		if !reflect.DeepEqual(args, []any{true}) {
+			t.Errorf("Args are not expected: %s", args)
+		}
+	})
 }
