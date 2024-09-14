@@ -13,7 +13,12 @@ package core
 import (
 	"context"
 	"database/sql/driver"
+	"regexp"
 )
+
+var SuffixStr = "Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd|Rx"
+var SuffixRgx = regexp.MustCompile("(" + SuffixStr + ")$")
+var SortRgx = regexp.MustCompile("(?i)(\\w+)(,(asC|dEsc))?;?")
 
 type PageList[D any] struct {
 	List  []D   `json:"list"`

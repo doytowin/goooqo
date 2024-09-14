@@ -11,14 +11,12 @@
 package mongodb
 
 import (
+	"github.com/doytowin/goooqo/core"
 	. "go.mongodb.org/mongo-driver/bson/primitive"
-	"regexp"
 )
 
-var sortRgx = regexp.MustCompile("(?i)(\\w+)(,(asC|dEsc))?;?")
-
 func buildSort(sort string) D {
-	submatch := sortRgx.FindAllStringSubmatch(sort, -1)
+	submatch := core.SortRgx.FindAllStringSubmatch(sort, -1)
 	result := make(D, len(submatch))
 	for i, group := range submatch {
 		if group[3] != "" {

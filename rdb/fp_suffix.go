@@ -18,12 +18,8 @@ import (
 	"strings"
 )
 
-var (
-	opMap     = CreateOpMap()
-	suffixStr = "Gt|Ge|Lt|Le|Not|Ne|Eq|Null|NotIn|In|Like|NotLike|Contain|NotContain|Start|NotStart|End|NotEnd|Rx"
-	suffixRgx = regexp.MustCompile("(" + suffixStr + ")$")
-	escapeRgx = regexp.MustCompile("[\\\\_%]")
-)
+var opMap = CreateOpMap()
+var escapeRgx = regexp.MustCompile("[\\\\_%]")
 
 type operator struct {
 	name, sign string
@@ -132,7 +128,7 @@ type fpSuffix struct {
 }
 
 func buildFpSuffix(fieldName string) fpSuffix {
-	if match := suffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
+	if match := SuffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
 		op := opMap[match[1]]
 		column := strings.TrimSuffix(fieldName, match[1])
 		column = ConvertToColumnCase(column)

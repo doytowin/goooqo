@@ -18,6 +18,14 @@ import (
 	"strings"
 )
 
+var opMap = make(map[string]map[string]operator)
+
+type operator struct {
+	name   string
+	sign   string
+	format string
+}
+
 type Generator interface {
 	appendPackage(string2 string)
 	appendImports()
@@ -98,7 +106,7 @@ func (g *generator) writeInstruction(ins string, args ...any) {
 }
 
 func (g *generator) suffixMatch(fieldName string) (string, operator) {
-	if match := suffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
+	if match := core.SuffixRgx.FindStringSubmatch(fieldName); len(match) > 0 {
 		op := opMap[g.key][match[1]]
 		column := strings.TrimSuffix(fieldName, match[1])
 		column = core.ConvertToColumnCase(column)

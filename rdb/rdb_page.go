@@ -12,7 +12,7 @@ package rdb
 
 import (
 	"fmt"
-	"regexp"
+	"github.com/doytowin/goooqo/core"
 	"strings"
 )
 
@@ -20,15 +20,13 @@ func BuildPageClause(sql *string, offset int, size int) string {
 	return fmt.Sprintf("%s LIMIT %d OFFSET %d", *sql, size, offset)
 }
 
-var sortRgx = regexp.MustCompile("(?i)(\\w+)(,(asC|dEsc))?;?")
-
 func BuildSortClause(sort *string) string {
 	if sort == nil {
 		return ""
 	}
-	submatch := sortRgx.FindAllStringSubmatch(*sort, -1)
-	var orderBy = make([]string, len(submatch))
-	for i, group := range submatch {
+	groups := core.SortRgx.FindAllStringSubmatch(*sort, -1)
+	var orderBy = make([]string, len(groups))
+	for i, group := range groups {
 		orderBy[i] = group[1]
 		if group[3] != "" {
 			orderBy[i] += " " + strings.ToUpper(group[3])

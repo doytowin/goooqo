@@ -38,7 +38,7 @@ func (fp *fpSubquery) buildCondition(where string) string {
 	return fp.Subquery() + where + ")"
 }
 
-var sqRegx = regexp.MustCompile(`(?i)(select|from) ([\w()]+)`)
+var sqRegx = regexp.MustCompile(`(?i)(select|from)[\s:]([\w()]+)`)
 
 func BuildBySubqueryTag(subqueryStr string, fieldName string) *fpSubquery {
 	fp := &fpSubquery{}
@@ -62,7 +62,7 @@ func BuildBySelectTag(tag reflect.StructTag, fieldName string) *fpSubquery {
 	return fp
 }
 
-var subOfRgx = regexp.MustCompile("(\\w+(Any|All|" + suffixStr + "))(([A-Z]\\w+)Of([A-Z]\\w+))")
+var subOfRgx = regexp.MustCompile("(\\w+(Any|All|" + core.SuffixStr + "))(([A-Z]\\w+)Of([A-Z]\\w+))")
 var aggregateRgx = regexp.MustCompile("(Avg|Max|Min|Sum|First|Last|Push)(\\w+)")
 
 func BuildByFieldName(match []string) *fpSubquery {
@@ -95,7 +95,7 @@ func (fp *fpSubquery) buildComp(fieldName string) {
 	return
 }
 
-var fieldRgx = regexp.MustCompile("(\\w+(" + suffixStr + "))[A-Z\\d]")
+var fieldRgx = regexp.MustCompile("(\\w+(" + core.SuffixStr + "))[A-Z\\d]")
 
 // Trim tailing string after the predicate suffix.
 // Examples:
