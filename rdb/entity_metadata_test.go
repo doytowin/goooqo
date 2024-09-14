@@ -227,9 +227,11 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Support subquery by fieldname: ScoreGtAvgScoreOfUser", func(t *testing.T) {
+		RegisterEntity("User", "t_user")
+
 		query := UserQuery{ScoreGtAvgScoreOfUser: &UserQuery{Deleted: P(true)}}
 		actual, args := em.buildSelect(&query)
-		expect := "SELECT id, score, memo FROM User WHERE score > (SELECT AVG(score) FROM User WHERE deleted = ?)"
+		expect := "SELECT id, score, memo FROM User WHERE score > (SELECT AVG(score) FROM t_user WHERE deleted = ?)"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 			return

@@ -33,6 +33,10 @@ type EntityMetadata[E Entity] struct {
 	updateStr       string
 }
 
+func RegisterEntity(entityName string, tableName string) {
+	emMap[entityName] = &metadata{TableName: tableName}
+}
+
 func (em *EntityMetadata[E]) buildArgs(entity E) []any {
 	args := make([]any, len(em.fieldsWithoutId))
 	rv := reflect.ValueOf(entity)
