@@ -43,7 +43,7 @@ func registerFpByType(queryType reflect.Type) {
 
 	for i := 0; i < queryType.NumField(); i++ {
 		field := queryType.Field(i)
-		if field.Type.Name() == "PageQuery" {
+		if field.Anonymous && field.Type == reflect.TypeOf(core.PageQuery{}) {
 			continue
 		}
 
