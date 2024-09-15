@@ -11,7 +11,6 @@
 package rdb
 
 import (
-	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
 )
@@ -21,12 +20,6 @@ type QueryBuilder interface {
 }
 
 func isValidValue(value reflect.Value) bool {
-	typeName := value.Type().Name()
-	if typeName == "PageQuery" {
-		return false
-	} else if typeName != "" {
-		log.Debug("Value Type:", typeName)
-	}
 	return !value.IsNil()
 }
 
@@ -54,14 +47,15 @@ func buildConditions(query any) ([]string, []any) {
 	registerFpByType(rtype)
 	for i := 0; i < rtype.NumField(); i++ {
 		field := rtype.Field(i)
-		fieldName := field.Name
-		value := rvalue.FieldByName(fieldName)
-		if isValidValue(value) {
-			fpKey := buildFpKey(rtype, field)
-			processor := fpMap[fpKey]
-			condition, arr := processor.Process(value.Elem())
-			conditions = append(conditions, condition)
-			args = append(args, arr...)
+		fpKey := buildFpKey(rtype, field)
+		processor := fpMap[fpKey]
+		if processor != nil {
+			value := rvalue.FieldByName(field.Name)
+			if isValidValue(value) {
+				condition, arr := processor.Process(value.Elem())
+				conditions = append(conditions, condition)
+				args = append(args, arr...)
+			}
 		}
 	}
 	return conditions, args

@@ -25,7 +25,7 @@ func TestSQLite(t *testing.T) {
 	ctx := context.Background()
 	tm := NewTransactionManager(db)
 
-	userDataAccess := newRelationalDataAccess[UserEntity](tm)
+	userDataAccess := NewTxDataAccess[UserEntity](tm)
 
 	t.Run("Query Entities", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: P(80)}

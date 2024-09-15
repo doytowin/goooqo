@@ -20,12 +20,12 @@ var whereId = " WHERE id = ?"
 var emMap = make(map[string]*metadata)
 
 type metadata struct {
-	TableName   string
-	columnMetas []ColumnMetadata
+	TableName string
 }
 
 type EntityMetadata[E Entity] struct {
 	metadata
+	columnMetas     []ColumnMetadata
 	ColStr          string
 	fieldsWithoutId []string
 	createStr       string
@@ -159,12 +159,10 @@ func buildEntityMetadata[E RdbEntity]() EntityMetadata[E] {
 	}
 	updateStr := "UPDATE " + tableName + " SET " + strings.Join(set, ", ") + whereId
 
-	emMap[entityType.Name()] = &metadata{
-		TableName:   tableName,
-		columnMetas: columnMetas,
-	}
+	RegisterEntity(entityType.Name(), tableName)
 	return EntityMetadata[E]{
 		metadata:        *emMap[entityType.Name()],
+		columnMetas:     columnMetas,
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,

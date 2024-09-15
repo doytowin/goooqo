@@ -39,10 +39,6 @@ func logSqlWithArgs(sqlStr string, args []any) (string, []any) {
 }
 
 func NewTxDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E] {
-	return newRelationalDataAccess[E](tm)
-}
-
-func newRelationalDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E] {
 	return &relationalDataAccess[E]{
 		TransactionManager: tm,
 		conn:               tm.GetClient().(Connection),
@@ -54,11 +50,10 @@ func newRelationalDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E]
 // connection by ConnectionCtx as return value.
 // ctx could be a TransactionContext with an active tx.
 func (da *relationalDataAccess[E]) getConn(ctx context.Context) Connection {
-	connection := da.conn
 	if tc, ok := ctx.(*rdbTransactionContext); ok {
-		connection = tc.tx
+		return tc.tx
 	}
-	return connection
+	return da.conn
 }
 
 func (da *relationalDataAccess[E]) Get(ctx context.Context, id any) (*E, error) {

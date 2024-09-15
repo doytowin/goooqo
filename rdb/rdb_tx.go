@@ -38,7 +38,7 @@ func (t *rdbTransactionManager) StartTransaction(ctx context.Context) (Transacti
 		return tc, nil
 	}
 	tx, err := t.db.BeginTx(ctx, nil)
-	if !NoError(err) {
+	if HasError(err) {
 		return nil, err
 	}
 	sn := t.fetchSn()

@@ -40,15 +40,19 @@ func registerFpByType(queryType reflect.Type) {
 		return
 	}
 	fpTypeMap[queryType] = true
+	typeQuery := reflect.TypeOf((*core.Query)(nil)).Elem()
 
 	for i := 0; i < queryType.NumField(); i++ {
 		field := queryType.Field(i)
-		if field.Anonymous && field.Type == reflect.TypeOf(core.PageQuery{}) {
+		// ignore PageQuery
+		if field.Anonymous && field.Type.Implements(typeQuery) {
 			continue
 		}
 
 		fpKey := buildFpKey(queryType, field)
-		if strings.HasSuffix(field.Name, "Or") {
+		if field.Type.Kind() != reflect.Ptr {
+			log.Warn("Type not supported: ", field.Type)
+		} else if strings.HasSuffix(field.Name, "Or") {
 			if field.Type.Elem().Kind() == reflect.Slice {
 				if field.Type.Elem().Elem().Kind() == reflect.Struct {
 					fpMap[fpKey] = buildFpStructArrayByOr()
@@ -60,7 +64,7 @@ func registerFpByType(queryType reflect.Type) {
 			}
 		} else if strings.HasSuffix(field.Name, "And") {
 			fpMap[fpKey] = fpForAnd
-		} else if field.Type.Implements(reflect.TypeOf((*core.Query)(nil)).Elem()) {
+		} else if field.Type.Implements(typeQuery) {
 			if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
 				fpMap[fpKey] = BuildBySubqueryTag(subqueryTag, field.Name)
 			} else if _, ok := field.Tag.Lookup("select"); ok {
@@ -72,10 +76,6 @@ func registerFpByType(queryType reflect.Type) {
 			}
 		} else if _, ok := field.Tag.Lookup("condition"); ok {
 			fpMap[fpKey] = buildFpCustom(field)
-		} else if field.Type.Kind() == reflect.Ptr &&
-			field.Type.Elem().Kind() == reflect.Struct {
-			log.Info("[registerFpByType] field: ", field.Type.Elem().Name(), " ", field.Type.Elem().Kind())
-			registerFpByType(field.Type.Elem())
 		} else {
 			fpMap[fpKey] = buildFpSuffix(field.Name)
 		}
