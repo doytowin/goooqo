@@ -2,21 +2,28 @@
 [![Code Lines](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=ncloc)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=ncloc)
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
 
-GoooQo - OQM技术的Golang实现
+GoooQo
 ===
+---
 
 ## 项目介绍
 
-GoooQo是一个可以自动从对象构建SQL语句的OQM框架。
+GoooQo是一个基于OQM技术的Go语言版的增删查改框架。
 
-OQM是一项仅通过对象来构建数据库查询语句的技术，专注于研究面向对象编程语言和数据库查询语言之间的映射关系。
+OQM技术是一种通过对象构建数据库查询语句的数据库访问技术。
 
-OQM主要依靠以下三类对象来映射数据库查询语句：
-- `Entity Object`用于映射SQL语句中的静态部分，例如表名和列名；
-- `Query Object`用于映射SQL语句中的动态部分，例如过滤条件、分页和排序；
-- `View Object`用于映射复杂查询语句中的静态部分，例如表名、列名、嵌套视图和分组列。
+OQM技术提出了一种解决n个查询条件动态组合问题的新方法，
+通过具有n个字段的对象的2^n种赋值组合来映射2^n种查询条件的组合，
+使开发人员只需定义和构建对象即可轻松生成动态查询语句，
+成为与ORM技术的重要区别之一。
 
-GoooQo中的前三个o即代表上述三类对象，`Qo`代表`Query Object`，是OQM技术中最核心的对象概念。
+用于动态构建查询子句的对象被称为查询对象 (Query Object)，即GoooQo中`Qo`。
+
+而GoooQo名称中的前三个`O`代表了OQM技术中的三大对象概念：
+
+- `Entity Object`用于映射增删查改语句中的静态部分，例如表名和列名；
+- `Query Object`用于映射增删查改语句中的动态部分，例如过滤条件、分页和排序；
+- `View Object`用于映射复杂查询语句中的静态部分，例如表名、列名、分组子句、嵌套视图和各类连接。
 
 查看这篇[文章](https://blog.doyto.win/post/introduction-to-goooqo-en/)，了解更多详情。
 
@@ -148,8 +155,8 @@ return cnt
 或者使用`TransactionManager#SubmitTransaction`通过回调的方式提交事务：
 ```go
 err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
-    // transaction body
-    return
+	// transaction body
+	return
 })
 ```
 

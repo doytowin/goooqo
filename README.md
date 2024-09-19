@@ -2,37 +2,27 @@
 [![Code Lines](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=ncloc)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=ncloc)
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
 
-GoooQo - An OQM Implementation That Can Automatically Build SQL Statements from Objects
+GoooQo
+===
 ---
 
-## Introduction to OQM
+## Introduction
 
-OQM is a technology that constructs database query statements only through objects, 
-focusing on the mapping relationship between object-oriented programming languages and database query languages.
+GoooQo is a CRUD framework in Golang based on the OQM technique.
 
-The biggest difference between OQM (object-query mapping) technology and traditional 
-ORM (object-relational mapping) technology is that OQM proposes to build CRUD statements directly through objects.
+The OQM (Object-Query Mapping) technique is a database access technique that constructs database query statements through objects.
 
-The core function of OQM is to build query clauses for a table through a query object, 
-which is also the origin of Q in OQM.
+OQM proposes a new method to solve the problem of dynamic combination of n query conditions
+by mapping 2^n assignment combinations of an object instance with n fields to 2^n combinations of n query conditions.
 
-Another significant discovery in OQM technology is that the field names in query objects and the conditions in query clauses can be converted interchangeably.
+This approach enables developers to define and construct objects only to build dynamic query statements, 
+setting OQM apart from ORM. Such objects are called query objects, which is the Qo in GoooQo.
 
-In this way, we only need to create an entity object and a query object to build CRUD statements. 
-The entity object is used to determine the table name and the column names, 
-and the instance of the query object is used to control the construction of the query clause.
+The first three Os in the name GoooQo stands for the three major object concepts in the OQM technique:
 
-## Introduction to GoooQo
-
-`GoooQo` is an OQM implementation that can automatically build SQL statements from objects.
-
-The first three Os in the name `GoooQo` stands for the three major object concepts in the OQM technique:
-
-- `Entity Object` is used to map the static part in the SQL statements, such as table name and column names;
-- `Query Object` is used to map the dynamic part in the SQL statements, such as filter conditions, pagination, and sorting;
-- `View Object` is used to map the static part in the complex query statements, such as table names, column names, nested views, and group-by columns.
-
-Where `Qo` represents `Query Object`, which is the core concept in the OQM technique.
+- `Entity Object` is used to map the static part in the CRUD statements, such as table name and column names;
+- `Query Object` is used to map the dynamic part in the CRUD statements, such as filter conditions, pagination and sorting clause;
+- `View Object` is used to map the static part in the complex query statements, such as table names, column names, group-by clause and joins.
 
 Check this [article](https://blog.doyto.win/post/introduction-to-goooqo-en/) for more details. 
 
@@ -63,9 +53,7 @@ import (
 
 func main() {
 	db, _ := sql.Open("sqlite3", "./test.db")
-
 	tm := rdb.NewTransactionManager(db)
-
 	//...
 }
 ```
@@ -94,23 +82,23 @@ type UserEntity struct {
 }
 
 func (u UserEntity) GetTableName() string {
-    return "t_user"
+	return "t_user"
 }
 
 type UserQuery struct {
-    PageQuery
-    IdGt *int64
-    IdIn *[]int64
-    ScoreLt *int
-    MemoNull *bool
-    MemoLike *string
-    Deleted *bool
-    UserOr *[]UserQuery
-    
-    ScoreLtAvg *UserQuery `subquery:"select avg(score) from t_user"`
-    ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
-    ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
-    ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
+	PageQuery
+	IdGt     *int64
+	IdIn     *[]int64
+	ScoreLt  *int
+	MemoNull *bool
+	MemoLike *string
+	Deleted  *bool
+	UserOr   *[]UserQuery
+
+	ScoreLtAvg *UserQuery `subquery:"select avg(score) from t_user"`
+	ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
+	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
+	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
 }
 ```
 
@@ -164,8 +152,8 @@ return cnt, err
 Or use `TransactionManager#SubmitTransaction` to commit the transaction via callback function:
 ```go
 err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
-    // transaction body
-    return
+	// transaction body
+	return
 })
 ```
 
