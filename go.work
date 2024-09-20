@@ -1,0 +1,9 @@
+go 1.18
+use (
+	test
+	core
+	rdb
+	web
+	gen
+	mongodb
+)

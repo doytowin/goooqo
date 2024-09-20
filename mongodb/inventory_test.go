@@ -11,11 +11,11 @@
 package mongodb
 
 import (
-	"github.com/doytowin/goooqo"
+	. "github.com/doytowin/goooqo/core"
 )
 
 type InventoryQuery struct {
-	goooqo.PageQuery
+	PageQuery
 	QtyGt *int
 	*QtyOr
 }
