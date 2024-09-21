@@ -14,16 +14,10 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/doytowin/goooqo/core"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
-	"reflect"
 	"regexp"
-	"strings"
 )
 
 type restService[E Entity, Q Query] struct {
@@ -39,6 +33,14 @@ func NewRestService[E Entity, Q Query](
 		DataAccess: dataAccess,
 		idRgx:      regexp.MustCompile(prefix + `([\da-fA-F]+)$`),
 	}
+}
+
+func BuildRestService[E Entity, Q Query](
+	prefix string,
+	dataAccess DataAccess[E],
+) {
+	s := NewRestService[E, Q](prefix, dataAccess)
+	http.Handle(prefix, s)
 }
 
 func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -59,7 +61,7 @@ func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.
 	} else {
 		query := *new(Q)
 		queryMap := request.URL.Query()
-		resolveQuery(queryMap, &query)
+		ResolveQuery(queryMap, &query)
 		if request.Method == "PATCH" {
 			body, _ := io.ReadAll(request.Body)
 			var entity E
@@ -85,7 +87,10 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		entity := *new(E)
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			entity.SetId(&entity, id)
+			err = entity.SetId(&entity, id)
+			if err != nil {
+				return nil, err
+			}
 			return s.Update(request.Context(), entity)
 		}
 	case "PATCH":
@@ -93,7 +98,10 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		entity := *new(E)
 		err = json.Unmarshal(body, &entity)
 		if NoError(err) {
-			entity.SetId(&entity, id)
+			err = entity.SetId(&entity, id)
+			if err != nil {
+				return nil, err
+			}
 			return s.Patch(request.Context(), entity)
 		}
 	case "DELETE":
@@ -108,48 +116,6 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		}
 	}
 	return data, err
-}
-
-func resolveQuery(queryMap url.Values, query any) {
-	elem := reflect.ValueOf(query).Elem()
-	for name, v := range queryMap {
-		path := strings.Split(name, ".")
-		field := resolveParam(elem, path[0])
-		for i := 1; i < len(path); i++ {
-			if !field.IsValid() {
-				break
-			}
-			if field.IsNil() {
-				fieldType := field.Type().Elem()
-				field.Set(reflect.New(fieldType))
-			}
-			field = resolveParam(field.Elem(), path[i])
-		}
-
-		if field.IsValid() {
-			convertAndSet(field, v)
-		}
-	}
-}
-
-var capitalizer = cases.Title(language.English, cases.NoLower)
-
-func resolveParam(elem reflect.Value, fieldName string) reflect.Value {
-	field := elem.FieldByName(fieldName)
-	if !field.IsValid() {
-		title := capitalizer.String(fieldName)
-		field = elem.FieldByName(title)
-	}
-	return field
-}
-
-func convertAndSet(field reflect.Value, v []string) {
-	log.Debug("field.Type: ", field.Type())
-	fieldType := field.Type()
-	v0, err := converterMap[fieldType](v)
-	if NoError(err) || v0 != nil {
-		field.Set(reflect.ValueOf(v0))
-	}
 }
 
 func writeResult(writer http.ResponseWriter, err error, data any) {

@@ -13,7 +13,6 @@ package goooqo
 import (
 	"github.com/doytowin/goooqo/core"
 	"github.com/doytowin/goooqo/web"
-	"net/http"
 )
 
 type Query = core.Query
@@ -40,6 +39,5 @@ func BuildRestService[E Entity, Q Query](
 	prefix string,
 	dataAccess DataAccess[E],
 ) {
-	s := web.NewRestService[E, Q](prefix, dataAccess)
-	http.Handle(prefix, s)
+	web.BuildRestService[E, Q](prefix, dataAccess)
 }
