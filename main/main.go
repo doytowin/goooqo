@@ -13,7 +13,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/doytowin/goooqo"
 	"github.com/doytowin/goooqo/core"
 	"github.com/doytowin/goooqo/mongodb"
 	"github.com/doytowin/goooqo/rdb"
@@ -73,12 +72,12 @@ func main() {
 	}
 }
 
-func buildUserModule(tm goooqo.TransactionManager) {
+func buildUserModule(tm core.TransactionManager) {
 	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
-	goooqo.BuildRestService[UserEntity, UserQuery]("/user/", userDataAccess)
+	web.BuildRestService[UserEntity, UserQuery]("/user/", userDataAccess)
 }
 
-func buildInventoryModule(tm goooqo.TransactionManager) {
+func buildInventoryModule(tm core.TransactionManager) {
 	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm)
-	goooqo.BuildRestService[InventoryEntity, InventoryQuery]("/inventory/", mongoDataAccess)
+	web.BuildRestService[InventoryEntity, InventoryQuery]("/inventory/", mongoDataAccess)
 }

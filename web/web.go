@@ -41,6 +41,14 @@ func NewRestService[E Entity, Q Query](
 	}
 }
 
+func BuildRestService[E Entity, Q Query](
+	prefix string,
+	dataAccess DataAccess[E],
+) {
+	s := NewRestService[E, Q](prefix, dataAccess)
+	http.Handle(prefix, s)
+}
+
 func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
 	var data any
