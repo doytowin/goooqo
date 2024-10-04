@@ -48,6 +48,12 @@ func TestBuildWhereClause(t *testing.T) {
 			expect:     "",
 			expectArgs: []any{},
 		},
+		{
+			name:       "Given field with type *string mapped to LIKE, when assigned blank string, then map nothing",
+			query:      TestQuery{EmailStart: P(" ")},
+			expect:     "",
+			expectArgs: []any{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

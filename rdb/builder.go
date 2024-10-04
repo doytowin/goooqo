@@ -53,8 +53,10 @@ func buildConditions(query any) ([]string, []any) {
 			value := rvalue.FieldByName(field.Name)
 			if isValidValue(value) {
 				condition, arr := processor.Process(value.Elem())
-				conditions = append(conditions, condition)
-				args = append(args, arr...)
+				if condition != "" {
+					conditions = append(conditions, condition)
+					args = append(args, arr...)
+				}
 			}
 		}
 	}

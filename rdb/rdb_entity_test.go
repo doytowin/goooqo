@@ -54,6 +54,7 @@ type TestCond struct {
 
 type TestQuery struct {
 	PageQuery
+	EmailStart *string
 	EmailNull  *bool
 	TestOr     *TestCond
 	EmailEndOr *[]string
