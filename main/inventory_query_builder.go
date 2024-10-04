@@ -7,9 +7,6 @@ func (q InventoryQuery) BuildFilter() A {
 	if q.Id != nil {
 		d = append(d, D{{"_id", D{{"$eq", q.Id}}}})
 	}
-	if q.IdNot != nil {
-		d = append(d, D{{"_id", D{{"$ne", q.IdNot}}}})
-	}
 	if q.IdNe != nil {
 		d = append(d, D{{"_id", D{{"$ne", q.IdNe}}}})
 	}

@@ -26,7 +26,6 @@ func init() {
 	sqlOpMap := make(map[string]operator)
 	sqlOpMap["Eq"] = operator{name: "Eq", sign: "="}
 	sqlOpMap["Ne"] = operator{name: "Ne", sign: "<>"}
-	sqlOpMap["Not"] = operator{name: "Not", sign: "!="}
 	sqlOpMap["Gt"] = operator{name: "Gt", sign: ">"}
 	sqlOpMap["Ge"] = operator{name: "Ge", sign: ">="}
 	sqlOpMap["Lt"] = operator{name: "Lt", sign: "<"}

@@ -29,7 +29,6 @@ func TestProcess(t *testing.T) {
 		{"idGe", "id >= ?", []int64{5}, reflect.ValueOf(5)},
 		{"idLt", "id < ?", []int64{5}, reflect.ValueOf(5)},
 		{"idLe", "id <= ?", []int64{5}, reflect.ValueOf(5)},
-		{"idNot", "id != ?", []int64{5}, reflect.ValueOf(5)},
 		{"idNe", "id <> ?", []int64{5}, reflect.ValueOf(5)},
 		{"idEq", "id = ?", []int64{5}, reflect.ValueOf(5)},
 		{"idNull", "id IS NULL", nil, reflect.ValueOf(true)},

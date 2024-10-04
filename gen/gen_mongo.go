@@ -35,7 +35,6 @@ func init() {
 	mongoOpMap := make(map[string]operator)
 	mongoOpMap["Eq"] = operator{name: "Eq", sign: "$eq"}
 	mongoOpMap["Ne"] = operator{name: "Ne", sign: "$ne"}
-	mongoOpMap["Not"] = operator{name: "Not", sign: "$ne"}
 	mongoOpMap["Gt"] = operator{name: "Gt", sign: "$gt"}
 	mongoOpMap["Ge"] = operator{name: "Ge", sign: "$gte"}
 	mongoOpMap["Lt"] = operator{name: "Lt", sign: "$lt"}

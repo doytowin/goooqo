@@ -69,7 +69,6 @@ func CreateOpMap() map[string]operator {
 	opMap["Ge"] = operator{"Ge", " >= ", ReadValueToArray, ok}
 	opMap["Lt"] = operator{"Lt", " < ", ReadValueToArray, ok}
 	opMap["Le"] = operator{"Le", " <= ", ReadValueToArray, ok}
-	opMap["Not"] = operator{"Not", " != ", ReadValueToArray, ok}
 	opMap["Ne"] = operator{"Ne", " <> ", ReadValueToArray, ok}
 	opMap["Eq"] = operator{"Eq", " = ", ReadValueToArray, ok}
 	opMap["Null"] = operator{"Null", "", func(rv reflect.Value) (string, []any) {
