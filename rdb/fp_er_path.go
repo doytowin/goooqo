@@ -11,7 +11,7 @@
 package rdb
 
 import (
-	"fmt"
+	"github.com/doytowin/goooqo/core"
 	"reflect"
 	"strings"
 )
@@ -34,24 +34,32 @@ func buildFpErPath(field reflect.StructField) FieldProcessor {
 	l := len(path)
 	joinIds := make([]string, l)
 	for i, domain := range path {
-		joinIds[i] = fmt.Sprintf("%s_id", domain)
+		joinIds[i] = FormatJoinId(domain)
 	}
 	joinTables := make([]string, l-1)
 	for i := 0; i < l-1; i++ {
-		joinTables[i] = fmt.Sprintf("a_%s_and_%s", path[i], path[i+1])
+		joinTables[i] = FormatJoinTable(path[i], path[i+1])
 	}
-	targetTable := fmt.Sprintf("t_%s", path[l-1])
+	targetTable := FormatTable(path[l-1])
 	return &fpERPath{ERPath{path, joinTables, joinIds, targetTable, "id", "id"}}
 }
 
-func (fp *fpERPath) Process(value reflect.Value) (condition string, args []any) {
-	where, args := BuildWhereClause(value.Interface())
+func (fp *fpERPath) Process(value reflect.Value) (string, []any) {
+	args := make([]any, 0)
 
 	l := len(fp.path)
-	sql := fp.localField
+	sql := fp.localField + " IN ("
 	closeParesis := strings.Repeat(")", l)
 	for i := 0; i < l-1; i++ {
-		sql += " IN (SELECT " + fp.joinIds[i] + " FROM " + fp.joinTables[i] + " WHERE " + fp.joinIds[i+1]
+		queryValue := value.FieldByName(core.Capitalize(fp.path[i]) + "Query")
+		if queryValue.IsValid() && !queryValue.IsNil() {
+			where0, args0 := BuildWhereClause(queryValue.Interface())
+			sql += "SELECT id FROM " + FormatTable(fp.path[i]) + where0 + "\nINTERSECT "
+			args = append(args, args0...)
+		}
+		sql += "SELECT " + fp.joinIds[i] + " FROM " + fp.joinTables[i] + " WHERE " + fp.joinIds[i+1] + " IN ("
 	}
-	return sql + " IN (SELECT " + fp.foreignField + " FROM " + fp.targetTable + where + closeParesis, args
+	where, args0 := BuildWhereClause(value.Interface())
+	args = append(args, args0...)
+	return sql + "SELECT " + fp.foreignField + " FROM " + fp.targetTable + where + closeParesis, args
 }

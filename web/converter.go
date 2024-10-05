@@ -13,8 +13,6 @@ package web
 import (
 	"github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -91,12 +89,10 @@ func ResolveQuery(queryMap url.Values, query any) {
 	}
 }
 
-var capitalizer = cases.Title(language.English, cases.NoLower)
-
 func resolveParam(elem reflect.Value, fieldName string) reflect.Value {
 	field := elem.FieldByName(fieldName)
 	if !field.IsValid() {
-		title := capitalizer.String(fieldName)
+		title := core.Capitalize(fieldName)
 		field = elem.FieldByName(title)
 	}
 	return field

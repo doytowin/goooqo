@@ -12,6 +12,8 @@ package core
 
 import (
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"io"
 	"reflect"
 )
@@ -62,4 +64,10 @@ func HasError(err error) bool {
 
 func Close(db io.Closer) {
 	NoError(db.Close())
+}
+
+var capitalizer = cases.Title(language.English, cases.NoLower)
+
+func Capitalize(str string) string {
+	return capitalizer.String(str)
 }

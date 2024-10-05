@@ -16,4 +16,6 @@ type PermQuery struct {
 	PageQuery
 	Id   *int
 	Code *string
+
+	RoleQuery *RoleQuery
 }

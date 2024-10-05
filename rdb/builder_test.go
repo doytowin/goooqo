@@ -20,40 +20,40 @@ import (
 func TestBuildWhereClause(t *testing.T) {
 
 	tests := []struct {
-		name       string
-		query      any
-		expect     string
-		expectArgs []any
+		name   string
+		query  any
+		expect string
+		args   []any
 	}{
 		{
-			name:       "Support custom condition",
-			query:      TestQuery{Account: P("f0rb"), Deleted: P(true)},
-			expect:     " WHERE (username = ? OR email = ?) AND deleted = ?",
-			expectArgs: []any{"f0rb", "f0rb", true},
+			"Support custom condition",
+			TestQuery{Account: P("f0rb"), Deleted: P(true)},
+			" WHERE (username = ? OR email = ?) AND deleted = ?",
+			[]any{"f0rb", "f0rb", true},
 		},
 		{
-			name:       "Given field with type *bool and suffix Null, when assigned true, then map to IS NULL",
-			query:      TestQuery{EmailNull: P(true)},
-			expect:     " WHERE email IS NULL",
-			expectArgs: []any{},
+			"Given field with type *bool and suffix Null, when assigned true, then map to IS NULL",
+			TestQuery{EmailNull: P(true)},
+			" WHERE email IS NULL",
+			[]any{},
 		},
 		{
-			name:       "Given field with type *bool and suffix Null, when assigned false, then map to IS NOT NULL",
-			query:      TestQuery{EmailNull: P(false)},
-			expect:     " WHERE email IS NOT NULL",
-			expectArgs: []any{},
+			"Given field with type *bool and suffix Null, when assigned false, then map to IS NOT NULL",
+			TestQuery{EmailNull: P(false)},
+			" WHERE email IS NOT NULL",
+			[]any{},
 		},
 		{
-			name:       "Given field with type *bool and suffix Null, when not assigned, then map nothing",
-			query:      TestQuery{},
-			expect:     "",
-			expectArgs: []any{},
+			"Given field with type *bool and suffix Null, when not assigned, then map nothing",
+			TestQuery{},
+			"",
+			[]any{},
 		},
 		{
-			name:       "Given field with type *string mapped to LIKE, when assigned blank string, then map nothing",
-			query:      TestQuery{EmailStart: P(" ")},
-			expect:     "",
-			expectArgs: []any{},
+			"Given field with type *string mapped to LIKE, when assigned blank string, then map nothing",
+			TestQuery{EmailStart: P(" ")},
+			"",
+			[]any{},
 		},
 		{
 			"Query User by Role ID",
@@ -62,11 +62,18 @@ func TestBuildWhereClause(t *testing.T) {
 			[]any{1},
 		},
 		{
-			"Query User by Permission ID",
-			UserQuery{Perm: &PermQuery{Code: P("user::list")}},
+			"Query User by Permission id",
+			UserQuery{Perm: &PermQuery{Code: P("user:list")}},
 			" WHERE id IN (SELECT user_id FROM a_user_and_role WHERE role_id IN " +
 				"(SELECT role_id FROM a_role_and_perm WHERE perm_id IN (SELECT id FROM t_perm WHERE code = ?)))",
-			[]any{"user::list"},
+			[]any{"user:list"},
+		},
+		{
+			"Query User by valid Role and Permission id",
+			UserQuery{Perm: &PermQuery{Code: P("user:list"), RoleQuery: &RoleQuery{Valid: P(true)}}},
+			` WHERE id IN (SELECT user_id FROM a_user_and_role WHERE role_id IN (SELECT id FROM t_role WHERE valid = ?
+INTERSECT SELECT role_id FROM a_role_and_perm WHERE perm_id IN (SELECT id FROM t_perm WHERE code = ?)))`,
+			[]any{true, "user:list"},
 		},
 	}
 	for _, tt := range tests {
@@ -75,8 +82,8 @@ func TestBuildWhereClause(t *testing.T) {
 			if actual != tt.expect {
 				t.Errorf("\nExpected: %s\nBut got : %s", tt.expect, actual)
 			}
-			if !reflect.DeepEqual(args, tt.expectArgs) {
-				t.Errorf("BuildWhereClause() args = %v, expect %v", args, tt.expectArgs)
+			if !reflect.DeepEqual(args, tt.args) {
+				t.Errorf("BuildWhereClause() args = %v, expect %v", args, tt.args)
 			}
 		})
 	}

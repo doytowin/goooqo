@@ -14,5 +14,6 @@ import . "github.com/doytowin/goooqo/core"
 
 type RoleQuery struct {
 	PageQuery
-	Id *int
+	Id    *int
+	Valid *bool
 }
