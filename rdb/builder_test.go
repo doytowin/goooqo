@@ -75,7 +75,14 @@ func TestBuildWhereClause(t *testing.T) {
 INTERSECT SELECT role_id FROM a_role_and_perm WHERE perm_id IN (SELECT id FROM t_perm WHERE code = ?)))`,
 			[]any{true, "user:list"},
 		},
+		{
+			"Query Role by User id",
+			RoleQuery{User: &UserQuery{IdIn: &[]int{1, 3, 4}}},
+			" WHERE id IN (SELECT role_id FROM a_user_and_role WHERE user_id IN (SELECT id FROM t_user WHERE id IN (?, ?, ?)))",
+			[]any{1, 3, 4},
+		},
 	}
+	RegisterJoinTable("role", "user", "a_user_and_role")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, args := BuildWhereClause(tt.query)

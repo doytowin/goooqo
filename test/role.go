@@ -16,4 +16,6 @@ type RoleQuery struct {
 	PageQuery
 	Id    *int
 	Valid *bool
+
+	User *UserQuery `erpath:"role,user"`
 }
