@@ -12,6 +12,7 @@ package rdb
 
 import (
 	. "github.com/doytowin/goooqo/core"
+	. "github.com/doytowin/goooqo/test"
 	"reflect"
 	"testing"
 )
@@ -53,6 +54,12 @@ func TestBuildWhereClause(t *testing.T) {
 			query:      TestQuery{EmailStart: P(" ")},
 			expect:     "",
 			expectArgs: []any{},
+		},
+		{
+			"Query User by Role ID",
+			UserQuery{Role: &RoleQuery{Id: P(1)}},
+			" WHERE id IN (SELECT user_id FROM a_user_and_role WHERE role_id IN (SELECT id FROM t_role WHERE id = ?))",
+			[]any{1},
 		},
 	}
 	for _, tt := range tests {

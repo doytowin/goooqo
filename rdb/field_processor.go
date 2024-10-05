@@ -65,7 +65,9 @@ func registerFpByType(queryType reflect.Type) {
 		} else if strings.HasSuffix(field.Name, "And") {
 			fpMap[fpKey] = fpForAnd
 		} else if field.Type.Implements(typeQuery) {
-			if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
+			if _, ok := field.Tag.Lookup("erpath"); ok {
+				fpMap[fpKey] = buildFpErPath(field)
+			} else if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
 				fpMap[fpKey] = BuildBySubqueryTag(subqueryTag, field.Name)
 			} else if _, ok := field.Tag.Lookup("select"); ok {
 				fpMap[fpKey] = BuildBySelectTag(field.Tag, field.Name)

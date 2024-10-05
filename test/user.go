@@ -40,4 +40,6 @@ type UserQuery struct {
 
 	ScoreInScoreOfUser    *UserQuery
 	ScoreGtAvgScoreOfUser *UserQuery
+
+	Role *RoleQuery `erpath:"user,role"`
 }
