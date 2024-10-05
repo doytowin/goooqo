@@ -42,4 +42,5 @@ type UserQuery struct {
 	ScoreGtAvgScoreOfUser *UserQuery
 
 	Role *RoleQuery `erpath:"user,role"`
+	Perm *PermQuery `erpath:"user,role,perm"`
 }

@@ -61,6 +61,13 @@ func TestBuildWhereClause(t *testing.T) {
 			" WHERE id IN (SELECT user_id FROM a_user_and_role WHERE role_id IN (SELECT id FROM t_role WHERE id = ?))",
 			[]any{1},
 		},
+		{
+			"Query User by Permission ID",
+			UserQuery{Perm: &PermQuery{Code: P("user::list")}},
+			" WHERE id IN (SELECT user_id FROM a_user_and_role WHERE role_id IN " +
+				"(SELECT role_id FROM a_role_and_perm WHERE perm_id IN (SELECT id FROM t_perm WHERE code = ?)))",
+			[]any{"user::list"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

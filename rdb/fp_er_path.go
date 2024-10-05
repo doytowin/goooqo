@@ -46,6 +46,12 @@ func buildFpErPath(field reflect.StructField) FieldProcessor {
 
 func (fp *fpERPath) Process(value reflect.Value) (condition string, args []any) {
 	where, args := BuildWhereClause(value.Interface())
-	return fp.localField + " IN (SELECT " + fp.joinIds[0] + " FROM " + fp.joinTables[0] + " WHERE " +
-		fp.joinIds[1] + " IN (SELECT " + fp.foreignField + " FROM " + fp.targetTable + where + "))", args
+
+	l := len(fp.path)
+	sql := fp.localField
+	closeParesis := strings.Repeat(")", l)
+	for i := 0; i < l-1; i++ {
+		sql += " IN (SELECT " + fp.joinIds[i] + " FROM " + fp.joinTables[i] + " WHERE " + fp.joinIds[i+1]
+	}
+	return sql + " IN (SELECT " + fp.foreignField + " FROM " + fp.targetTable + where + closeParesis, args
 }
