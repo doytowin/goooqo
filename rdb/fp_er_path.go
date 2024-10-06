@@ -41,7 +41,11 @@ func buildFpErPath(field reflect.StructField) FieldProcessor {
 		joinTables[i] = FormatJoinTable(path[i], path[i+1])
 	}
 	targetTable := FormatTable(path[l-1])
-	return &fpERPath{ERPath{path, joinTables, joinIds, targetTable, "id", "id"}}
+	localFieldColumn := core.ConvertToColumnCase(field.Tag.Get("localField"))
+	if localFieldColumn == "" {
+		localFieldColumn = "id"
+	}
+	return &fpERPath{ERPath{path, joinTables, joinIds, targetTable, localFieldColumn, "id"}}
 }
 
 func (fp *fpERPath) Process(value reflect.Value) (string, []any) {

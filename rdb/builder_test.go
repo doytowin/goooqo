@@ -81,6 +81,12 @@ INTERSECT SELECT role_id FROM a_role_and_perm WHERE perm_id IN (SELECT id FROM t
 			" WHERE id IN (SELECT role_id FROM a_user_and_role WHERE user_id IN (SELECT id FROM t_user WHERE id IN (?, ?, ?)))",
 			[]any{1, 3, 4},
 		},
+		{
+			"Query children menu by parent id | one-to-many",
+			MenuQuery{Parent: &MenuQuery{Id: P(1)}},
+			" WHERE parent_id IN (SELECT id FROM t_menu WHERE id = ?)",
+			[]any{1},
+		},
 	}
 	RegisterJoinTable("role", "user", "a_user_and_role")
 	for _, tt := range tests {
