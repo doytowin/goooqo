@@ -22,6 +22,7 @@ type MenuQuery struct {
 	PageQuery
 	Id *int
 
+	User     *UserQuery `erpath:"menu,perm,role,user"`
 	Parent   *MenuQuery `erpath:"menu" localField:"ParentId"`
 	Children *MenuQuery `erpath:"menu" foreignField:"ParentId"`
 }

@@ -93,8 +93,20 @@ INTERSECT SELECT role_id FROM a_role_and_perm WHERE perm_id IN (SELECT id FROM t
 			" WHERE id IN (SELECT parent_id FROM t_menu WHERE id = ?)",
 			[]any{1},
 		},
+		{
+			"Query menus by assigned users | many-to-many",
+			MenuQuery{User: &UserQuery{ScoreLt: P(80)}},
+			" WHERE id IN (" +
+				"SELECT menu_id FROM a_perm_and_menu WHERE perm_id IN (" +
+				"SELECT perm_id FROM a_role_and_perm WHERE role_id IN (" +
+				"SELECT role_id FROM a_user_and_role WHERE user_id IN (" +
+				"SELECT id FROM t_user WHERE score < ?))))",
+			[]any{80},
+		},
 	}
 	RegisterJoinTable("role", "user", "a_user_and_role")
+	RegisterJoinTable("menu", "perm", "a_perm_and_menu")
+	RegisterJoinTable("perm", "role", "a_role_and_perm")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, args := BuildWhereClause(tt.query)
