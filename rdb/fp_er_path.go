@@ -45,7 +45,11 @@ func buildFpErPath(field reflect.StructField) FieldProcessor {
 	if localFieldColumn == "" {
 		localFieldColumn = "id"
 	}
-	return &fpERPath{ERPath{path, joinTables, joinIds, targetTable, localFieldColumn, "id"}}
+	foreignFieldColumn := core.ConvertToColumnCase(field.Tag.Get("foreignField"))
+	if foreignFieldColumn == "" {
+		foreignFieldColumn = "id"
+	}
+	return &fpERPath{ERPath{path, joinTables, joinIds, targetTable, localFieldColumn, foreignFieldColumn}}
 }
 
 func (fp *fpERPath) Process(value reflect.Value) (string, []any) {
