@@ -84,10 +84,6 @@ type UserEntity struct {
 	Deleted *bool   `json:"deleted"`
 }
 
-func (u UserEntity) GetTableName() string {
-	return "t_user"
-}
-
 type UserQuery struct {
 	PageQuery
 	IdGt     *int64

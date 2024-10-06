@@ -10,7 +10,11 @@
 
 package rdb
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
 
 var Config = struct {
 	TableFormat     string
@@ -26,6 +30,15 @@ var m = map[string]string{}
 
 func FormatTable(domain string) string {
 	return fmt.Sprintf(Config.TableFormat, domain)
+}
+
+func FormatTableByEntity(entity any) string {
+	if rdbEntity, ok := entity.(RdbEntity); ok {
+		return rdbEntity.GetTableName()
+	}
+	name := reflect.ValueOf(entity).Type().Name()
+	name = strings.ToLower(strings.TrimSuffix(name, "Entity"))
+	return fmt.Sprintf(Config.TableFormat, name)
 }
 
 func FormatJoinId(domain string) string {

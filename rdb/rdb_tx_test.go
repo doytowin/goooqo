@@ -52,9 +52,9 @@ func TestWeb(t *testing.T) {
 		defer tc.Rollback()
 
 		tx := tc.(*rdbTransactionContext).tx
-		tx.ExecContext(tc, "DELETE FROM User WHERE id IN (1, 2)")
+		tx.ExecContext(tc, "DELETE FROM t_user WHERE id IN (1, 2)")
 		NoError(tc.SavePoint("delete0"))
-		tx.ExecContext(tc, "DELETE FROM User WHERE id IN (3, 4)")
+		tx.ExecContext(tc, "DELETE FROM t_user WHERE id IN (3, 4)")
 		NoError(tc.RollbackTo("delete0"))
 		entities, _ := userDataAccess.Query(tc, &UserQuery{})
 		if !(len(entities) == 2 && entities[0].Id == 3 && entities[1].Id == 4) {

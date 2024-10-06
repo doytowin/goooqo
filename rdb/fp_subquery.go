@@ -30,6 +30,8 @@ func (fp *fpSubquery) Process(value reflect.Value) (string, []any) {
 func (fp *fpSubquery) Subquery() string {
 	if em := emMap[fp.from]; em != nil {
 		fp.from = em.TableName
+	} else {
+		fp.from = FormatTable(core.ConvertToColumnCase(fp.from))
 	}
 	return fp.column + fp.sign + "(SELECT " + fp.select_ + " FROM " + fp.from
 }

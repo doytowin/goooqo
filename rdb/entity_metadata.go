@@ -129,7 +129,7 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) (string, [
 	return sqlStr, args
 }
 
-func buildEntityMetadata[E RdbEntity]() EntityMetadata[E] {
+func buildEntityMetadata[E Entity]() EntityMetadata[E] {
 	entity := *new(E)
 	entityType := reflect.TypeOf(entity)
 	columnMetas := BuildColumnMetas(entityType)
@@ -146,7 +146,7 @@ func buildEntityMetadata[E RdbEntity]() EntityMetadata[E] {
 		}
 	}
 
-	tableName := entity.GetTableName()
+	tableName := FormatTableByEntity(entity)
 
 	placeholders := "(?" + strings.Repeat(", ?", len(columnsWithoutId)-1) + ")"
 	createStr := "INSERT INTO " + tableName +

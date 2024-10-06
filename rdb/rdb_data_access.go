@@ -38,7 +38,7 @@ func logSqlWithArgs(sqlStr string, args []any) (string, []any) {
 	return sqlStr, args
 }
 
-func NewTxDataAccess[E RdbEntity](tm TransactionManager) TxDataAccess[E] {
+func NewTxDataAccess[E Entity](tm TransactionManager) TxDataAccess[E] {
 	return &relationalDataAccess[E]{
 		TransactionManager: tm,
 		conn:               tm.GetClient().(Connection),

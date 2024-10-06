@@ -18,10 +18,6 @@ type UserEntity struct {
 	Memo  *string `json:"memo"`
 }
 
-func (u UserEntity) GetTableName() string {
-	return "User"
-}
-
 type UserQuery struct {
 	PageQuery
 	IdGt     *int
