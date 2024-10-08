@@ -47,6 +47,9 @@ func TestProcess(t *testing.T) {
 		{"MemoRx", "memo REGEXP ?", "[test\\d]", reflect.ValueOf("test\\d")},
 		{"memoNull", "memo IS NULL", nil, reflect.ValueOf(true)},
 		{"memoNull", "memo IS NOT NULL", nil, reflect.ValueOf(false)},
+
+		{"idIn", "", []int{}, reflect.ValueOf([]int{})},
+		{"idNotIn", "", []int{}, reflect.ValueOf([]int{})},
 	}
 	for _, useCase := range useCases {
 		t.Run(useCase.field, func(t *testing.T) {
