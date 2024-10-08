@@ -24,13 +24,6 @@ type FieldProcessor interface {
 	Process(value reflect.Value) (string, []any)
 }
 
-type fpLogging struct{ string }
-
-func (fp *fpLogging) Process(reflect.Value) (string, []any) {
-	log.Info("Not supported for: ", fp.string)
-	return "", []any{}
-}
-
 func buildFpKey(queryType reflect.Type, field reflect.StructField) string {
 	return queryType.PkgPath() + ":" + queryType.Name() + ":" + field.Name
 }
@@ -74,7 +67,7 @@ func registerFpByType(queryType reflect.Type) {
 			} else if match := subOfRgx.FindStringSubmatch(field.Name); len(match) > 0 {
 				fpMap[fpKey] = BuildByFieldName(match)
 			} else {
-				fpMap[fpKey] = &fpLogging{fpKey}
+				log.Debug("Not mapped by field processor : ", fpKey)
 			}
 		} else if _, ok := field.Tag.Lookup("condition"); ok {
 			fpMap[fpKey] = buildFpCustom(field)
