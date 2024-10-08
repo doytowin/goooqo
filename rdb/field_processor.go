@@ -58,21 +58,25 @@ func registerFpByType(queryType reflect.Type) {
 		} else if strings.HasSuffix(field.Name, "And") {
 			fpMap[fpKey] = fpForAnd
 		} else if field.Type.Implements(typeQuery) {
-			if _, ok := field.Tag.Lookup("erpath"); ok {
-				fpMap[fpKey] = buildFpErPath(field)
-			} else if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
-				fpMap[fpKey] = BuildBySubqueryTag(subqueryTag, field.Name)
-			} else if _, ok := field.Tag.Lookup("select"); ok {
-				fpMap[fpKey] = BuildBySelectTag(field.Tag, field.Name)
-			} else if match := subOfRgx.FindStringSubmatch(field.Name); len(match) > 0 {
-				fpMap[fpKey] = BuildByFieldName(match)
-			} else {
-				log.Debug("Not mapped by field processor : ", fpKey)
-			}
+			buildForQuery(field, fpKey)
 		} else if _, ok := field.Tag.Lookup("condition"); ok {
 			fpMap[fpKey] = buildFpCustom(field)
 		} else {
 			fpMap[fpKey] = buildFpSuffix(field.Name)
 		}
+	}
+}
+
+func buildForQuery(field reflect.StructField, fpKey string) {
+	if _, ok := field.Tag.Lookup("erpath"); ok {
+		fpMap[fpKey] = buildFpErPath(field)
+	} else if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
+		fpMap[fpKey] = BuildBySubqueryTag(subqueryTag, field.Name)
+	} else if _, ok := field.Tag.Lookup("select"); ok {
+		fpMap[fpKey] = BuildBySelectTag(field.Tag, field.Name)
+	} else if match := subOfRgx.FindStringSubmatch(field.Name); len(match) > 0 {
+		fpMap[fpKey] = BuildByFieldName(match)
+	} else {
+		log.Debug("Not mapped by field processor : ", fpKey)
 	}
 }
