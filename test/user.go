@@ -37,6 +37,22 @@ type UserQuery struct {
 	ScoreInScoreOfUser    *UserQuery
 	ScoreGtAvgScoreOfUser *UserQuery
 
+	/**
+	id IN (
+		SELECT user_id FROM a_user_and_role WHERE role_id IN (
+			SELECT id FROM t_role WHERE ...
+		)
+	)*/
 	Role *RoleQuery `erpath:"user,role"`
+
+	/**
+	id IN (
+		SELECT user_id FROM a_user_and_role WHERE role_id IN (
+			SELECT id FROM t_role WHERE ... INTERSECT
+			SELECT role_id FROM a_role_and_perm WHERE perm_id IN (
+				SELECT id FROM t_perm WHERE ...
+			)
+		)
+	)*/
 	Perm *PermQuery `erpath:"user,role,perm"`
 }

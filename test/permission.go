@@ -17,5 +17,6 @@ type PermQuery struct {
 	Id   *int
 	Code *string
 
+	// used before INTERSECT in UserQuery.Perm
 	RoleQuery *RoleQuery
 }
