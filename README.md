@@ -3,7 +3,6 @@
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
 
 GoooQo
-===
 ---
 
 ## Introduction
@@ -156,5 +155,3 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
 License
 ---
 This project is under the [BSD 3-Clause Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear).
-
-> This is currently an experimental project and is not suitable for production usage.

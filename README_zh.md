@@ -3,7 +3,6 @@
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
 
 GoooQo
-===
 ---
 
 ## 项目介绍
@@ -159,5 +158,3 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
 许可证
 ---
 本项目遵循[BSD 3-Clause Clear License](https://spdx.org/licenses/BSD-3-Clause-Clear)。
-
-> 本产品目前尚处于验证阶段，请谨慎用于生产环境。
