@@ -22,19 +22,24 @@ type MenuQuery struct {
 	PageQuery
 	Id *int
 
+	// Query the submenus of a specific parent menu:
+	// parent_id IN (SELECT id FROM t_menu WHERE [conditions])
+	Parent *MenuQuery `erpath:"menu" localField:"ParentId"`
+
+	// Query the parent menu of a specific submenu:
+	// id IN (SELECT parent_id FROM t_menu WHERE [conditions])
+	Children *MenuQuery `erpath:"menu" foreignField:"ParentId"`
+
 	/**
+	Query the menus accessible to a specific user:
 	id IN (
 		SELECT menu_id FROM a_perm_and_menu WHERE perm_id IN (
 			SELECT perm_id FROM a_role_and_perm WHERE role_id IN (
 				SELECT role_id FROM a_user_and_role WHERE user_id IN (
-					SELECT id FROM t_user WHERE score < ?
+					SELECT id FROM t_user WHERE [conditions]
 				)
 			)
 		)
 	)*/
 	User *UserQuery `erpath:"menu,perm,role,user"`
-	/* parent_id IN (SELECT id FROM t_menu WHERE id = ?) */
-	Parent *MenuQuery `erpath:"menu" localField:"ParentId"`
-	/* id IN (SELECT parent_id FROM t_menu WHERE id = ?) */
-	Children *MenuQuery `erpath:"menu" foreignField:"ParentId"`
 }
