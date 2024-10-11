@@ -2,4 +2,10 @@ go 1.18
 
 use (
 	core
+	test
+	rdb
+	web
+	gen
+	mongodb
+	main
 )
