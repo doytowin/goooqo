@@ -11,13 +11,13 @@
 package main
 
 import (
-	"github.com/doytowin/goooqo"
+	. "github.com/doytowin/goooqo/core"
 	"github.com/doytowin/goooqo/mongodb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type InventoryQuery struct {
-	goooqo.PageQuery
+	PageQuery
 	Id             *primitive.ObjectID
 	IdNe           *primitive.ObjectID
 	IdIn           *[]primitive.ObjectID
