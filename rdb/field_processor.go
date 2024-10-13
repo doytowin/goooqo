@@ -68,8 +68,8 @@ func registerFpByType(queryType reflect.Type) {
 }
 
 func buildForQuery(field reflect.StructField, fpKey string) {
-	if _, ok := field.Tag.Lookup("erpath"); ok {
-		fpMap[fpKey] = buildFpErPath(field)
+	if _, ok := field.Tag.Lookup("entitypath"); ok {
+		fpMap[fpKey] = buildFpEntityPath(field)
 	} else if subqueryTag, ok := field.Tag.Lookup("subquery"); ok {
 		fpMap[fpKey] = BuildBySubqueryTag(subqueryTag, field.Name)
 	} else if _, ok := field.Tag.Lookup("select"); ok {

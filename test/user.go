@@ -43,7 +43,7 @@ type UserQuery struct {
 			SELECT id FROM t_role WHERE ...
 		)
 	)*/
-	Role *RoleQuery `erpath:"user,role"`
+	Role *RoleQuery `entitypath:"user,role"`
 
 	/**
 	id IN (
@@ -54,5 +54,5 @@ type UserQuery struct {
 			)
 		)
 	)*/
-	Perm *PermQuery `erpath:"user,role,perm"`
+	Perm *PermQuery `entitypath:"user,role,perm"`
 }

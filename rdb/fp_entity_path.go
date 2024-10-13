@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-type ERPath struct {
+type EntityPath struct {
 	path         []string
 	joinTables   []string
 	joinIds      []string
@@ -25,12 +25,12 @@ type ERPath struct {
 	foreignField string
 }
 
-type fpERPath struct {
-	ERPath
+type fpEntityPath struct {
+	EntityPath
 }
 
-func buildFpErPath(field reflect.StructField) FieldProcessor {
-	path := strings.Split(field.Tag.Get("erpath"), ",")
+func buildFpEntityPath(field reflect.StructField) FieldProcessor {
+	path := strings.Split(field.Tag.Get("entitypath"), ",")
 	l := len(path)
 	joinIds := make([]string, l)
 	for i, domain := range path {
@@ -49,10 +49,10 @@ func buildFpErPath(field reflect.StructField) FieldProcessor {
 	if foreignFieldColumn == "" {
 		foreignFieldColumn = "id"
 	}
-	return &fpERPath{ERPath{path, joinTables, joinIds, targetTable, localFieldColumn, foreignFieldColumn}}
+	return &fpEntityPath{EntityPath{path, joinTables, joinIds, targetTable, localFieldColumn, foreignFieldColumn}}
 }
 
-func (fp *fpERPath) Process(value reflect.Value) (string, []any) {
+func (fp *fpEntityPath) Process(value reflect.Value) (string, []any) {
 	args := make([]any, 0)
 
 	l := len(fp.path)
