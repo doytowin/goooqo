@@ -36,7 +36,7 @@ Product documentation: https://goooqo.docs.doyto.win/
 Use `go mod init` to init the project and add GoooQo dependency:
 
 ```
-go get -u github.com/doytowin/goooqo
+go get -u github.com/doytowin/goooqo/rdb
 ```
 
 Init the database connection and transaction manager:
@@ -72,6 +72,8 @@ Suppose we have the following user table in `test.db`:
 We define an entity object and a query object for this table:
 
 ```go
+import . "github.com/doytowin/goooqo/core"
+
 type UserEntity struct {
 	Int64Id
 	Name    *string `json:"name"`

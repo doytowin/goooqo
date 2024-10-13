@@ -37,7 +37,7 @@ OQM技术提出了一种解决n个查询条件动态组合问题的新方法，
 使用`go mod init`初始化项目并添加GoooQo依赖：
 
 ```
-go get -u github.com/doytowin/goooqo
+go get -u github.com/doytowin/goooqo/rdb
 ```
 
 初始化数据库连接和事务管理器：
@@ -75,6 +75,8 @@ func main() {
 我们为该表定义一个实体对象和一个查询对象：
 
 ```go
+import . "github.com/doytowin/goooqo/core"
+
 type UserEntity struct {
 	Int64Id
 	Name    *string `json:"name"`
