@@ -1,6 +1,7 @@
 [![Sonar Stats](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=alert_status)](https://sonarcloud.io/dashboard?id=win.doyto.goooqo)
 [![Code Lines](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=ncloc)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=ncloc)
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
+<a href="https://www.producthunt.com/posts/goooqo?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-goooqo" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=516822&theme=light" alt="ProductHunt" style="width: 250px; height: 54px;" width="250" height="54"/></a>
 
 GoooQo
 ---
