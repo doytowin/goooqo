@@ -38,3 +38,5 @@ type UserQuery struct {
 	ScoreLtAll *UserQuery `subquery:"select score from User"`
 	ScoreGtAvg *UserQuery `select:"avg(score)" from:"User"`
 }
+
+var UserDataAccess TxDataAccess[UserEntity]

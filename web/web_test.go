@@ -32,8 +32,8 @@ func TestWeb(t *testing.T) {
 	ctx := context.Background()
 	tm := rdb.NewTransactionManager(db)
 
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
-	rs := NewRestService[UserEntity, UserQuery]("/user/", userDataAccess)
+	UserDataAccess = rdb.NewTxDataAccess[UserEntity](tm)
+	rs := NewRestService[UserEntity, UserQuery]("/user/", UserDataAccess)
 
 	t.Run("Should return empty array instead of null when no data found.", func(t *testing.T) {
 		tm.SubmitTransaction(ctx, func(tc core.TransactionContext) error {

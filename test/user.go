@@ -56,3 +56,5 @@ type UserQuery struct {
 	)*/
 	Perm *PermQuery `entitypath:"user,role,perm"`
 }
+
+var UserDataAccess TxDataAccess[UserEntity]

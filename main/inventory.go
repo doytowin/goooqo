@@ -79,3 +79,5 @@ func (r InventoryEntity) Database() string {
 func (r InventoryEntity) Collection() string {
 	return "inventory"
 }
+
+var InventoryDataAccess TxDataAccess[InventoryEntity]

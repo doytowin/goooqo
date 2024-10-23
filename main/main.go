@@ -52,19 +52,20 @@ func init() {
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-	db := rdb.Connect("local.properties")
+	db := rdb.Connect("app.properties")
 	test.InitDB(db)
 	defer rdb.Disconnect(db)
 	tm := rdb.NewTransactionManager(db)
-
-	buildUserModule(tm)
+	UserDataAccess = rdb.NewTxDataAccess[UserEntity](tm)
 
 	ctx := context.Background()
-	var client = mongodb.Connect(ctx, "local.properties")
+	var client = mongodb.Connect(ctx, "app.properties")
 	defer mongodb.Disconnect(client, ctx)
 
 	mtm := mongodb.NewMongoTransactionManager(client)
-	buildInventoryModule(mtm)
+	InventoryDataAccess = mongodb.NewMongoDataAccess[InventoryEntity](mtm)
+
+	buildWebModules()
 
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
@@ -72,12 +73,7 @@ func main() {
 	}
 }
 
-func buildUserModule(tm core.TransactionManager) {
-	userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
-	web.BuildRestService[UserEntity, UserQuery]("/user/", userDataAccess)
-}
-
-func buildInventoryModule(tm core.TransactionManager) {
-	mongoDataAccess := mongodb.NewMongoDataAccess[InventoryEntity](tm)
-	web.BuildRestService[InventoryEntity, InventoryQuery]("/inventory/", mongoDataAccess)
+func buildWebModules() {
+	web.BuildRestService[UserEntity, UserQuery]("/user/", UserDataAccess)
+	web.BuildRestService[InventoryEntity, InventoryQuery]("/inventory/", InventoryDataAccess)
 }
