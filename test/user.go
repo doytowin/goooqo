@@ -16,6 +16,8 @@ type UserEntity struct {
 	Int64Id
 	Score *int    `json:"score"`
 	Memo  *string `json:"memo"`
+
+	Roles []RoleEntity `entitypath:"user,role"`
 }
 
 type UserQuery struct {
@@ -43,7 +45,8 @@ type UserQuery struct {
 			SELECT id FROM t_role WHERE ...
 		)
 	)*/
-	Role *RoleQuery `entitypath:"user,role"`
+	Role      *RoleQuery `entitypath:"user,role"`
+	WithRoles *RoleQuery
 
 	/**
 	id IN (

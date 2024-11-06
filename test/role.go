@@ -12,6 +12,13 @@ package test
 
 import . "github.com/doytowin/goooqo/core"
 
+type RoleEntity struct {
+	IntId
+	RoleName     *string
+	RoleCode     *string
+	CreateUserId *int
+}
+
 type RoleQuery struct {
 	PageQuery
 	Id    *int

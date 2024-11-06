@@ -16,15 +16,11 @@ import (
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
+	"strings"
 )
 
 type Connection interface {
 	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
-}
-
-type ConnectionCtx interface {
-	context.Context
-	Connection
 }
 
 type relationalDataAccess[E Entity] struct {
@@ -47,7 +43,7 @@ func NewTxDataAccess[E Entity](tm TransactionManager) TxDataAccess[E] {
 }
 
 // getConn get connection from ctx, wrap the ctx and
-// connection by ConnectionCtx as return value.
+// connection by Connection as return value.
 // ctx could be a TransactionContext with an active tx.
 func (da *relationalDataAccess[E]) getConn(ctx context.Context) Connection {
 	if tc, ok := ctx.(*rdbTransactionContext); ok {
@@ -67,7 +63,11 @@ func (da *relationalDataAccess[E]) Get(ctx context.Context, id any) (*E, error) 
 
 func (da *relationalDataAccess[E]) Query(ctx context.Context, query Query) ([]E, error) {
 	sqlStr, args := da.em.buildSelect(query)
-	return da.doQuery(ctx, sqlStr, args, query.GetPageSize())
+	entities, err := da.doQuery(ctx, sqlStr, args, query.GetPageSize())
+	if NoError(err) && len(da.em.relationMetas) > 0 {
+		da.queryRelationEntities(ctx, entities, query)
+	}
+	return entities, err
 }
 
 func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, args []any, size int) ([]E, error) {
@@ -93,6 +93,62 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 				err = rows.Scan(pointers...)
 				if NoError(err) {
 					result = append(result, entity)
+				}
+			}
+		}
+	}
+
+	return result, err
+}
+
+func (da *relationalDataAccess[E]) queryRelationEntities(ctx context.Context, entities []E, query Query) {
+	for _, rm := range da.em.relationMetas {
+		sliceType := rm.Field.Type
+		fieldMetas := BuildFieldMetas(sliceType.Elem())
+
+		columns := buildColumns(fieldMetas)
+		ep := fpEntityPath{*rm.EntityPath}
+		sqlStr := ep.buildSql(columns)
+
+		for i, entity := range entities {
+			relatedEntities, err := QueryRelated(ctx, da.getConn(ctx), sqlStr, []any{entity.GetId()}, fieldMetas, sliceType)
+			if NoError(err) {
+				reflect.ValueOf(&entities[i]).Elem().FieldByName(rm.Field.Name).Set(relatedEntities)
+			}
+		}
+	}
+}
+
+func buildColumns(fieldMetas []FieldMetadata) string {
+	columns := make([]string, 0, len(fieldMetas))
+	for _, md := range fieldMetas {
+		if md.EntityPath == nil {
+			columns = append(columns, md.ColumnName)
+		}
+	}
+	return strings.Join(columns, ", ")
+}
+
+func QueryRelated(ctx context.Context, conn Connection, sqlStr string, args []any,
+	fmArr []FieldMetadata, sliceType reflect.Type) (reflect.Value, error) {
+	logSqlWithArgs(sqlStr, args)
+
+	entity := reflect.New(sliceType.Elem()).Elem()
+	pointers := make([]any, len(fmArr))
+	for i, fm := range fmArr {
+		pointers[i] = entity.FieldByName(fm.Field.Name).Addr().Interface()
+	}
+
+	stmt, err := conn.PrepareContext(ctx, sqlStr)
+	result := reflect.MakeSlice(sliceType, 0, 10)
+	if NoError(err) {
+		defer Close(stmt)
+		rows, err := stmt.QueryContext(ctx, args...)
+		if NoError(err) {
+			for rows.Next() {
+				err = rows.Scan(pointers...)
+				if NoError(err) {
+					result = reflect.Append(result, entity)
 				}
 			}
 		}

@@ -12,29 +12,67 @@ package core
 
 import (
 	"reflect"
+	"strings"
 )
 
-type ColumnMetadata struct {
+type FieldMetadata struct {
 	Field      reflect.StructField
 	IsId       bool
 	ColumnName string
+	EntityPath *EntityPath
 }
 
-func BuildColumnMetas(structType reflect.Type) []ColumnMetadata {
-	columnMetas := make([]ColumnMetadata, 0, structType.NumField())
+func BuildFieldMetas(structType reflect.Type) []FieldMetadata {
+	fieldMetas := make([]FieldMetadata, 0, structType.NumField())
 	for i := 0; i < structType.NumField(); i++ {
-		columnMetas = append(columnMetas, buildColumnMetadata(structType.Field(i))...)
+		fieldMetas = append(fieldMetas, buildFieldMetadata(structType.Field(i))...)
 	}
-	return columnMetas
+	return fieldMetas
 }
 
-func buildColumnMetadata(field reflect.StructField) []ColumnMetadata {
+func buildFieldMetadata(field reflect.StructField) []FieldMetadata {
 	if field.Type.Kind() == reflect.Struct {
-		return BuildColumnMetas(field.Type)
+		return BuildFieldMetas(field.Type)
 	}
-	return []ColumnMetadata{{
+	cm := FieldMetadata{
 		Field:      field,
 		IsId:       field.Name == "Id",
 		ColumnName: ConvertToColumnCase(field.Name),
-	}}
+	}
+	if _, ok := field.Tag.Lookup("entitypath"); ok {
+		cm.EntityPath = BuildEntityPath(field)
+	}
+	return []FieldMetadata{cm}
+}
+
+type EntityPath struct {
+	Path         []string
+	JoinTables   []string
+	JoinIds      []string
+	TargetTable  string
+	LocalField   string
+	ForeignField string
+}
+
+func BuildEntityPath(field reflect.StructField) *EntityPath {
+	path := strings.Split(field.Tag.Get("entitypath"), ",")
+	l := len(path)
+	joinIds := make([]string, l)
+	for i, domain := range path {
+		joinIds[i] = FormatJoinId(domain)
+	}
+	joinTables := make([]string, l-1)
+	for i := 0; i < l-1; i++ {
+		joinTables[i] = FormatJoinTable(path[i], path[i+1])
+	}
+	targetTable := FormatTable(path[l-1])
+	localFieldColumn := ConvertToColumnCase(field.Tag.Get("localField"))
+	if localFieldColumn == "" {
+		localFieldColumn = "id"
+	}
+	foreignFieldColumn := ConvertToColumnCase(field.Tag.Get("foreignField"))
+	if foreignFieldColumn == "" {
+		foreignFieldColumn = "id"
+	}
+	return &EntityPath{path, joinTables, joinIds, targetTable, localFieldColumn, foreignFieldColumn}
 }

@@ -11,63 +11,45 @@
 package rdb
 
 import (
-	"github.com/doytowin/goooqo/core"
+	. "github.com/doytowin/goooqo/core"
 	"reflect"
 	"strings"
 )
-
-type EntityPath struct {
-	path         []string
-	joinTables   []string
-	joinIds      []string
-	targetTable  string
-	localField   string
-	foreignField string
-}
 
 type fpEntityPath struct {
 	EntityPath
 }
 
 func buildFpEntityPath(field reflect.StructField) FieldProcessor {
-	path := strings.Split(field.Tag.Get("entitypath"), ",")
-	l := len(path)
-	joinIds := make([]string, l)
-	for i, domain := range path {
-		joinIds[i] = FormatJoinId(domain)
-	}
-	joinTables := make([]string, l-1)
-	for i := 0; i < l-1; i++ {
-		joinTables[i] = FormatJoinTable(path[i], path[i+1])
-	}
-	targetTable := FormatTable(path[l-1])
-	localFieldColumn := core.ConvertToColumnCase(field.Tag.Get("localField"))
-	if localFieldColumn == "" {
-		localFieldColumn = "id"
-	}
-	foreignFieldColumn := core.ConvertToColumnCase(field.Tag.Get("foreignField"))
-	if foreignFieldColumn == "" {
-		foreignFieldColumn = "id"
-	}
-	return &fpEntityPath{EntityPath{path, joinTables, joinIds, targetTable, localFieldColumn, foreignFieldColumn}}
+	return &fpEntityPath{*BuildEntityPath(field)}
 }
 
 func (fp *fpEntityPath) Process(value reflect.Value) (string, []any) {
 	args := make([]any, 0)
 
-	l := len(fp.path)
-	sql := fp.localField + " IN ("
+	l := len(fp.Path)
+	sql := fp.LocalField + " IN ("
 	closeParesis := strings.Repeat(")", l)
 	for i := 0; i < l-1; i++ {
-		queryValue := value.FieldByName(core.Capitalize(fp.path[i]) + "Query")
+		queryValue := value.FieldByName(Capitalize(fp.Path[i]) + "Query")
 		if queryValue.IsValid() && !queryValue.IsNil() {
 			where0, args0 := BuildWhereClause(queryValue.Interface())
-			sql += "SELECT id FROM " + FormatTable(fp.path[i]) + where0 + "\nINTERSECT "
+			sql += "SELECT id FROM " + FormatTable(fp.Path[i]) + where0 + "\nINTERSECT "
 			args = append(args, args0...)
 		}
-		sql += "SELECT " + fp.joinIds[i] + " FROM " + fp.joinTables[i] + " WHERE " + fp.joinIds[i+1] + " IN ("
+		sql += "SELECT " + fp.JoinIds[i] + " FROM " + fp.JoinTables[i] + " WHERE " + fp.JoinIds[i+1] + " IN ("
 	}
 	where, args0 := BuildWhereClause(value.Interface())
 	args = append(args, args0...)
-	return sql + "SELECT " + fp.foreignField + " FROM " + fp.targetTable + where + closeParesis, args
+	return sql + "SELECT " + fp.ForeignField + " FROM " + fp.TargetTable + where + closeParesis, args
+}
+
+func (fp *fpEntityPath) buildSql(columns string) string {
+	return "SELECT " + columns +
+		" FROM " + fp.TargetTable +
+		" WHERE " + fp.LocalField +
+		" IN (" +
+		"SELECT " + fp.JoinIds[1] +
+		" FROM " + fp.JoinTables[0] +
+		" WHERE " + fp.JoinIds[0] + " = ?)"
 }

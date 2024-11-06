@@ -11,6 +11,7 @@
 package rdb
 
 import (
+	"fmt"
 	. "github.com/doytowin/goooqo/core"
 	"reflect"
 	"strings"
@@ -25,7 +26,8 @@ type metadata struct {
 
 type EntityMetadata[E Entity] struct {
 	metadata
-	columnMetas     []ColumnMetadata
+	columnMetas     []FieldMetadata
+	relationMetas   []FieldMetadata
 	ColStr          string
 	fieldsWithoutId []string
 	createStr       string
@@ -129,10 +131,30 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) (string, [
 	return sqlStr, args
 }
 
+func FormatTableByEntity(entity any) string {
+	if rdbEntity, ok := entity.(RdbEntity); ok {
+		return rdbEntity.GetTableName()
+	}
+	name := reflect.ValueOf(entity).Type().Name()
+	name = strings.ToLower(strings.TrimSuffix(name, "Entity"))
+	return fmt.Sprintf(Config.TableFormat, name)
+}
+
 func buildEntityMetadata[E Entity]() EntityMetadata[E] {
 	entity := *new(E)
 	entityType := reflect.TypeOf(entity)
-	columnMetas := BuildColumnMetas(entityType)
+	fieldMetas := BuildFieldMetas(entityType)
+
+	columnMetas := make([]FieldMetadata, 0, len(fieldMetas))
+	relationMetas := make([]FieldMetadata, 0, len(fieldMetas))
+
+	for _, md := range fieldMetas {
+		if md.EntityPath == nil {
+			columnMetas = append(columnMetas, md)
+		} else {
+			relationMetas = append(relationMetas, md)
+		}
+	}
 
 	columns := make([]string, len(columnMetas))
 	columnsWithoutId := make([]string, 0, len(columnMetas))
@@ -163,6 +185,7 @@ func buildEntityMetadata[E Entity]() EntityMetadata[E] {
 	return EntityMetadata[E]{
 		metadata:        *emMap[entityType.Name()],
 		columnMetas:     columnMetas,
+		relationMetas:   relationMetas,
 		ColStr:          strings.Join(columns, ", "),
 		fieldsWithoutId: fieldsWithoutId,
 		createStr:       createStr,

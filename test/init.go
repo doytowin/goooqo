@@ -12,11 +12,37 @@ package test
 
 import (
 	"database/sql"
+	"github.com/doytowin/goooqo/core"
 	_ "github.com/mattn/go-sqlite3"
+	"strings"
 )
 
 func InitDB(db *sql.DB) {
-	_, _ = db.Exec("drop table t_user")
-	_, _ = db.Exec("create table t_user(id integer constraint user_pk primary key autoincrement, score int, memo varchar(255))")
-	_, _ = db.Exec("insert into t_user(score, memo) values (85, 'Good'), (40, 'Bad'), (55, null), (62, 'Well')")
+	sqlText := `
+drop table t_user;
+drop table t_role;
+
+create table t_user(id integer constraint user_pk primary key autoincrement, score integer, memo varchar(255));
+create table t_role(id integer constraint role_pk primary key autoincrement, role_name varchar(30), role_code varchar(30), create_user_id integer);
+
+drop table a_user_and_role;
+create table a_user_and_role (user_id int, role_id int, PRIMARY KEY (user_id, role_id));
+
+INSERT INTO t_user(score, memo) VALUES (85, 'Good'), (40, 'Bad'), (55, null), (62, 'Well');
+INSERT INTO t_role (role_name, role_code, create_user_id) VALUES ('admin', 'ADMIN', 1);
+INSERT INTO t_role (role_name, role_code, create_user_id) VALUES ('vip', 'VIP', 2);
+INSERT INTO t_role (role_name, role_code, create_user_id) VALUES ('vip2', 'VIP2', 2);
+INSERT INTO t_role (role_name, role_code, create_user_id) VALUES ('vip3', 'VIP3', 0);
+INSERT INTO t_role (role_name, role_code) VALUES ('vip4', 'VIP4');
+
+INSERT INTO a_user_and_role (user_id, role_id) VALUES (1, 1);
+INSERT INTO a_user_and_role (user_id, role_id) VALUES (1, 2);
+INSERT INTO a_user_and_role (user_id, role_id) VALUES (3, 1);
+INSERT INTO a_user_and_role (user_id, role_id) VALUES (4, 1);
+INSERT INTO a_user_and_role (user_id, role_id) VALUES (4, 2);
+`
+	for _, statement := range strings.Split(sqlText, ";") {
+		_, err := db.Exec(statement)
+		core.NoError(err)
+	}
 }

@@ -15,6 +15,7 @@ import (
 	"errors"
 	. "github.com/doytowin/goooqo/core"
 	. "github.com/doytowin/goooqo/test"
+	"reflect"
 	"testing"
 )
 
@@ -234,5 +235,23 @@ func TestSQLite(t *testing.T) {
 			t.Errorf("\nExpected: %d\nBut got : %d", 0, count)
 		}
 		_ = tc.Rollback()
+	})
+
+	t.Run("Related Query: Query users with related roles", func(t *testing.T) {
+		userQuery := UserQuery{WithRoles: &RoleQuery{}}
+		users, err := userDataAccess.Query(ctx, &userQuery)
+
+		if err != nil {
+			t.Error("Error", err)
+		}
+		roleEntities := []RoleEntity{
+			{NewIntId(1), P("admin"), P("ADMIN"), P(1)},
+			{NewIntId(2), P("vip"), P("VIP"), P(2)},
+		}
+		if !(len(users) == 4 &&
+			reflect.DeepEqual(users[0].Roles, roleEntities) &&
+			reflect.DeepEqual(users[3].Roles, roleEntities)) {
+			t.Errorf("Data is not expected: %v", users)
+		}
 	})
 }
