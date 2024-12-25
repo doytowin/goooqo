@@ -22,10 +22,16 @@ type FieldMetadata struct {
 	EntityPath *EntityPath
 }
 
+var typeFmMap = make(map[reflect.Type][]FieldMetadata)
+
 func BuildFieldMetas(structType reflect.Type) []FieldMetadata {
-	fieldMetas := make([]FieldMetadata, 0, structType.NumField())
-	for i := 0; i < structType.NumField(); i++ {
-		fieldMetas = append(fieldMetas, buildFieldMetadata(structType.Field(i))...)
+	fieldMetas := typeFmMap[structType]
+	if fieldMetas == nil {
+		fieldMetas = make([]FieldMetadata, 0, structType.NumField())
+		for i := 0; i < structType.NumField(); i++ {
+			fieldMetas = append(fieldMetas, buildFieldMetadata(structType.Field(i))...)
+		}
+		typeFmMap[structType] = fieldMetas
 	}
 	return fieldMetas
 }
@@ -46,24 +52,22 @@ func buildFieldMetadata(field reflect.StructField) []FieldMetadata {
 }
 
 type EntityPath struct {
-	Path         []string
-	JoinTables   []string
-	JoinIds      []string
-	TargetTable  string
-	LocalField   string
-	ForeignField string
+	Path       []string
+	Base       Relation
+	Relations  []Relation
+	EntityType reflect.Type
+}
+
+type Relation struct {
+	Fk1, Fk2, At string
 }
 
 func BuildEntityPath(field reflect.StructField) *EntityPath {
 	path := strings.Split(field.Tag.Get("entitypath"), ",")
 	l := len(path)
-	joinIds := make([]string, l)
-	for i, domain := range path {
-		joinIds[i] = FormatJoinId(domain)
-	}
-	joinTables := make([]string, l-1)
+	relations := make([]Relation, l-1)
 	for i := 0; i < l-1; i++ {
-		joinTables[i] = FormatJoinTable(path[i], path[i+1])
+		relations[i] = buildRelation(path[i], path[i+1])
 	}
 	targetTable := FormatTable(path[l-1])
 	localFieldColumn := ConvertToColumnCase(field.Tag.Get("localField"))
@@ -74,5 +78,11 @@ func BuildEntityPath(field reflect.StructField) *EntityPath {
 	if foreignFieldColumn == "" {
 		foreignFieldColumn = "id"
 	}
-	return &EntityPath{path, joinTables, joinIds, targetTable, localFieldColumn, foreignFieldColumn}
+	base := Relation{localFieldColumn, foreignFieldColumn, targetTable}
+	return &EntityPath{path, base, relations, field.Type.Elem()}
+}
+
+// e1: left entity, e2: right entity
+func buildRelation(e1 string, e2 string) Relation {
+	return Relation{FormatJoinId(e1), FormatJoinId(e2), FormatJoinTable(e1, e2)}
 }

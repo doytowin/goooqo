@@ -24,11 +24,15 @@ func isValidValue(value reflect.Value) bool {
 }
 
 func BuildWhereClause(query any) (string, []any) {
+	return BuildConditions(" WHERE ", query)
+}
+
+func BuildConditions(prefix string, query any) (string, []any) {
 	conditions, args := buildConditions(query)
 	if len(conditions) == 0 {
 		return "", []any{}
 	}
-	return " WHERE " + strings.Join(conditions, " AND "), args
+	return prefix + strings.Join(conditions, " AND "), args
 }
 
 func buildConditions(query any) ([]string, []any) {

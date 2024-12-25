@@ -16,7 +16,6 @@ import (
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
 	"reflect"
-	"strings"
 )
 
 type Connection interface {
@@ -103,47 +102,39 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 
 func (da *relationalDataAccess[E]) queryRelationEntities(ctx context.Context, entities []E, query Query) {
 	for _, rm := range da.em.relationMetas {
-		sliceType := rm.Field.Type
-		fieldMetas := BuildFieldMetas(sliceType.Elem())
+		queryName := "With" + rm.Field.Name
+		entityQueryVal := reflect.ValueOf(query).Elem().FieldByName(queryName)
+		if !entityQueryVal.IsNil() {
+			ep := fpEntityPath{*rm.EntityPath}
+			sqlStr, args := ep.buildSql(entityQueryVal.Interface().(Query))
 
-		columns := buildColumns(fieldMetas)
-		ep := fpEntityPath{*rm.EntityPath}
-		sqlStr := ep.buildSql(columns)
-
-		for i, entity := range entities {
-			relatedEntities, err := QueryRelated(ctx, da.getConn(ctx), sqlStr, []any{entity.GetId()}, fieldMetas, sliceType)
-			if NoError(err) {
-				reflect.ValueOf(&entities[i]).Elem().FieldByName(rm.Field.Name).Set(relatedEntities)
+			for i, entity := range entities {
+				relatedEntities, err := QueryRelated(ctx, da.getConn(ctx), sqlStr,
+					append([]any{entity.GetId()}, args...), ep.EntityType)
+				if NoError(err) {
+					reflect.ValueOf(&entities[i]).Elem().FieldByName(rm.Field.Name).Set(relatedEntities)
+				}
 			}
 		}
 	}
 }
 
-func buildColumns(fieldMetas []FieldMetadata) string {
-	columns := make([]string, 0, len(fieldMetas))
-	for _, md := range fieldMetas {
-		if md.EntityPath == nil {
-			columns = append(columns, md.ColumnName)
-		}
-	}
-	return strings.Join(columns, ", ")
-}
-
-func QueryRelated(ctx context.Context, conn Connection, sqlStr string, args []any,
-	fmArr []FieldMetadata, sliceType reflect.Type) (reflect.Value, error) {
+func QueryRelated(ctx context.Context, conn Connection, sqlStr string, args []any, entityType reflect.Type) (reflect.Value, error) {
 	logSqlWithArgs(sqlStr, args)
 
-	entity := reflect.New(sliceType.Elem()).Elem()
+	entity := reflect.New(entityType).Elem()
+	fmArr := BuildFieldMetas(entityType)
 	pointers := make([]any, len(fmArr))
 	for i, fm := range fmArr {
 		pointers[i] = entity.FieldByName(fm.Field.Name).Addr().Interface()
 	}
 
 	stmt, err := conn.PrepareContext(ctx, sqlStr)
-	result := reflect.MakeSlice(sliceType, 0, 10)
+	result := reflect.MakeSlice(reflect.SliceOf(entityType), 0, 10)
 	if NoError(err) {
 		defer Close(stmt)
-		rows, err := stmt.QueryContext(ctx, args...)
+		var rows *sql.Rows
+		rows, err = stmt.QueryContext(ctx, args...)
 		if NoError(err) {
 			for rows.Next() {
 				err = rows.Scan(pointers...)
