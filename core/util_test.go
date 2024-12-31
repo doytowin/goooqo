@@ -35,3 +35,12 @@ func TestReadValue(t *testing.T) {
 	})
 
 }
+
+func TestToSnakeCase(t *testing.T) {
+	if got := ToSnakeCase("t_user"); got != ("t_user") {
+		t.Errorf("ToSnakeCase() = %v, want %v", got, "t_user")
+	}
+	if got := ToSnakeCase("UserEntity"); got != ("user_entity") {
+		t.Errorf("ToSnakeCase() = %v, want %v", got, "user_entity")
+	}
+}
