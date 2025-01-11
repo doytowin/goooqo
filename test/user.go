@@ -17,7 +17,7 @@ type UserEntity struct {
 	Score *int    `json:"score"`
 	Memo  *string `json:"memo"`
 
-	Roles []RoleEntity `entitypath:"user,role"`
+	Roles []RoleEntity `entitypath:"user,role" json:"roles,omitempty"`
 }
 
 type UserQuery struct {

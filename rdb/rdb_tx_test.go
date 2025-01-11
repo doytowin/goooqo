@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-func TestWeb(t *testing.T) {
+func TestTx(t *testing.T) {
 
 	db := Connect("app.properties")
 	InitDB(db)
@@ -56,7 +56,7 @@ func TestWeb(t *testing.T) {
 		NoError(tc.SavePoint("delete0"))
 		tx.ExecContext(tc, "DELETE FROM t_user WHERE id IN (3, 4)")
 		NoError(tc.RollbackTo("delete0"))
-		entities, _ := userDataAccess.Query(tc, &UserQuery{})
+		entities, _ := userDataAccess.Query(tc, UserQuery{})
 		if !(len(entities) == 2 && entities[0].Id == 3 && entities[1].Id == 4) {
 			t.Error("Should support SavePoint: ", entities)
 		}

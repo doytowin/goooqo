@@ -101,9 +101,13 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 }
 
 func (da *relationalDataAccess[E]) queryRelationEntities(ctx context.Context, entities []E, query Query) {
+	elem := reflect.ValueOf(query)
+	if elem.Kind() == reflect.Ptr {
+		elem = elem.Elem()
+	}
 	for _, rm := range da.em.relationMetas {
 		queryName := "With" + rm.Field.Name
-		entityQueryVal := reflect.ValueOf(query).Elem().FieldByName(queryName)
+		entityQueryVal := elem.FieldByName(queryName)
 		if !entityQueryVal.IsNil() {
 			ep := fpEntityPath{*rm.EntityPath}
 			sqlStr, args := ep.buildSql(entityQueryVal.Interface().(Query))
