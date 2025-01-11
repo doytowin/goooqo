@@ -18,6 +18,8 @@ import (
 	"strings"
 )
 
+const format = "conditions = append(conditions, \"%s %s ?\")"
+
 type SqlGenerator struct {
 	*generator
 }
@@ -33,15 +35,14 @@ func init() {
 	sqlOpMap["In"] = operator{name: "In", sign: "IN", format: "conditions = append(conditions, \"%s %s (\"+strings.Join(phs, \", \")+\")\")"}
 	sqlOpMap["NotIn"] = operator{name: "NotIn", sign: "NOT IN", format: "conditions = append(conditions, \"%s %s (\"+strings.Join(phs, \", \")+\")\")"}
 	sqlOpMap["Null"] = operator{name: "Null", sign: "IS NULL", format: "conditions = append(conditions, \"%s %s\")"}
-	sqlOpMap["NotNull"] = operator{name: "NotNull", sign: "IS NOT NULL", format: "conditions = append(conditions, \"%s %s\")"}
-	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: "conditions = append(conditions, \"%s %s ?\")"}
+	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: format}
+	sqlOpMap["Contain"] = operator{name: "Contain", sign: "LIKE", format: format}
 	opMap["sql"] = sqlOpMap
 }
 
 func NewSqlGenerator() *SqlGenerator {
 	return &SqlGenerator{newGenerator("sql",
-		[]string{`"github.com/doytowin/goooqo/rdb"`, `"strings"`},
-		"conditions = append(conditions, \"%s %s ?\")",
+		[]string{`. "github.com/doytowin/goooqo/rdb"`, `"strings"`}, format,
 	)}
 }
 
@@ -112,6 +113,11 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendIfBody("\tphs = append(phs, \"?\")")
 		g.appendIfBody("}")
 		g.appendIfBody(op.format, column, op.sign)
+	} else if strings.HasSuffix(fieldName, "Or") {
+		g.appendIfStartNil(fieldName)
+		g.appendIfBody("cond, args0 := BuildConditions(q.%s, \"(\", \" OR \", \")\")", fieldName)
+		g.appendIfBody("conditions = append(conditions, cond)")
+		g.appendIfBody("args = append(args, args0...)")
 	} else {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody(op.format, column, op.sign)
@@ -121,12 +127,11 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 }
 
 func (g *SqlGenerator) genSubquery(fieldName string, subSelect string) {
-	g.appendIfBody("whereClause, args1 := rdb.BuildWhereClause(q.%s)", fieldName)
-	g.appendIfBody("condition := \"" + subSelect + "\" + whereClause + \")\"")
-	g.appendIfBody("conditions = append(conditions, condition)")
+	g.appendIfBody("where, args1 := BuildWhereClause(q.%s)", fieldName)
+	g.appendIfBody("conditions = append(conditions, \"" + subSelect + "\"+where+\")\")")
 	g.appendIfBody("args = append(args, args1...)")
 }
 
 func (g *SqlGenerator) appendArg(fieldName string) {
-	g.appendIfBody("args = append(args, q.%s)", fieldName)
+	g.appendIfBody("args = append(args, *q.%s)", fieldName)
 }

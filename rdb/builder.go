@@ -24,21 +24,23 @@ func isValidValue(value reflect.Value) bool {
 }
 
 func BuildWhereClause(query any) (string, []any) {
-	return BuildConditions(" WHERE ", query)
+	return BuildConditions(query, " WHERE ", " AND ", "")
 }
 
-func BuildConditions(prefix string, query any) (string, []any) {
-	conditions, args := buildConditions(query)
+func BuildConditions(query any, prefix string, delimiter string, suffix string) (a string, args []any) {
+	var conditions []string
+	if qb, ok := query.(QueryBuilder); ok {
+		conditions, args = qb.BuildConditions()
+	} else {
+		conditions, args = buildConditions(query)
+	}
 	if len(conditions) == 0 {
 		return "", []any{}
 	}
-	return prefix + strings.Join(conditions, " AND "), args
+	return prefix + strings.Join(conditions, delimiter) + suffix, args
 }
 
 func buildConditions(query any) ([]string, []any) {
-	if qb, ok := query.(QueryBuilder); ok {
-		return qb.BuildConditions()
-	}
 	rtype := reflect.TypeOf(query)
 	rvalue := reflect.ValueOf(query)
 	if rtype.Kind() == reflect.Pointer {

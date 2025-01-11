@@ -68,7 +68,7 @@ func (fp *fpEntityPath) buildSql(query Query) (string, []any) {
 		relation := fp.Relations[i]
 		s += " IN (" + "SELECT " + relation.Fk2 + " FROM " + relation.At + " WHERE " + relation.Fk1 + " = ?)"
 	}
-	and, args := BuildConditions(" AND ", query)
+	and, args := BuildConditions(query, " AND ", " AND ", "")
 	s += and + BuildSortClause(query.GetSort())
 	if query.NeedPaging() {
 		s = BuildPageClause(&s, query.CalcOffset(), query.GetPageSize())

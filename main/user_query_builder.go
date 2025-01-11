@@ -1,6 +1,6 @@
 package main
 
-import "github.com/doytowin/goooqo/rdb"
+import . "github.com/doytowin/goooqo/rdb"
 import "strings"
 
 func (q UserQuery) BuildConditions() ([]string, []any) {
@@ -8,7 +8,7 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 	args := make([]any, 0, 4)
 	if q.IdGt != nil {
 		conditions = append(conditions, "id > ?")
-		args = append(args, q.IdGt)
+		args = append(args, *q.IdGt)
 	}
 	if q.IdIn != nil {
 		phs := make([]string, 0, len(*q.IdIn))
@@ -28,12 +28,12 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 	}
 	if q.Cond != nil {
 		conditions = append(conditions, "(score = ? OR memo = ?)")
-		args = append(args, q.Cond)
-		args = append(args, q.Cond)
+		args = append(args, *q.Cond)
+		args = append(args, *q.Cond)
 	}
 	if q.ScoreLt != nil {
 		conditions = append(conditions, "score < ?")
-		args = append(args, q.ScoreLt)
+		args = append(args, *q.ScoreLt)
 	}
 	if q.MemoNull != nil {
 		if *q.MemoNull {
@@ -44,34 +44,30 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 	}
 	if q.MemoLike != nil {
 		conditions = append(conditions, "memo LIKE ?")
-		args = append(args, q.MemoLike)
+		args = append(args, *q.MemoLike)
 	}
 	if q.Deleted != nil {
 		conditions = append(conditions, "deleted = ?")
-		args = append(args, q.Deleted)
+		args = append(args, *q.Deleted)
 	}
 	if q.ScoreLtAvg != nil {
-		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLtAvg)
-		condition := "score < (SELECT avg(score) FROM t_user" + whereClause + ")"
-		conditions = append(conditions, condition)
+		where, args1 := BuildWhereClause(q.ScoreLtAvg)
+		conditions = append(conditions, "score < (SELECT avg(score) FROM t_user"+where+")")
 		args = append(args, args1...)
 	}
 	if q.ScoreLtAny != nil {
-		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLtAny)
-		condition := "score < ANY(SELECT score FROM t_user" + whereClause + ")"
-		conditions = append(conditions, condition)
+		where, args1 := BuildWhereClause(q.ScoreLtAny)
+		conditions = append(conditions, "score < ANY(SELECT score FROM t_user"+where+")")
 		args = append(args, args1...)
 	}
 	if q.ScoreLtAll != nil {
-		whereClause, args1 := rdb.BuildWhereClause(q.ScoreLtAll)
-		condition := "score < ALL(SELECT score FROM t_user" + whereClause + ")"
-		conditions = append(conditions, condition)
+		where, args1 := BuildWhereClause(q.ScoreLtAll)
+		conditions = append(conditions, "score < ALL(SELECT score FROM t_user"+where+")")
 		args = append(args, args1...)
 	}
 	if q.ScoreGtAvg != nil {
-		whereClause, args1 := rdb.BuildWhereClause(q.ScoreGtAvg)
-		condition := "score > (SELECT avg(score) FROM t_user" + whereClause + ")"
-		conditions = append(conditions, condition)
+		where, args1 := BuildWhereClause(q.ScoreGtAvg)
+		conditions = append(conditions, "score > (SELECT avg(score) FROM t_user"+where+")")
 		args = append(args, args1...)
 	}
 	return conditions, args
