@@ -131,6 +131,36 @@ users, err := userDataAccess.Query(ctx, userQuery)
 
 For more CRUD examples, please refer to: https://goooqo.docs.doyto.win/v/zh/api/crud
 
+### Code Generation
+
+GoooQo provides a code generation tool, `gooogen`, which supports automatically generating dynamic query construction methods for query objects.
+
+#### Install `gooogen`
+
+Install the `gooogen` tool using the following command:
+
+```bash
+go install github.com/doytowin/goooqo/gooogen@latest
+```
+
+#### Add Generate Directive
+
+Add the `go:generate gooogen` directive to the query object definition. For example:
+
+```go
+//go:generate gooogen -type sql -o user_query_builder.go
+type UserQuery struct {
+    // ...
+}
+```
+
+- **`-type`**: Specifies the type of query language to generate, such as `sql`.
+- **`-o`**: Defines the name of the generated file, such as `user_query_builder.go`.
+
+#### Generate Code
+
+Run the `go generate` command to generate the corresponding query construction methods in the specified file.
+
 ### Transaction Examples
 
 Use `TransactionManager#StartTransaction` to start a transaction, then manually commit or rollback the transaction:

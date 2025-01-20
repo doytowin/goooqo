@@ -16,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+//go:generate gooogen -type mongodb
 type InventoryQuery struct {
 	PageQuery
 	Id             *primitive.ObjectID

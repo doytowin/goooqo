@@ -108,7 +108,37 @@ type UserQuery struct {
 userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 ```
 
-### 查询示例：
+### 代码生成
+
+GoooQo提供的代码生成工具`gooogen`支持为查询对象自动生成动态查询语句的构建方法。
+
+#### 安装 `gooogen`
+
+通过以下命令安装代码生成工具`gooogen`：
+
+```bash
+go install github.com/doytowin/goooqo/gooogen@latest
+```
+
+#### 添加生成指令
+
+在查询对象的定义上添加注释`go:generate gooogen`。例如：
+
+```go
+//go:generate gooogen -type sql -o user_query_builder.go
+type UserQuery struct {
+//...
+}
+```
+
+- **`-type`**：指定生成的查询语句类型，例如 `sql`。
+- **`-o`**：定义生成文件的名称，如 `user_query_builder.go`。
+
+#### 生成代码
+
+执行`go generate`命令即可在指定的文件中生成相应的查询语句构建方法。
+
+### 查询示例
 
 ```go
 userQuery := UserQuery{ScoreLt: P(80)}
@@ -134,7 +164,7 @@ users, err := userDataAccess.Query(ctx, userQuery)
 
 更多接口调用示例请参考：https://goooqo.docs.doyto.win/v/zh/api/crud
 
-### 事务示例：
+### 事务示例
 
 使用`TransactionManager#StartTransaction`开启事务，手动提交或者回滚事务：
 ```go

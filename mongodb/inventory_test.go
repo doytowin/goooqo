@@ -12,6 +12,7 @@ package mongodb
 
 import . "github.com/doytowin/goooqo/core"
 
+//go:generate gooogen -type mongodb -o inventory_query_builder_test.go
 type InventoryQuery struct {
 	PageQuery
 	QtyGt *int

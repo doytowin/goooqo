@@ -12,6 +12,7 @@ package main
 
 import . "github.com/doytowin/goooqo/core"
 
+//go:generate gooogen
 type UserEntity struct {
 	Int64Id
 	Score *int    `json:"score"`
