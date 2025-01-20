@@ -31,7 +31,17 @@ type MongoEntity interface {
 }
 
 type QueryBuilder interface {
-	BuildFilter() A
+	BuildFilter(connector string) D
+}
+
+func CombineConditions(connector string, a A) D {
+	if len(a) > 1 {
+		return D{{connector, a}}
+	} else if len(a) == 1 {
+		return a[0].(D)
+	} else {
+		return D{}
+	}
 }
 
 type mongoDataAccess[E MongoEntity] struct {
@@ -152,12 +162,7 @@ func PInt64(i int) *int64 {
 
 func buildFilter(query Query) D {
 	if qb, ok := query.(QueryBuilder); ok {
-		d := qb.BuildFilter()
-		ret := D{}
-		if len(d) > 0 {
-			ret = D{{"$and", d}}
-		}
-		return ret
+		return qb.BuildFilter("$and")
 	}
 	panic(errors.New("Query object should be type of QueryBuilder"))
 }

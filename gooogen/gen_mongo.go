@@ -24,7 +24,7 @@ type MongoGenerator struct {
 
 func NewMongoGenerator() *MongoGenerator {
 	return &MongoGenerator{newGenerator("mongo",
-		[]string{`. "go.mongodb.org/mongo-driver/bson/primitive"`},
+		[]string{`. "go.mongodb.org/mongo-driver/bson/primitive"`, `. "github.com/doytowin/goooqo/mongodb"`},
 		"d = append(d, D{{\"%s\", D{{\"%s\", q.%s}}}})",
 	)}
 }
@@ -77,7 +77,7 @@ func init() {
 
 func (g *MongoGenerator) appendBuildMethod(ts *ast.TypeSpec) {
 	g.WriteString(NewLine)
-	g.writeInstruction("func (q %s) BuildFilter() A {", ts.Name)
+	g.writeInstruction("func (q %s) BuildFilter(connector string) D {", ts.Name)
 	g.appendFuncBody(ts)
 	g.writeInstruction("}")
 }
@@ -85,7 +85,7 @@ func (g *MongoGenerator) appendBuildMethod(ts *ast.TypeSpec) {
 func (g *MongoGenerator) appendFuncBody(ts *ast.TypeSpec) {
 	g.appendIfBody("d := make(A, 0, 4)")
 	g.appendStruct(ts, []string{})
-	g.appendIfBody("return d")
+	g.appendIfBody("return CombineConditions(connector, d)")
 }
 
 func (g *MongoGenerator) appendStruct(ts *ast.TypeSpec, path []string) {
@@ -139,7 +139,7 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	}
 
 	if ts := toTypePointer(field); ts != nil {
-		g.appendSubStruct(ts, structName, fieldName, path, column)
+		g.appendSubStruct(ts, structName, fieldName, column)
 	} else if op.sign == "$type" {
 		g.appendIfStartNil(structName)
 		g.writeInstruction("\tif *q.%s {", structName)
@@ -164,51 +164,15 @@ func (g *MongoGenerator) appendCondition(field *ast.Field, path []string, fieldN
 	g.appendIfEnd()
 }
 
-func (g *MongoGenerator) appendSubStruct(ts *ast.TypeSpec, structName string, fieldName string, path []string, column string) {
+func (g *MongoGenerator) appendSubStruct(ts *ast.TypeSpec, structName string, fieldName string, column string) {
 	g.appendIfStartNil(structName)
 	if strings.HasSuffix(fieldName, "Or") {
-		if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
-			g.appendOrOrBody(path, fieldName)
-		} else {
-			g.appendOrBody(ts, path, fieldName)
-		}
+		g.addStruct("", ts) // generate for type recursively
+		g.writeInstruction("\td = append(d, q.%s.BuildFilter(\"$or\"))", structName)
 	} else {
-		if lenP := len(path); lenP > 0 && strings.HasSuffix(path[lenP-1], "Or") {
-			g.appendAndBody(path, fieldName)
-		} else {
-			g.addStruct(column, ts) // generate for type recursively
-			g.writeInstruction("\td = append(d, q.%s.BuildFilter()...)", structName)
-		}
+		g.addStruct(column, ts) // generate for type recursively
+		g.writeInstruction("\td = append(d, q.%s.BuildFilter(\"$and\"))", structName)
 	}
-}
-
-func (g *MongoGenerator) appendOrBody(ts *ast.TypeSpec, path []string, fieldName string) {
-	g.writeInstruction("\tor := make(A, 0, 4)")
-	g.replaceIns = func(ins string) string {
-		return strings.ReplaceAll(ins, "d = append(d", "or = append(or")
-	}
-	g.appendStruct(ts, append(path, fieldName))
-	g.replaceIns = keep
-	g.writeInstruction("\tif len(or) > 1 {")
-	g.writeInstruction("\t\td = append(d, D{{\"$or\", or}})")
-	g.writeInstruction("\t} else if len(or) == 1 {")
-	g.writeInstruction("\t\td = append(d, or[0])")
-	g.writeInstruction("\t}")
-}
-
-func (g *MongoGenerator) appendOrOrBody(path []string, fieldName string) {
-	structName := buildNestedFieldName(path, fieldName)
-	g.writeInstruction("\tor = append(or, q.%s.BuildFilter()...)", structName)
-}
-
-func (g *MongoGenerator) appendAndBody(path []string, fieldName string) {
-	structName := buildNestedFieldName(path, fieldName)
-	g.writeInstruction("\tand := q.%s.BuildFilter()", structName)
-	g.writeInstruction("\tif len(and) > 1 {")
-	g.writeInstruction("\t\tor = append(or, D{{\"$and\", and}})")
-	g.writeInstruction("\t} else if len(and) == 1 {")
-	g.writeInstruction("\t\tor = append(or, and[0])")
-	g.writeInstruction("\t}")
 }
 
 func resolveTypeName(expr ast.Expr) string {

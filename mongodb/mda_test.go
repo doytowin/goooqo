@@ -20,10 +20,6 @@ import (
 	"testing"
 )
 
-func PF64(f float64) *float64 {
-	return &f
-}
-
 func TestMongoDataAccess(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
@@ -197,7 +193,7 @@ func TestMongoDataAccess(t *testing.T) {
 		defer tc.Rollback()
 		entity := InventoryEntity{
 			Item:   P("eraser"),
-			Size:   &SizeDoc{PF64(3.5), PF64(2), P("cm")},
+			Size:   &SizeDoc{P(3.5), P(2.), P("cm")},
 			Qty:    P(20),
 			Status: P("A"),
 		}
@@ -242,13 +238,13 @@ func TestMongoDataAccess(t *testing.T) {
 		entities := []InventoryEntity{
 			{
 				Item:   P("eraser"),
-				Size:   &SizeDoc{PF64(3.5), PF64(2), P("cm")},
+				Size:   &SizeDoc{P(3.5), P(2.), P("cm")},
 				Qty:    P(20),
 				Status: P("A"),
 			},
 			{
 				Item:   P("keyboard"),
-				Size:   &SizeDoc{PF64(40), PF64(15.5), P("cm")},
+				Size:   &SizeDoc{P(40.), P(15.5), P("cm")},
 				Qty:    P(10),
 				Status: P("D"),
 			},
@@ -274,7 +270,7 @@ func TestMongoDataAccess(t *testing.T) {
 		Id, _ := primitive.ObjectIDFromHex("657bbb49675e5c32a2b8af72")
 		inventory := InventoryEntity{MongoId: NewMongoId(&Id)}
 		inventory.Qty = P(123)
-		inventory.Size = &SizeDoc{H: PF64(20.5)}
+		inventory.Size = &SizeDoc{H: P(20.5)}
 
 		cnt, err := inventoryDataAccess.Patch(tc, inventory)
 

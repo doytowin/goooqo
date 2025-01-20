@@ -2,24 +2,24 @@ package mongodb
 
 import . "go.mongodb.org/mongo-driver/bson/primitive"
 
-func (q InventoryQuery) BuildFilter() A {
+func (q InventoryQuery) BuildFilter(connector string) D {
 	d := make(A, 0, 4)
 	if q.QtyGt != nil {
 		d = append(d, D{{"qty", D{{"$gt", q.QtyGt}}}})
 	}
 	if q.QtyOr != nil {
-		or := make(A, 0, 4)
-		if q.QtyOr.QtyLt != nil {
-			or = append(or, D{{"qty", D{{"$lt", q.QtyOr.QtyLt}}}})
-		}
-		if q.QtyOr.QtyGe != nil {
-			or = append(or, D{{"qty", D{{"$gte", q.QtyOr.QtyGe}}}})
-		}
-		if len(or) > 1 {
-			d = append(d, D{{"$or", or}})
-		} else if len(or) == 1 {
-			d = append(d, or[0])
-		}
+		d = append(d, q.QtyOr.BuildFilter("$or"))
 	}
-	return d
+	return CombineConditions(connector, d)
+}
+
+func (q QtyOr) BuildFilter(connector string) D {
+	d := make(A, 0, 4)
+	if q.QtyLt != nil {
+		d = append(d, D{{"qty", D{{"$lt", q.QtyLt}}}})
+	}
+	if q.QtyGe != nil {
+		d = append(d, D{{"qty", D{{"$gte", q.QtyGe}}}})
+	}
+	return CombineConditions(connector, d)
 }
