@@ -40,7 +40,7 @@ jobs:
           restore-keys: ${{ runner.os }}-golang
 
       - name: Test
-        run: go test -v -coverprofile=cov.out ./core ./rdb ./web ./gen ./mongodb
+        run: go test -v -coverprofile=cov.out ./core ./rdb ./web ./gooogen ./mongodb
 
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@master

@@ -1,4 +1,4 @@
-module github.com/doytowin/goooqo/gen
+module github.com/doytowin/goooqo/gooogen
 
 go 1.18
 

@@ -8,7 +8,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package gen
+package main
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ type operator struct {
 }
 
 type Generator interface {
-	appendPackage(string2 string)
+	appendPackage(pkg string)
 	appendImports()
 	appendBuildMethod(ts *ast.TypeSpec)
 	String() string
@@ -137,12 +137,12 @@ func (g *generator) appendBuildMethod(*ast.TypeSpec) {
 	panic("implement me")
 }
 
-func (g *SqlGenerator) incIntent() string {
+func (g *generator) incIntent() string {
 	intent := g.intent
 	g.intent = g.intent + "\t"
 	return intent
 }
 
-func (g *SqlGenerator) restoreIntent(intent string) {
+func (g *generator) restoreIntent(intent string) {
 	g.intent = intent
 }

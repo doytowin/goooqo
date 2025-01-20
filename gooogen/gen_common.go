@@ -8,7 +8,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package gen
+package main
 
 import (
 	"fmt"
