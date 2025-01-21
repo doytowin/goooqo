@@ -131,8 +131,9 @@ type UserQuery struct {
 }
 ```
 
-- **`-type`**：指定生成的查询语句类型，例如 `sql`。
-- **`-o`**：定义生成文件的名称，如 `user_query_builder.go`。
+- **`-type`**：（可选）指定生成的查询语句类型，如 `sql`。
+- **`-f`**：（可选）定义包含查询对象的文件的名称，如 `user.go`。
+- **`-o`**：（可选）定义生成文件的名称，如 `user_query_builder.go`。
 
 #### 生成代码
 

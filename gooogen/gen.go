@@ -20,9 +20,9 @@ import (
 func main() {
 	goFile := os.Getenv("GOFILE")
 
-	generatorType := flag.String("type", "sql", "Generator type: sql, mongodb")
-	inputFile := flag.String("f", goFile, "The Go file containing the query definition")
-	outputFile := flag.String("o", "", "The Go file to output the query builder")
+	generatorType := flag.String("type", "sql", "(Optional) Generator type: sql, mongodb")
+	inputFile := flag.String("f", goFile, "(Optional) The Go file containing the query definition")
+	outputFile := flag.String("o", "", "(Optional) The Go file to output the query builder")
 
 	flag.Parse()
 

@@ -154,8 +154,9 @@ type UserQuery struct {
 }
 ```
 
-- **`-type`**: Specifies the type of query language to generate, such as `sql`.
-- **`-o`**: Defines the name of the generated file, such as `user_query_builder.go`.
+- **`-type`**: (Optional) Specifies the type of query language to generate, such as `sql`.
+- **`-f`**: (Optional) Defines the name of the input file which contains a query object, such as `user.go`.
+- **`-o`**: (Optional) Defines the name of the generated file, such as `user_query_builder.go`.
 
 #### Generate Code
 
