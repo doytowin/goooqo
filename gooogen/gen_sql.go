@@ -43,6 +43,7 @@ func init() {
 	sqlOpMap["NotStart"] = operator{name: "NotStart", sign: "NOT LIKE", format: format}
 	sqlOpMap["End"] = operator{name: "End", sign: "LIKE", format: format}
 	sqlOpMap["NotEnd"] = operator{name: "NotEnd", sign: "NOT LIKE", format: format}
+	sqlOpMap["Rx"] = operator{name: "Rx", sign: "REGEXP", format: format}
 	opMap["sql"] = sqlOpMap
 }
 

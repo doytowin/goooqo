@@ -219,6 +219,10 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		conditions = append(conditions, "memo NOT LIKE ?")
 		args = append(args, "%"+*q.MemoNotEnd)
 	}
+	if q.MemoRx != nil {
+		conditions = append(conditions, "memo REGEXP ?")
+		args = append(args, *q.MemoRx)
+	}
 	if q.ScoreLtAvg != nil {
 		where, args1 := BuildWhereClause(q.ScoreLtAvg)
 		conditions = append(conditions, "score < (SELECT avg(score) FROM t_user"+where+")")
