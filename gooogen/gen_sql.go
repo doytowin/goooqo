@@ -37,6 +37,7 @@ func init() {
 	sqlOpMap["Null"] = operator{name: "Null", sign: "IS NULL", format: "conditions = append(conditions, \"%s %s\")"}
 	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: format}
 	sqlOpMap["Contain"] = operator{name: "Contain", sign: "LIKE", format: format}
+	sqlOpMap["NotContain"] = operator{name: "NotContain", sign: "NOT LIKE", format: format}
 	opMap["sql"] = sqlOpMap
 }
 
@@ -118,6 +119,14 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendIfBody("cond, args0 := BuildConditions(q.%s, \"(\", \" OR \", \")\")", fieldName)
 		g.appendIfBody("conditions = append(conditions, cond)")
 		g.appendIfBody("args = append(args, args0...)")
+	} else if strings.HasSuffix(op.sign, "LIKE") {
+		g.appendIfStartNil(fieldName)
+		g.appendIfBody(op.format, column, op.sign)
+		if strings.HasSuffix(op.name, "Contain") {
+			g.appendIfBody("args = append(args, \"%%\" + *q.%s + \"%%\")", fieldName)
+		} else {
+			g.appendArg(fieldName)
+		}
 	} else {
 		g.appendIfStartNil(fieldName)
 		g.appendIfBody(op.format, column, op.sign)

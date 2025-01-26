@@ -34,6 +34,9 @@ type UserQuery struct {
 	MemoLike *string
 	Deleted  *bool
 
+	MemoContain    *string
+	MemoNotContain *string
+
 	ScoreLtAvg *UserQuery `subquery:"select avg(score) from User"`
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM User"`
 	ScoreLtAll *UserQuery `subquery:"select score from User"`
