@@ -36,6 +36,7 @@ func init() {
 	sqlOpMap["NotIn"] = operator{name: "NotIn", sign: "NOT IN", format: "conditions = append(conditions, \"%s %s (\"+strings.Join(phs, \", \")+\")\")"}
 	sqlOpMap["Null"] = operator{name: "Null", sign: "IS NULL", format: "conditions = append(conditions, \"%s %s\")"}
 	sqlOpMap["Like"] = operator{name: "Like", sign: "LIKE", format: format}
+	sqlOpMap["NotLike"] = operator{name: "NotLike", sign: "NOT LIKE", format: format}
 	sqlOpMap["Contain"] = operator{name: "Contain", sign: "LIKE", format: format}
 	sqlOpMap["NotContain"] = operator{name: "NotContain", sign: "NOT LIKE", format: format}
 	sqlOpMap["Start"] = operator{name: "Start", sign: "LIKE", format: format}

@@ -31,9 +31,10 @@ type UserQuery struct {
 	Cond     *string `condition:"(score = ? OR memo = ?)"`
 	ScoreLt  *int
 	MemoNull *bool
-	MemoLike *string
 	Deleted  *bool
 
+	MemoLike       *string
+	MemoNotLike    *string
 	MemoContain    *string
 	MemoNotContain *string
 	MemoStart      *string

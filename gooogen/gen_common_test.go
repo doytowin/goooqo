@@ -183,13 +183,17 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 			conditions = append(conditions, "memo IS NOT NULL")
 		}
 	}
+	if q.Deleted != nil {
+		conditions = append(conditions, "deleted = ?")
+		args = append(args, *q.Deleted)
+	}
 	if q.MemoLike != nil {
 		conditions = append(conditions, "memo LIKE ?")
 		args = append(args, *q.MemoLike)
 	}
-	if q.Deleted != nil {
-		conditions = append(conditions, "deleted = ?")
-		args = append(args, *q.Deleted)
+	if q.MemoNotLike != nil {
+		conditions = append(conditions, "memo NOT LIKE ?")
+		args = append(args, *q.MemoNotLike)
 	}
 	if q.MemoContain != nil {
 		conditions = append(conditions, "memo LIKE ?")
