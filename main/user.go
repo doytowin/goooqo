@@ -38,6 +38,8 @@ type UserQuery struct {
 	MemoNotContain *string
 	MemoStart      *string
 	MemoNotStart   *string
+	MemoEnd        *string
+	MemoNotEnd     *string
 
 	ScoreLtAvg *UserQuery `subquery:"select avg(score) from User"`
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM User"`

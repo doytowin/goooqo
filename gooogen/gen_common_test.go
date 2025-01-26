@@ -193,19 +193,27 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 	}
 	if q.MemoContain != nil {
 		conditions = append(conditions, "memo LIKE ?")
-		args = append(args, "%" + *q.MemoContain + "%")
+		args = append(args, "%"+*q.MemoContain+"%")
 	}
 	if q.MemoNotContain != nil {
 		conditions = append(conditions, "memo NOT LIKE ?")
-		args = append(args, "%" + *q.MemoNotContain + "%")
+		args = append(args, "%"+*q.MemoNotContain+"%")
 	}
 	if q.MemoStart != nil {
 		conditions = append(conditions, "memo LIKE ?")
-		args = append(args, *q.MemoStart + "%")
+		args = append(args, *q.MemoStart+"%")
 	}
 	if q.MemoNotStart != nil {
 		conditions = append(conditions, "memo NOT LIKE ?")
-		args = append(args, *q.MemoNotStart + "%")
+		args = append(args, *q.MemoNotStart+"%")
+	}
+	if q.MemoEnd != nil {
+		conditions = append(conditions, "memo LIKE ?")
+		args = append(args, "%"+*q.MemoEnd)
+	}
+	if q.MemoNotEnd != nil {
+		conditions = append(conditions, "memo NOT LIKE ?")
+		args = append(args, "%"+*q.MemoNotEnd)
 	}
 	if q.ScoreLtAvg != nil {
 		where, args1 := BuildWhereClause(q.ScoreLtAvg)
