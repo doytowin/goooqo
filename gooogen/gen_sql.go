@@ -126,7 +126,7 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendIfBody("conditions = append(conditions, cond)")
 		g.appendIfBody("args = append(args, args0...)")
 	} else if strings.HasSuffix(op.sign, "LIKE") {
-		g.appendIfStartNil(fieldName)
+		g.writeInstruction("if q.%s != nil && *q.%s != \"\" {", fieldName, fieldName)
 		g.appendIfBody(op.format, column, op.sign)
 		if strings.HasSuffix(op.name, "Contain") {
 			g.appendIfBody("args = append(args, \"%%\"+*q.%s+\"%%\")", fieldName)

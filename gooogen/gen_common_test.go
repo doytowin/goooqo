@@ -187,35 +187,35 @@ func (q UserQuery) BuildConditions() ([]string, []any) {
 		conditions = append(conditions, "deleted = ?")
 		args = append(args, *q.Deleted)
 	}
-	if q.MemoLike != nil {
+	if q.MemoLike != nil && *q.MemoLike != "" {
 		conditions = append(conditions, "memo LIKE ?")
 		args = append(args, *q.MemoLike)
 	}
-	if q.MemoNotLike != nil {
+	if q.MemoNotLike != nil && *q.MemoNotLike != "" {
 		conditions = append(conditions, "memo NOT LIKE ?")
 		args = append(args, *q.MemoNotLike)
 	}
-	if q.MemoContain != nil {
+	if q.MemoContain != nil && *q.MemoContain != "" {
 		conditions = append(conditions, "memo LIKE ?")
 		args = append(args, "%"+*q.MemoContain+"%")
 	}
-	if q.MemoNotContain != nil {
+	if q.MemoNotContain != nil && *q.MemoNotContain != "" {
 		conditions = append(conditions, "memo NOT LIKE ?")
 		args = append(args, "%"+*q.MemoNotContain+"%")
 	}
-	if q.MemoStart != nil {
+	if q.MemoStart != nil && *q.MemoStart != "" {
 		conditions = append(conditions, "memo LIKE ?")
 		args = append(args, *q.MemoStart+"%")
 	}
-	if q.MemoNotStart != nil {
+	if q.MemoNotStart != nil && *q.MemoNotStart != "" {
 		conditions = append(conditions, "memo NOT LIKE ?")
 		args = append(args, *q.MemoNotStart+"%")
 	}
-	if q.MemoEnd != nil {
+	if q.MemoEnd != nil && *q.MemoEnd != "" {
 		conditions = append(conditions, "memo LIKE ?")
 		args = append(args, "%"+*q.MemoEnd)
 	}
-	if q.MemoNotEnd != nil {
+	if q.MemoNotEnd != nil && *q.MemoNotEnd != "" {
 		conditions = append(conditions, "memo NOT LIKE ?")
 		args = append(args, "%"+*q.MemoNotEnd)
 	}
