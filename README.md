@@ -29,9 +29,9 @@ Check this [demo](https://github.com/doytowin/goooqo-demo) to take a quick tour.
 
 Product documentation: https://goooqo.docs.doyto.win/
 
-## Quick Start
+## Quick start
 
-### Init Project
+### Init project
 
 Use `go mod init` to init the project and add GoooQo dependency:
 
@@ -96,6 +96,9 @@ type UserQuery struct {
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
 	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
 	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
+
+    Role *RoleQuery `entitypath:"user,role"`
+    Perm *PermQuery `entitypath:"user,role,perm"`
 }
 ```
 
@@ -105,7 +108,7 @@ Then we create a `userDataAccess` interface to perform CRUD operations:
 userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 ```
 
-### Query example: 
+### Query examples: 
 
 ```go
 userQuery := UserQuery{ScoreLt: P(80)}
