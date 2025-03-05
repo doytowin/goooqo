@@ -110,7 +110,7 @@ func (da *relationalDataAccess[E]) queryRelationEntities(ctx context.Context, en
 		entityQueryVal := elem.FieldByName(queryName)
 		if !entityQueryVal.IsNil() {
 			ep := fpEntityPath{*rm.EntityPath}
-			sqlStr, args := ep.buildSql(entityQueryVal.Interface().(Query))
+			sqlStr, args := ep.buildQuery(entityQueryVal.Interface().(Query))
 
 			for i, entity := range entities {
 				relatedEntities, err := QueryRelated(ctx, da.getConn(ctx), sqlStr,

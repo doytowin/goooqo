@@ -59,19 +59,26 @@ func buildColumns(fieldMetas []FieldMetadata) string {
 	return strings.Join(columns, ", ")
 }
 
-func (fp *fpEntityPath) buildSql(query Query) (string, []any) {
+func (fp *fpEntityPath) buildQuery(query Query) (string, []any) {
 	fieldMetas := BuildFieldMetas(fp.EntityType)
 	columns := buildColumns(fieldMetas)
 
-	s := "SELECT " + columns + " FROM " + fp.Base.At + " WHERE " + fp.Base.Fk2
-	for i := len(fp.Relations) - 1; i >= 0; i-- {
-		relation := fp.Relations[i]
-		s += " IN (" + "SELECT " + relation.Fk2 + " FROM " + relation.At + " WHERE " + relation.Fk1 + " = ?)"
-	}
+	s := fp.buildSql(columns)
 	and, args := BuildConditions(query, " AND ", " AND ", "")
 	s += and + BuildSortClause(query.GetSort())
 	if query.NeedPaging() {
 		s = BuildPageClause(&s, query.CalcOffset(), query.GetPageSize())
 	}
 	return s, args
+}
+
+func (fp *fpEntityPath) buildSql(columns string) string {
+	l := len(fp.Relations)
+	closeParesis := strings.Repeat(")", l)
+	sql := "SELECT " + columns + " FROM " + fp.Base.At + " WHERE " + fp.Base.Fk2
+	for i := l - 1; i >= 0; i-- {
+		relation := fp.Relations[i]
+		sql += " IN (" + "SELECT " + relation.Fk2 + " FROM " + relation.At + " WHERE " + relation.Fk1
+	}
+	return sql + " = ?" + closeParesis
 }

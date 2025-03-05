@@ -63,7 +63,13 @@ type Relation struct {
 }
 
 func BuildEntityPath(field reflect.StructField) *EntityPath {
-	path := strings.Split(field.Tag.Get("entitypath"), ",")
+	entityPath := BuildEntityPathStr(field.Tag.Get("entitypath"))
+	entityPath.EntityType = field.Type.Elem()
+	return entityPath
+}
+
+func BuildEntityPathStr(aep string) *EntityPath {
+	path := strings.Split(aep, ",")
 	l := len(path)
 	relations := make([]Relation, l-1)
 	for i := 0; i < l-1; i++ {
@@ -71,19 +77,22 @@ func BuildEntityPath(field reflect.StructField) *EntityPath {
 	}
 	targetTable := FormatTable(path[l-1])
 	base := Relation{"id", "id", targetTable}
-	if strings.Contains(field.Tag.Get("entitypath"), "-") && l == 2 {
+	if strings.Contains(aep, "-") && l == 2 {
 		base = relations[0]
 		relations = []Relation{}
 	}
-	return &EntityPath{path, base, relations, field.Type.Elem()}
+	return &EntityPath{path, base, relations, nil}
 }
 
 // e1: left entity, e2: right entity
 func buildRelation(e1 string, e2 string) Relation {
 	if entity, fk, ok := strings.Cut(e1, "->"); ok {
 		return Relation{"id", ConvertToColumnCase(fk), FormatTable(entity)}
-	} else if entity, fk, ok := strings.Cut(e2, "<-"); ok {
+	} else if fk, entity, ok := strings.Cut(e2, "<-"); ok {
 		return Relation{ConvertToColumnCase(fk), "id", FormatTable(entity)}
+	}
+	if _, entity, ok := strings.Cut(e1, "<-"); ok {
+		e1 = entity
 	}
 	return Relation{FormatJoinId(e1), FormatJoinId(e2), FormatJoinTable(e1, e2)}
 }

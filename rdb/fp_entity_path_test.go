@@ -17,14 +17,14 @@ import (
 	"testing"
 )
 
-func Test_fpEntityPath_buildSql(t *testing.T) {
+func Test_fpEntityPath_buildQuery(t *testing.T) {
 	epField := reflect.TypeOf(test.UserEntity{}).Field(3)
 	tests := []struct {
 		name  string
 		field reflect.StructField
 		query Query
-		want  string
-		want1 []any
+		sql   string
+		args  []any
 	}{
 		{
 			"Build SELECT FROM t_role with conditions",
@@ -44,12 +44,35 @@ func Test_fpEntityPath_buildSql(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fp := BuildRelationEntityPath(tt.field)
-			got, got1 := fp.buildSql(tt.query)
-			if got != tt.want {
-				t.Errorf("buildSql()\n got : %v,\n want: %v", got, tt.want)
+			sql, args := fp.buildQuery(tt.query)
+			if sql != tt.sql {
+				t.Errorf("buildSql()\n got : %v\n want: %v", sql, tt.sql)
 			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("buildSql() got1 = %v, want %v", got1, tt.want1)
+			if !reflect.DeepEqual(args, tt.args) {
+				t.Errorf("buildSql()\n got : %v\n want: %v", args, tt.args)
+			}
+		})
+	}
+}
+
+func Test_fpEntityPath_buildSql(t *testing.T) {
+	tests := []struct {
+		name string
+		aep  string
+		sql  string
+	}{
+		{
+			"Build SELECT for user's products",
+			"user,user_id<-order,product",
+			"SELECT * FROM t_product WHERE id IN (SELECT product_id FROM a_order_and_product WHERE order_id IN (SELECT id FROM t_order WHERE user_id = ?))",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fp := &fpEntityPath{*BuildEntityPathStr(tt.aep)}
+			sql := fp.buildSql("*")
+			if sql != tt.sql {
+				t.Errorf("buildSql()\n got : %v\n want: %v", sql, tt.sql)
 			}
 		})
 	}
