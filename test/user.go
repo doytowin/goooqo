@@ -45,7 +45,7 @@ type UserQuery struct {
 			SELECT id FROM t_role WHERE ...
 		)
 	)*/
-	Role      *RoleQuery `entitypath:"user,role"`
+	Role      *RoleQuery `entitypath:"role,user"`
 	WithRoles *RoleQuery
 
 	/**
@@ -57,7 +57,7 @@ type UserQuery struct {
 			)
 		)
 	)*/
-	Perm *PermQuery `entitypath:"user,role,perm"`
+	Perm *PermQuery `entitypath:"perm,role,user"`
 }
 
 var UserDataAccess TxDataAccess[UserEntity]

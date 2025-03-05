@@ -32,21 +32,22 @@ func (fp *fpEntityPath) Process(value reflect.Value) (string, []any) {
 	args := make([]any, 0)
 
 	l := len(fp.Relations)
-	sql := fp.Base.Fk2 + " IN ("
+	sql := fp.Base.Fk1 + " IN ("
 	closeParesis := strings.Repeat(")", l+1)
-	for i := 0; i < l; i++ {
+	for i := l - 1; i >= 0; i-- {
+		relation := fp.Relations[i]
+		sql += "SELECT " + relation.Fk2 + " FROM " + relation.At + " WHERE " + relation.Fk1 + " IN ("
 		queryValue := value.FieldByName(Capitalize(fp.Path[i]) + "Query")
 		if queryValue.IsValid() && !queryValue.IsNil() {
 			where0, args0 := BuildWhereClause(queryValue.Interface())
 			sql += "SELECT id FROM " + FormatTable(fp.Path[i]) + where0 + "\nINTERSECT "
 			args = append(args, args0...)
 		}
-		relation := fp.Relations[i]
-		sql += "SELECT " + relation.Fk1 + " FROM " + relation.At + " WHERE " + relation.Fk2 + " IN ("
 	}
 	where, args0 := BuildWhereClause(value.Interface())
 	args = append(args, args0...)
-	return sql + "SELECT " + fp.Base.Fk1 + " FROM " + fp.Base.At + where + closeParesis, args
+	e1, _, _ := strings.Cut(fp.Path[0], "->")
+	return sql + "SELECT " + fp.Base.Fk2 + " FROM " + FormatTable(e1) + where + closeParesis, args
 }
 
 func buildColumns(fieldMetas []FieldMetadata) string {

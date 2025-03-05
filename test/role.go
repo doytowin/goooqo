@@ -24,5 +24,5 @@ type RoleQuery struct {
 	Id    *int
 	Valid *bool
 
-	User *UserQuery `entitypath:"role,user"`
+	User *UserQuery `entitypath:"user,role"`
 }
