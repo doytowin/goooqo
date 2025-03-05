@@ -70,19 +70,20 @@ func BuildEntityPath(field reflect.StructField) *EntityPath {
 		relations[i] = buildRelation(path[i], path[i+1])
 	}
 	targetTable := FormatTable(path[l-1])
-	localFieldColumn := ConvertToColumnCase(field.Tag.Get("localField"))
-	if localFieldColumn == "" {
-		localFieldColumn = "id"
+	base := Relation{"id", "id", targetTable}
+	if strings.Contains(field.Tag.Get("entitypath"), "-") && l == 2 {
+		base = relations[0]
+		relations = []Relation{}
 	}
-	foreignFieldColumn := ConvertToColumnCase(field.Tag.Get("foreignField"))
-	if foreignFieldColumn == "" {
-		foreignFieldColumn = "id"
-	}
-	base := Relation{localFieldColumn, foreignFieldColumn, targetTable}
 	return &EntityPath{path, base, relations, field.Type.Elem()}
 }
 
 // e1: left entity, e2: right entity
 func buildRelation(e1 string, e2 string) Relation {
+	if entity, fk, ok := strings.Cut(e1, "->"); ok {
+		return Relation{"id", ConvertToColumnCase(fk), FormatTable(entity)}
+	} else if entity, fk, ok := strings.Cut(e2, "<-"); ok {
+		return Relation{ConvertToColumnCase(fk), "id", FormatTable(entity)}
+	}
 	return Relation{FormatJoinId(e1), FormatJoinId(e2), FormatJoinTable(e1, e2)}
 }

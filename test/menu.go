@@ -24,11 +24,11 @@ type MenuQuery struct {
 
 	// Query the submenus of a specific parent menu:
 	// parent_id IN (SELECT id FROM t_menu WHERE [conditions])
-	Parent *MenuQuery `entitypath:"menu" localField:"ParentId"`
+	Parent *MenuQuery `entitypath:"menu->ParentId,menu"`
 
 	// Query the parent menu of a specific submenu:
 	// id IN (SELECT parent_id FROM t_menu WHERE [conditions])
-	Children *MenuQuery `entitypath:"menu" foreignField:"ParentId"`
+	Children *MenuQuery `entitypath:"menu,menu<-ParentId"`
 
 	/**
 	Query the menus accessible to a specific user:

@@ -31,10 +31,10 @@ func BuildRelationEntityPath(field reflect.StructField) fpEntityPath {
 func (fp *fpEntityPath) Process(value reflect.Value) (string, []any) {
 	args := make([]any, 0)
 
-	l := len(fp.Path)
-	sql := fp.Base.Fk1 + " IN ("
-	closeParesis := strings.Repeat(")", l)
-	for i := 0; i < l-1; i++ {
+	l := len(fp.Relations)
+	sql := fp.Base.Fk2 + " IN ("
+	closeParesis := strings.Repeat(")", l+1)
+	for i := 0; i < l; i++ {
 		queryValue := value.FieldByName(Capitalize(fp.Path[i]) + "Query")
 		if queryValue.IsValid() && !queryValue.IsNil() {
 			where0, args0 := BuildWhereClause(queryValue.Interface())
@@ -46,7 +46,7 @@ func (fp *fpEntityPath) Process(value reflect.Value) (string, []any) {
 	}
 	where, args0 := BuildWhereClause(value.Interface())
 	args = append(args, args0...)
-	return sql + "SELECT " + fp.Base.Fk2 + " FROM " + fp.Base.At + where + closeParesis, args
+	return sql + "SELECT " + fp.Base.Fk1 + " FROM " + fp.Base.At + where + closeParesis, args
 }
 
 func buildColumns(fieldMetas []FieldMetadata) string {
