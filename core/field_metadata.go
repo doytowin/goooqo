@@ -94,5 +94,6 @@ func buildRelation(e1 string, e2 string) Relation {
 	if _, entity, ok := strings.Cut(e1, "<-"); ok {
 		e1 = entity
 	}
+	e2, _, _ = strings.Cut(e2, "->")
 	return Relation{FormatJoinId(e1), FormatJoinId(e2), FormatJoinTable(e1, e2)}
 }
