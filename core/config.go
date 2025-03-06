@@ -44,3 +44,14 @@ func FormatJoinTable(domain1 string, domain2 string) string {
 func RegisterJoinTable(domain1 string, domain2 string, table string) {
 	m[domain1+"_"+domain2] = table
 }
+
+func RegisterVirtualEntity(ve string, target string) {
+	m[ve] = target
+}
+
+func MapVirtualEntity(ve string) string {
+	if target := m[ve]; target != "" {
+		return target
+	}
+	return ve
+}

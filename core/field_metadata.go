@@ -75,7 +75,7 @@ func BuildEntityPathStr(aep string) *EntityPath {
 	for i := 0; i < l-1; i++ {
 		relations[i] = buildRelation(path[i], path[i+1])
 	}
-	targetTable := FormatTable(path[l-1])
+	targetTable := FormatTable(MapVirtualEntity(path[l-1]))
 	base := Relation{"id", "id", targetTable}
 	if strings.Contains(aep, "-") && l == 2 {
 		base = relations[0]
@@ -95,5 +95,6 @@ func buildRelation(e1 string, e2 string) Relation {
 		e1 = entity
 	}
 	e2, _, _ = strings.Cut(e2, "->")
+	e1 = MapVirtualEntity(e1)
 	return Relation{FormatJoinId(e1), FormatJoinId(e2), FormatJoinTable(e1, e2)}
 }

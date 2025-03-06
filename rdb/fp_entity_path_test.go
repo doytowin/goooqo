@@ -57,6 +57,7 @@ func Test_fpEntityPath_buildQuery(t *testing.T) {
 
 func Test_fpEntityPath_buildSql(t *testing.T) {
 	RegisterJoinTable("product", "order", "a_order_and_product")
+	RegisterVirtualEntity("friend", "user")
 	tests := []struct {
 		name string
 		aep  string
@@ -71,6 +72,11 @@ func Test_fpEntityPath_buildSql(t *testing.T) {
 			"Build SELECT for product's buyer",
 			"product,order->user_id,user",
 			"SELECT * FROM t_user WHERE id IN (SELECT user_id FROM t_order WHERE id IN (SELECT order_id FROM a_order_and_product WHERE product_id = ?))",
+		},
+		{
+			"Support user's friend",
+			"user,friend,friend,friend",
+			"SELECT * FROM t_user WHERE id IN (SELECT friend_id FROM a_user_and_friend WHERE user_id IN (SELECT friend_id FROM a_user_and_friend WHERE user_id IN (SELECT friend_id FROM a_user_and_friend WHERE user_id = ?)))",
 		},
 	}
 	for _, tt := range tests {
