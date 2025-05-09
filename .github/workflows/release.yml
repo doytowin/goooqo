@@ -16,4 +16,5 @@ jobs:
           git tag core/${{ github.event.release.tag_name }}
           git tag rdb/${{ github.event.release.tag_name }}
           git tag web/${{ github.event.release.tag_name }}
+          git tag gooogen/${{ github.event.release.tag_name }}
           git push --tags origin
