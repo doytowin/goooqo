@@ -33,6 +33,7 @@ type EntityMetadata[E Entity] struct {
 	createStr       string
 	placeholders    string
 	updateStr       string
+	Type            reflect.Type
 }
 
 func RegisterEntity(entityName string, tableName string) {
@@ -98,23 +99,44 @@ func (em *EntityMetadata[E]) buildUpdate(entity E) (string, []any) {
 	return em.updateStr, args
 }
 
-func (em *EntityMetadata[E]) buildPatch(entity E, extra int) (string, []any) {
-	args := make([]any, 0, len(em.fieldsWithoutId)+extra)
-	sqlStr := "UPDATE " + em.TableName + " SET "
-
+func (em *EntityMetadata[E]) buildPatch(entity Entity, extra int) (string, []any) {
 	rv := reflect.ValueOf(entity)
-	for _, col := range em.fieldsWithoutId {
+	var patchFields = em.fieldsWithoutId
+
+	if structType := rv.Type(); structType != em.Type {
+		for i := 0; i < structType.NumField(); i++ {
+			if structType.Field(i).Type.Kind() != reflect.Struct {
+				fieldname := structType.Field(i).Name
+				patchFields = append(em.fieldsWithoutId, fieldname)
+			}
+		}
+	}
+
+	args := make([]any, 0, len(patchFields)+extra)
+	sqlStr := "UPDATE " + em.TableName + " SET "
+	setClauses := make([]string, 0)
+
+	for _, col := range patchFields {
 		value := rv.FieldByName(col)
 		v := ReadValue(value)
 		if v != nil {
-			sqlStr += ConvertToColumnCase(col) + " = ?, "
+			setClauses = append(setClauses, resolveSetClause(col))
 			args = append(args, v)
 		}
 	}
-	return sqlStr[0 : len(sqlStr)-2], args
+	return sqlStr + strings.Join(setClauses, ", "), args
 }
 
-func (em *EntityMetadata[E]) buildPatchById(entity E) (string, []any) {
+func resolveSetClause(fieldname string) string {
+	if strings.HasSuffix(fieldname, "Ae") {
+		column := ConvertToColumnCase(strings.TrimSuffix(fieldname, "Ae"))
+		sign := " + "
+		return column + " = " + column + sign + "?"
+	}
+	return ConvertToColumnCase(fieldname) + " = ?"
+}
+
+func (em *EntityMetadata[E]) buildPatchById(entity Entity) (string, []any) {
 	sqlStr, args := em.buildPatch(entity, 1)
 	sqlStr = sqlStr + whereId
 	args = append(args, entity.GetId())
@@ -191,5 +213,6 @@ func buildEntityMetadata[E Entity]() EntityMetadata[E] {
 		createStr:       createStr,
 		placeholders:    placeholders,
 		updateStr:       updateStr,
+		Type:            reflect.TypeOf(*new(E)),
 	}
 }

@@ -58,7 +58,7 @@ type DataAccess[E Entity] interface {
 	Create(ctx context.Context, entity *E) (int64, error)
 	CreateMulti(ctx context.Context, entities []E) (int64, error)
 	Update(ctx context.Context, entity E) (int64, error)
-	Patch(ctx context.Context, entity E) (int64, error)
+	Patch(ctx context.Context, entity Entity) (int64, error)
 	PatchByQuery(ctx context.Context, entity E, query Query) (int64, error)
 }
 

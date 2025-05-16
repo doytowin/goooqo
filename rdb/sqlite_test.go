@@ -204,18 +204,34 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Patch Entity", func(t *testing.T) {
 		tc, err := tm.StartTransaction(ctx)
-		entity := UserEntity{Score: P(90)}
-		entity.Id = 2
-		cnt, err := userDataAccess.Patch(ctx, entity)
+		entity := UserEntity{Int64Id: NewInt64Id(2), Score: P(90)}
+		cnt, err := userDataAccess.Patch(tc, entity)
 		if err != nil {
 			t.Error("Error", err)
 			return
 		}
-		userEntity, err := userDataAccess.Get(ctx, 2)
+		userEntity, err := userDataAccess.Get(tc, 2)
 
 		if !(cnt == 1 && *userEntity.Score == 90 && *userEntity.Memo == "Bad") {
 			t.Errorf("\nExpected: %d %d %s\nBut got : %d %d %s",
 				2, 90, "Bad", userEntity.Id, *userEntity.Score, *userEntity.Memo)
+		}
+		_ = tc.Rollback()
+	})
+
+	t.Run("Patch Entity Self Increase", func(t *testing.T) {
+		tc, err := tm.StartTransaction(ctx)
+		entity := UserPatch{UserEntity: UserEntity{Int64Id: NewInt64Id(2)}, ScoreAe: P(1)}
+		cnt, err := userDataAccess.Patch(tc, entity)
+		if err != nil {
+			t.Error("Error", err)
+			return
+		}
+		userEntity, err := userDataAccess.Get(tc, 2)
+
+		if !(cnt == 1 && *userEntity.Score == 41 && *userEntity.Memo == "Bad") {
+			t.Errorf("\nExpected: %d %d %s\nBut got : %d %d %s",
+				2, 41, "Bad", userEntity.Id, *userEntity.Score, *userEntity.Memo)
 		}
 		_ = tc.Rollback()
 	})

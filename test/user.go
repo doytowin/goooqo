@@ -20,6 +20,11 @@ type UserEntity struct {
 	Roles []RoleEntity `entitypath:"user,role" json:"roles,omitempty"`
 }
 
+type UserPatch struct {
+	UserEntity
+	ScoreAe *int
+}
+
 type UserQuery struct {
 	PageQuery
 	IdGt     *int

@@ -259,7 +259,7 @@ func (m *mongoDataAccess[E]) Update(ctx context.Context, entity E) (int64, error
 	return 0, err
 }
 
-func (m *mongoDataAccess[E]) Patch(ctx context.Context, entity E) (int64, error) {
+func (m *mongoDataAccess[E]) Patch(ctx context.Context, entity Entity) (int64, error) {
 	doc := buildPatch(entity)
 	idFilter := buildIdFilter(entity.GetId())
 	return unwrapPatch(m.collection.UpdateMany(ctx, idFilter, doc))

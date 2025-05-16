@@ -223,7 +223,7 @@ func (da *relationalDataAccess[E]) Update(ctx context.Context, entity E) (int64,
 	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
-func (da *relationalDataAccess[E]) Patch(ctx context.Context, entity E) (int64, error) {
+func (da *relationalDataAccess[E]) Patch(ctx context.Context, entity Entity) (int64, error) {
 	sqlStr, args := da.em.buildPatchById(entity)
 	return parse(da.doUpdate(ctx, sqlStr, args))
 }
