@@ -11,12 +11,17 @@
 package rdb
 
 import (
+	"database/sql"
 	"reflect"
 	"strings"
 )
 
 type QueryBuilder interface {
 	BuildConditions() ([]string, []any)
+}
+
+type EntityMapper interface {
+	From(*sql.Rows) error
 }
 
 func isValidValue(value reflect.Value) bool {

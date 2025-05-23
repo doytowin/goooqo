@@ -78,12 +78,6 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 	result := make([]E, 0, size)
 
 	entity := *new(E)
-	elem := reflect.ValueOf(&entity).Elem()
-	columnMetas := da.em.columnMetas
-	pointers := make([]any, len(columnMetas))
-	for i, cm := range columnMetas {
-		pointers[i] = elem.FieldByName(cm.Field.Name).Addr().Interface()
-	}
 
 	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
 	if NoError(err) {
@@ -92,7 +86,12 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 		rows, err = stmt.QueryContext(ctx, args...)
 		if NoError(err) {
 			for rows.Next() {
-				err = rows.Scan(pointers...)
+				if mapper, ok := any(&entity).(EntityMapper); ok {
+					err = mapper.From(rows)
+				} else {
+					pointers := da.preparePointers(entity)
+					err = rows.Scan(pointers...)
+				}
 				if NoError(err) {
 					result = append(result, entity)
 				}
@@ -101,6 +100,15 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 	}
 
 	return result, err
+}
+
+func (da *relationalDataAccess[E]) preparePointers(entity E) []any {
+	elem := reflect.ValueOf(&entity).Elem()
+	pointers := make([]any, len(da.em.columnMetas))
+	for i, cm := range da.em.columnMetas {
+		pointers[i] = elem.FieldByName(cm.Field.Name).Addr().Interface()
+	}
+	return pointers
 }
 
 func (da *relationalDataAccess[E]) queryRelationEntities(ctx context.Context, entities []E, query Query) {

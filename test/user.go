@@ -10,7 +10,10 @@
 
 package test
 
-import . "github.com/doytowin/goooqo/core"
+import (
+	"database/sql"
+	. "github.com/doytowin/goooqo/core"
+)
 
 type UserEntity struct {
 	Int64Id
@@ -23,6 +26,10 @@ type UserEntity struct {
 type UserPatch struct {
 	UserEntity
 	ScoreAe *int
+}
+
+func (u *UserEntity) From(rows *sql.Rows) error {
+	return rows.Scan(&u.Id, &u.Score, &u.Memo)
 }
 
 type UserQuery struct {
