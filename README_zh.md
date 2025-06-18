@@ -7,17 +7,10 @@ GoooQo
 
 ## 项目介绍
 
-GoooQo是一个基于OQM技术的Go语言版的增删查改框架。
+GoooQo是一个采用Go语言实现的基于OQM技术的的数据库访问框架，完全依赖对象构建各种数据库查询语句，
+消除各种使用传统ORM框架带来的样板代码，帮助开发人员实现自动化的数据库访问操作。
 
-OQM技术是一种通过对象构建数据库查询语句的数据库访问技术。
-
-OQM技术提出了一种解决n个查询条件动态组合问题的新方法，
-通过具有n个字段的对象的2^n种赋值组合来映射2^n种查询条件的组合，
-使开发人员只需定义和构建对象即可轻松生成动态查询语句，
-成为与ORM技术的重要区别之一。
-
-用于动态构建查询子句的对象被称为查询对象 (Query Object)，即GoooQo中`Qo`。
-
+GoooQo中用于动态构建查询子句的对象被称为查询对象 (Query Object)，即GoooQo中`Qo`。
 而GoooQo名称中的前三个`O`代表了OQM技术中的三大对象概念：
 
 - `Entity Object`用于映射增删查改语句中的静态部分，例如表名和列名；
@@ -26,7 +19,7 @@ OQM技术提出了一种解决n个查询条件动态组合问题的新方法，
 
 查看这篇[文章](https://blog.doyto.win/post/introduction-to-goooqo-en/)，了解更多详情。
 
-访问[demo](https://github.com/doytowin/goooqo-demo)，快速上手。
+参考[demo](https://github.com/doytowin/goooqo-demo)，快速上手。
 
 产品文档: https://goooqo.docs.doyto.win/v/zh
 
@@ -53,7 +46,6 @@ import (
 
 func main() {
 	db, _ := sql.Open("sqlite3", "./test.db")
-
 	tm := rdb.NewTransactionManager(db)
 
 	//...
@@ -72,7 +64,7 @@ func main() {
 | 4  | Tim   | 92    | Great | true    |
 | 5  | Emy   | 100   | Great | false   |
 
-我们为该表定义一个实体对象和一个查询对象：
+我们为该表定义一个实体对象和一个查询对象，以及一个用于执行数据库访问操作的`UserDataAccess`接口：
 
 ```go
 import . "github.com/doytowin/goooqo/core"
@@ -97,15 +89,20 @@ type UserQuery struct {
 
 	ScoreLtAvg *UserQuery `subquery:"select avg(score) from t_user"`
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
-	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
-	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
+	ScoreLtAll *UserQuery `subquery:"SELECT score FROM t_user"`
+	ScoreGtAvg *UserQuery `select:"avg(score)" from:"t_user"`
+
+	Role *RoleQuery `entitypath:"user,role"`
+	Perm *PermQuery `entitypath:"user,role,perm"`
 }
+
+var UserDataAccess TxDataAccess[UserEntity]
 ```
 
-然后我们创建一个`userDataAccess`接口来执行增删查改操作：
+在建立数据库连接并创建事务管理器后，初始化`UserDataAccess`接口：
 
 ```go
-userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
+UserDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
 ```
 
 ### 代码生成
@@ -143,23 +140,23 @@ type UserQuery struct {
 
 ```go
 userQuery := UserQuery{ScoreLt: P(80)}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score < ?" args="[80]"
 
 userQuery := UserQuery{PageQuery: PageQuery{PageSize: P(20), Sort: P("id,desc;score")}, MemoLike: P("Great")}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE memo LIKE ? ORDER BY id DESC, score LIMIT 20 OFFSET 0" args="[Great]"
 
 userQuery := UserQuery{IdIn: &[]int64{1, 4, 12}, Deleted: P(true)}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE id IN (?, ?, ?) AND deleted = ?" args="[1 4 12 true]"
 
 userQuery := UserQuery{UserOr: &[]UserQuery{{IdGt: P(int64(10)), MemoNull: P(true)}, {ScoreLt: P(80), MemoLike: P("Good")}}}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE (id > ? AND memo IS NULL OR score < ? AND memo LIKE ?)" args="[10 80 Good]"
 
 userQuery := UserQuery{ScoreGtAvg: &UserQuery{Deleted: P(true)}, ScoreLtAny: &UserQuery{}}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score > (SELECT avg(score) FROM t_user WHERE deleted = ?) AND score < ANY(SELECT score FROM t_user)" args="[true]"
 ```
 
@@ -169,9 +166,9 @@ users, err := userDataAccess.Query(ctx, userQuery)
 
 使用`TransactionManager#StartTransaction`开启事务，手动提交或者回滚事务：
 ```go
-tc, err := userDataAccess.StartTransaction(ctx)
+tc, err := UserDataAccess.StartTransaction(ctx)
 userQuery := UserQuery{ScoreLt: PInt(80)}
-cnt, err := userDataAccess.DeleteByQuery(tc, userQuery)
+cnt, err := UserDataAccess.DeleteByQuery(tc, userQuery)
 if err != nil {
 	err = tc.Rollback()
 	return 0

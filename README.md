@@ -7,21 +7,13 @@ GoooQo
 
 ## Introduction
 
-GoooQo is a CRUD framework in Golang based on the OQM technique.
-
-The OQM (Object-Query Mapping) technique is a database access technique that constructs database query statements through objects.
-
-OQM proposes a new method to solve the problem of dynamic combination of n query conditions
-by mapping 2^n assignment combinations of an object instance with n fields to 2^n combinations of n query conditions.
-
-This approach enables developers to define and construct objects only to build dynamic query statements, 
-setting OQM apart from ORM. Such objects are called query objects, which is the Qo in GoooQo.
+GoooQo is a database access framework implemented in Go, based on OQM techniques. It relies entirely on objects to construct various database query statements, eliminating boilerplate code associated with traditional ORM frameworks, and assists developers in achieving automated database access operations.
 
 The first three Os in the name GoooQo stands for the three major object concepts in the OQM technique:
 
-- `Entity Object` is used to map the static part in the CRUD statements, such as table name and column names;
-- `Query Object` is used to map the dynamic part in the CRUD statements, such as filter conditions, pagination and sorting clause;
-- `View Object` is used to map the static part in the complex query statements, such as table names, column names, group-by clause and joins.
+- `Entity Object` is used to map the static part in the CRUD statements, e.g. table name and column names;
+- `Query Object` is used to map the dynamic part in the CRUD statements, e.g. filter conditions, pagination and sorting clause;
+- `View Object` is used to map the static part in the complex query statements, e.g. table names, column names, group-by clause and joins.
 
 Check this [article](https://blog.doyto.win/post/introduction-to-goooqo-en/) for more details. 
 
@@ -69,7 +61,7 @@ Suppose we have the following user table in `test.db`:
 | 4  | Tim   | 92    | Great | true    |
 | 5  | Emy   | 100   | Great | false   |
 
-We define an entity object and a query object for this table:
+We define an entity object, a query object and a database access interface for this table:
 
 ```go
 import . "github.com/doytowin/goooqo/core"
@@ -94,45 +86,48 @@ type UserQuery struct {
 
 	ScoreLtAvg *UserQuery `subquery:"select avg(score) from t_user"`
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM t_user"`
-	ScoreLtAll *UserQuery `subquery:"select score from UserEntity"`
-	ScoreGtAvg *UserQuery `select:"avg(score)" from:"UserEntity"`
+	ScoreLtAll *UserQuery `subquery:"SELECT score FROM t_user"`
+	ScoreGtAvg *UserQuery `select:"avg(score)" from:"t_user"`
 
-    Role *RoleQuery `entitypath:"user,role"`
-    Perm *PermQuery `entitypath:"user,role,perm"`
+	Role *RoleQuery `entitypath:"user,role"`
+	Perm *PermQuery `entitypath:"user,role,perm"`
 }
+
+var UserDataAccess TxDataAccess[UserEntity]
 ```
 
-Then we create a `userDataAccess` interface to perform CRUD operations:
+After establishing a database connection and creating the transaction manager,
+initialize the `UserDataAccess` interface to perform CRUD operations:
 
 ```go
-userDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
+UserDataAccess = rdb.NewTxDataAccess[UserEntity](tm)
 ```
 
 ### Query examples: 
 
 ```go
 userQuery := UserQuery{ScoreLt: P(80)}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score < ?" args="[80]"
 
 userQuery := UserQuery{PageQuery: PageQuery{PageSize: P(20), Sort: P("id,desc;score")}, MemoLike: P("Great")}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE memo LIKE ? ORDER BY id DESC, score LIMIT 20 OFFSET 0" args="[Great]"
 
 userQuery := UserQuery{IdIn: &[]int64{1, 4, 12}, Deleted: P(true)}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE id IN (?, ?, ?) AND deleted = ?" args="[1 4 12 true]"
 
 userQuery := UserQuery{UserOr: &[]UserQuery{{IdGt: P(int64(10)), MemoNull: P(true)}, {ScoreLt: P(80), MemoLike: P("Good")}}}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE (id > ? AND memo IS NULL OR score < ? AND memo LIKE ?)" args="[10 80 Good]"
 
 userQuery := UserQuery{ScoreGtAvg: &UserQuery{Deleted: P(true)}, ScoreLtAny: &UserQuery{}}
-users, err := userDataAccess.Query(ctx, userQuery)
+users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score > (SELECT avg(score) FROM t_user WHERE deleted = ?) AND score < ANY(SELECT score FROM t_user)" args="[true]"
 ```
 
-For more CRUD examples, please refer to: https://goooqo.docs.doyto.win/v/zh/api/crud
+For more CRUD examples, please refer to: https://goooqo.docs.doyto.win/api/crud
 
 ### Code Generation
 
@@ -157,9 +152,9 @@ type UserQuery struct {
 }
 ```
 
-- **`-type`**: (Optional) Specifies the type of query language to generate, such as `sql`.
-- **`-f`**: (Optional) Defines the name of the input file which contains a query object, such as `user.go`.
-- **`-o`**: (Optional) Defines the name of the generated file, such as `user_query_builder.go`.
+- **`-type`**: (Optional) Specifies the type of query language to generate, e.g. `sql`.
+- **`-f`**: (Optional) Defines the name of the input file which contains a query object, e.g. `user.go`.
+- **`-o`**: (Optional) Defines the name of the generated file, e.g. `user_query_builder.go`.
 
 #### Generate Code
 
@@ -169,9 +164,9 @@ Run the `go generate` command to generate the corresponding query construction m
 
 Use `TransactionManager#StartTransaction` to start a transaction, then manually commit or rollback the transaction:
 ```go
-tc, err := userDataAccess.StartTransaction(ctx)
+tc, err := UserDataAccess.StartTransaction(ctx)
 userQuery := UserQuery{ScoreLt: PInt(80)}
-cnt, err := userDataAccess.DeleteByQuery(tc, userQuery)
+cnt, err := UserDataAccess.DeleteByQuery(tc, userQuery)
 if err != nil {
 	err = tc.Rollback()
 	return 0, err
@@ -187,8 +182,6 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
 	return
 })
 ```
-
-<a href="https://www.producthunt.com/posts/goooqo?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-goooqo" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=516822&theme=light" alt="ProductHunt" style="width: 250px; height: 54px;" width="250" height="54"/></a>
 
 License
 ---
