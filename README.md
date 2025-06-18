@@ -11,9 +11,9 @@ GoooQo is a database access framework implemented in Go, based on OQM techniques
 
 The first three Os in the name GoooQo stands for the three major object concepts in the OQM technique:
 
-- `Entity Object` is used to map the static part in the CRUD statements, such as table name and column names;
-- `Query Object` is used to map the dynamic part in the CRUD statements, such as filter conditions, pagination and sorting clause;
-- `View Object` is used to map the static part in the complex query statements, such as table names, column names, group-by clause and joins.
+- `Entity Object` is used to map the static part in the CRUD statements, e.g. table name and column names;
+- `Query Object` is used to map the dynamic part in the CRUD statements, e.g. filter conditions, pagination and sorting clause;
+- `View Object` is used to map the static part in the complex query statements, e.g. table names, column names, group-by clause and joins.
 
 Check this [article](https://blog.doyto.win/post/introduction-to-goooqo-en/) for more details. 
 
@@ -96,7 +96,8 @@ type UserQuery struct {
 var UserDataAccess TxDataAccess[UserEntity]
 ```
 
-After establishing a database connection, initialize the `UserDataAccess` interface to perform CRUD operations:
+After establishing a database connection and creating the transaction manager,
+initialize the `UserDataAccess` interface to perform CRUD operations:
 
 ```go
 UserDataAccess = rdb.NewTxDataAccess[UserEntity](tm)
@@ -126,7 +127,7 @@ users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score > (SELECT avg(score) FROM t_user WHERE deleted = ?) AND score < ANY(SELECT score FROM t_user)" args="[true]"
 ```
 
-For more CRUD examples, please refer to: https://goooqo.docs.doyto.win/v/zh/api/crud
+For more CRUD examples, please refer to: https://goooqo.docs.doyto.win/api/crud
 
 ### Code Generation
 
@@ -151,9 +152,9 @@ type UserQuery struct {
 }
 ```
 
-- **`-type`**: (Optional) Specifies the type of query language to generate, such as `sql`.
-- **`-f`**: (Optional) Defines the name of the input file which contains a query object, such as `user.go`.
-- **`-o`**: (Optional) Defines the name of the generated file, such as `user_query_builder.go`.
+- **`-type`**: (Optional) Specifies the type of query language to generate, e.g. `sql`.
+- **`-f`**: (Optional) Defines the name of the input file which contains a query object, e.g. `user.go`.
+- **`-o`**: (Optional) Defines the name of the generated file, e.g. `user_query_builder.go`.
 
 #### Generate Code
 
@@ -181,8 +182,6 @@ err := tm.SubmitTransaction(ctx, func(tc TransactionContext) (err error) {
 	return
 })
 ```
-
-<a href="https://www.producthunt.com/posts/goooqo?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-goooqo" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=516822&theme=light" alt="ProductHunt" style="width: 250px; height: 54px;" width="250" height="54"/></a>
 
 License
 ---

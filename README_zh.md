@@ -99,7 +99,7 @@ type UserQuery struct {
 var UserDataAccess TxDataAccess[UserEntity]
 ```
 
-在建立数据库连接后，初始化`UserDataAccess`接口：
+在建立数据库连接并创建事务管理器后，初始化`UserDataAccess`接口：
 
 ```go
 UserDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
