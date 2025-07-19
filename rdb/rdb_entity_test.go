@@ -45,20 +45,17 @@ func (e TestEntity) SetId(self any, id any) (err error) {
 	return
 }
 
-type TestCond struct {
-	Username *string
-	Email    *string
-	Mobile   *string
-	TestAnd  *TestCond
-}
-
 type TestQuery struct {
 	PageQuery
+	Username   *string
+	Email      *string
 	EmailStart *string
 	EmailNull  *bool
-	TestOr     *TestCond
+	Mobile     *string
+	Or         *TestQuery
+	And        *TestQuery
 	EmailEndOr *[]string
-	TestsOr    *[]TestCond
+	TestsOr    *[]TestQuery
 	Account    *string `condition:"(username = ? OR email = ?)"`
 	Deleted    *bool
 }

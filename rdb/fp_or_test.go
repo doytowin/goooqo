@@ -19,7 +19,7 @@ import (
 func TestOr(t *testing.T) {
 
 	t.Run("Build Or Condition", func(t *testing.T) {
-		actual, _ := fpForOr.Process(reflect.ValueOf(&TestCond{Username: P("f0rb"), Email: P("f0rb")}))
+		actual, _ := fpForOr.Process(reflect.ValueOf(&TestQuery{Username: P("f0rb"), Email: P("f0rb")}))
 		expect := "(username = ? OR email = ?)"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
@@ -27,7 +27,7 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause for struct", func(t *testing.T) {
-		query := TestQuery{TestOr: &TestCond{Username: P("f0rb"), Email: P("f0rb")}, Deleted: P(true)}
+		query := TestQuery{Or: &TestQuery{Username: P("f0rb"), Email: P("f0rb")}, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR email = ?) AND deleted = ?"
 		if actual != expect {
@@ -39,8 +39,8 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause with And", func(t *testing.T) {
-		accountAnd := TestCond{Email: P("f0rb@qq.com"), Mobile: P("01008888")}
-		query := TestQuery{TestOr: &TestCond{Username: P("f0rb"), TestAnd: &accountAnd}, Deleted: P(true)}
+		accountAnd := TestQuery{Email: P("f0rb@qq.com"), Mobile: P("01008888")}
+		query := TestQuery{Or: &TestQuery{Username: P("f0rb"), And: &accountAnd}, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR email = ? AND mobile = ?) AND deleted = ?"
 		if actual != expect {
@@ -64,7 +64,7 @@ func TestOr(t *testing.T) {
 	})
 
 	t.Run("Build OR Clause for struct array", func(t *testing.T) {
-		condArr := []TestCond{{Username: P("f0rb")}, {Username: P("test2"), Email: P("test2@qq.com")}}
+		condArr := []TestQuery{{Username: P("f0rb")}, {Username: P("test2"), Email: P("test2@qq.com")}}
 		query := TestQuery{TestsOr: &condArr, Deleted: P(true)}
 		actual, args := BuildWhereClause(query)
 		expect := " WHERE (username = ? OR username = ? AND email = ?) AND deleted = ?"
@@ -72,6 +72,19 @@ func TestOr(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 		if !reflect.DeepEqual(args, []any{"f0rb", "test2", "test2@qq.com", true}) {
+			t.Errorf("Unexpected args: %v", args)
+		}
+	})
+
+	t.Run("Build for named Or", func(t *testing.T) {
+		condArr := TestQuery{EmailStart: P("test"), EmailNull: P(true)}
+		query := TestQuery{Or: &condArr, Deleted: P(true)}
+		actual, args := BuildWhereClause(query)
+		expect := " WHERE (email LIKE ? OR email IS NULL) AND deleted = ?"
+		if actual != expect {
+			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
+		}
+		if !reflect.DeepEqual(args, []any{"test%", true}) {
 			t.Errorf("Unexpected args: %v", args)
 		}
 	})
