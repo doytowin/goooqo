@@ -11,7 +11,6 @@
 package rdb
 
 import (
-	"database/sql"
 	"reflect"
 	"strings"
 )
@@ -21,7 +20,7 @@ type QueryBuilder interface {
 }
 
 type EntityMapper interface {
-	From(*sql.Rows) error
+	FieldsAddr() []any
 }
 
 func isValidValue(value reflect.Value) bool {

@@ -17,6 +17,8 @@ type RoleEntity struct {
 	RoleName     *string
 	RoleCode     *string
 	CreateUserId *int
+
+	Users []UserEntity `entitypath:"role,user"`
 }
 
 type RoleQuery struct {
@@ -25,4 +27,6 @@ type RoleQuery struct {
 	Valid *bool
 
 	User *UserQuery `entitypath:"user,role"`
+
+	WithUsers *UserQuery
 }

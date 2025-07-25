@@ -13,13 +13,15 @@ package rdb
 import (
 	"context"
 	"errors"
-	. "github.com/doytowin/goooqo/core"
-	. "github.com/doytowin/goooqo/test"
 	"reflect"
 	"testing"
+
+	. "github.com/doytowin/goooqo/core"
+	. "github.com/doytowin/goooqo/test"
 )
 
 func TestSQLite(t *testing.T) {
+	RegisterJoinTable("role", "user", "a_user_and_role")
 	db := Connect()
 	InitDB(db)
 	defer Disconnect(db)
@@ -261,13 +263,32 @@ func TestSQLite(t *testing.T) {
 			t.Error("Error", err)
 		}
 		roleEntities := []RoleEntity{
-			{NewIntId(1), P("admin"), P("ADMIN"), P(1)},
-			{NewIntId(2), P("vip"), P("VIP"), P(2)},
+			{NewIntId(1), P("admin"), P("ADMIN"), P(1), nil},
+			{NewIntId(2), P("vip"), P("VIP"), P(2), nil},
 		}
 		if !(len(users) == 4 &&
 			reflect.DeepEqual(users[0].Roles, roleEntities) &&
 			reflect.DeepEqual(users[3].Roles, roleEntities)) {
 			t.Errorf("Data is not expected: %v", users)
+		}
+	})
+
+	t.Run("Related Query: Query roles with related users", func(t *testing.T) {
+		roleDataAccess := NewTxDataAccess[RoleEntity](tm)
+		roleQuery := RoleQuery{WithUsers: &UserQuery{}}
+		roles, err := roleDataAccess.Query(ctx, &roleQuery)
+
+		if err != nil {
+			t.Error("Error", err)
+		}
+		userEntities := []UserEntity{
+			{NewInt64Id(1), P(85), P("Good"), nil},
+			{NewInt64Id(4), P(62), P("Well"), nil},
+		}
+		if !(len(roles) == 5 &&
+			reflect.DeepEqual(roles[1].Users, userEntities) &&
+			len(roles[3].Users) == 0) {
+			t.Errorf("Data is not expected: %v", roles)
 		}
 	})
 }

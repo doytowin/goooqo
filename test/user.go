@@ -11,7 +11,6 @@
 package test
 
 import (
-	"database/sql"
 	. "github.com/doytowin/goooqo/core"
 )
 
@@ -28,8 +27,8 @@ type UserPatch struct {
 	ScoreAe *int
 }
 
-func (u *UserEntity) From(rows *sql.Rows) error {
-	return rows.Scan(&u.Id, &u.Score, &u.Memo)
+func (u *UserEntity) FieldsAddr() []any {
+	return []any{&u.Id, &u.Score, &u.Memo}
 }
 
 type UserQuery struct {

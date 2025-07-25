@@ -13,9 +13,10 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"reflect"
+
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
-	"reflect"
 )
 
 type Connection interface {
@@ -85,13 +86,14 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 		var rows *sql.Rows
 		rows, err = stmt.QueryContext(ctx, args...)
 		if NoError(err) {
+			var pointers []any
+			if mapper, ok := any(entity).(EntityMapper); ok {
+				pointers = mapper.FieldsAddr()
+			} else {
+				pointers = preparePointers(reflect.ValueOf(&entity), da.em.columnMetas)
+			}
 			for rows.Next() {
-				if mapper, ok := any(&entity).(EntityMapper); ok {
-					err = mapper.From(rows)
-				} else {
-					pointers := da.preparePointers(entity)
-					err = rows.Scan(pointers...)
-				}
+				err = rows.Scan(pointers...)
 				if NoError(err) {
 					result = append(result, entity)
 				}
@@ -102,11 +104,10 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 	return result, err
 }
 
-func (da *relationalDataAccess[E]) preparePointers(entity E) []any {
-	elem := reflect.ValueOf(&entity).Elem()
-	pointers := make([]any, len(da.em.columnMetas))
-	for i, cm := range da.em.columnMetas {
-		pointers[i] = elem.FieldByName(cm.Field.Name).Addr().Interface()
+func preparePointers(p reflect.Value, fieldMetas []FieldMetadata) []any {
+	pointers := make([]any, len(fieldMetas))
+	for i, fm := range fieldMetas {
+		pointers[i] = p.Elem().FieldByName(fm.Field.Name).Addr().Interface()
 	}
 	return pointers
 }
@@ -137,13 +138,6 @@ func (da *relationalDataAccess[E]) queryRelationEntities(ctx context.Context, en
 func QueryRelated(ctx context.Context, conn Connection, sqlStr string, args []any, entityType reflect.Type) (reflect.Value, error) {
 	logSqlWithArgs(sqlStr, args)
 
-	entity := reflect.New(entityType).Elem()
-	fmArr := BuildFieldMetas(entityType)
-	pointers := make([]any, len(fmArr))
-	for i, fm := range fmArr {
-		pointers[i] = entity.FieldByName(fm.Field.Name).Addr().Interface()
-	}
-
 	stmt, err := conn.PrepareContext(ctx, sqlStr)
 	result := reflect.MakeSlice(reflect.SliceOf(entityType), 0, 10)
 	if NoError(err) {
@@ -151,16 +145,34 @@ func QueryRelated(ctx context.Context, conn Connection, sqlStr string, args []an
 		var rows *sql.Rows
 		rows, err = stmt.QueryContext(ctx, args...)
 		if NoError(err) {
+			var pointers []any
+			pEntity := reflect.New(entityType)
+			if mapper, ok := pEntity.Interface().(EntityMapper); ok {
+				pointers = mapper.FieldsAddr()
+			} else {
+				fmArr := retainColumns(BuildFieldMetas(entityType))
+				pointers = preparePointers(pEntity, fmArr)
+			}
 			for rows.Next() {
 				err = rows.Scan(pointers...)
 				if NoError(err) {
-					result = reflect.Append(result, entity)
+					result = reflect.Append(result, pEntity.Elem())
 				}
 			}
 		}
 	}
 
 	return result, err
+}
+
+func retainColumns(fieldMetas []FieldMetadata) []FieldMetadata {
+	columnMetas := make([]FieldMetadata, 0, len(fieldMetas))
+	for _, md := range fieldMetas {
+		if md.EntityPath == nil {
+			columnMetas = append(columnMetas, md)
+		}
+	}
+	return columnMetas
 }
 
 func (da *relationalDataAccess[E]) Count(ctx context.Context, query Query) (int64, error) {
