@@ -2,7 +2,7 @@ version: "3.8"
 services:
   mongo:
     container_name: mongo
-    image: bitnami/mongodb:7.0
+    image: bitnami/mongodb
     ports:
       - "27017:27017"
     environment:
