@@ -1,7 +1,7 @@
 /*
  * The Clear BSD License
  *
- * Copyright (c) 2024-2025, DoytoWin, Inc.
+ * Copyright (c) 2024-2026, DoytoWin, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -11,12 +11,13 @@
 package web
 
 import (
-	"github.com/doytowin/goooqo/core"
-	log "github.com/sirupsen/logrus"
 	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 )
 
 var converterMap = map[reflect.Type]func(v []string) (any, error){}

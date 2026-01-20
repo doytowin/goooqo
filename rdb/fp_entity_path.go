@@ -1,7 +1,7 @@
 /*
  * The Clear BSD License
  *
- * Copyright (c) 2024-2025, DoytoWin, Inc.
+ * Copyright (c) 2024-2026, DoytoWin, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -11,9 +11,10 @@
 package rdb
 
 import (
-	. "github.com/doytowin/goooqo/core"
 	"reflect"
 	"strings"
+
+	. "github.com/doytowin/goooqo/core"
 )
 
 type fpEntityPath struct {

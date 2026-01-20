@@ -1,7 +1,7 @@
 /*
  * The Clear BSD License
  *
- * Copyright (c) 2024-2025, DoytoWin, Inc.
+ * Copyright (c) 2024-2026, DoytoWin, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -12,12 +12,13 @@ package mongodb
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
-	"time"
 )
 
 func Connect(ctx context.Context, filenames ...string) *mongo.Client {

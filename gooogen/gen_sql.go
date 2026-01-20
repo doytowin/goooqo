@@ -1,7 +1,7 @@
 /*
  * The Clear BSD License
  *
- * Copyright (c) 2024-2025, DoytoWin, Inc.
+ * Copyright (c) 2024-2026, DoytoWin, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -11,11 +11,12 @@
 package main
 
 import (
-	"github.com/doytowin/goooqo/rdb"
-	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"reflect"
 	"strings"
+
+	"github.com/doytowin/goooqo/rdb"
+	log "github.com/sirupsen/logrus"
 )
 
 const format = "conditions = append(conditions, \"%s %s ?\")"

@@ -1,7 +1,7 @@
 /*
  * The Clear BSD License
  *
- * Copyright (c) 2025, DoytoWin, Inc.
+ * Copyright (c) 2024-2026, DoytoWin, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -12,9 +12,10 @@ package rdb
 
 import (
 	"context"
+	"testing"
+
 	. "github.com/doytowin/goooqo/test"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestAssociationSqlBuilder(t *testing.T) {
