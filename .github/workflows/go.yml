@@ -47,7 +47,7 @@ jobs:
 
       - name: Send coverage
         env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: goveralls -coverprofile=cov.out -service=github
 
       - name: Analyze with SonarCloud
