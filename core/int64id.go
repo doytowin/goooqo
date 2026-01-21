@@ -29,6 +29,8 @@ func NewInt64Id(id int64) Int64Id {
 func (e Int64Id) SetId(self any, id any) (err error) {
 	var Id int64
 	switch x := id.(type) {
+	case int:
+		Id = int64(x)
 	case int64:
 		Id = x
 	case string:
