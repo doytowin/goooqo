@@ -1,6 +1,8 @@
 [![Sonar Stats](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=alert_status)](https://sonarcloud.io/dashboard?id=win.doyto.goooqo)
 [![Code Lines](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=ncloc)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=ncloc)
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=win.doyto.goooqo&metric=coverage)](https://sonarcloud.io/component_measures?id=win.doyto.goooqo&metric=coverage)
+[![Go Report Card](https://goreportcard.com/badge/github.com/doytowin/goooqo/rdb)](https://goreportcard.com/report/github.com/doytowin/goooqo/rdb)
+[![Coverage Status](https://coveralls.io/repos/github/doytowin/goooqo/badge.svg?branch=main)](https://coveralls.io/github/doytowin/goooqo/badge.svg?branch=main)
 
 GoooQo
 ---
