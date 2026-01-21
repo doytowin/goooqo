@@ -2,10 +2,10 @@ go 1.18
 
 use (
 	core
-	test
-	rdb
-	web
-	./gooogen
-	mongodb
+	gooogen
 	main
+	mongodb
+	rdb
+	test
+	web
 )

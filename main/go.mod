@@ -3,11 +3,11 @@ module github.com/doytowin/goooqo/main
 go 1.18
 
 require (
-	github.com/doytowin/goooqo/core v0.2.2
+	github.com/doytowin/goooqo/core v0.2.3
 	github.com/doytowin/goooqo/mongodb v0.0.0-20250119091811-a1b572d3d830
-	github.com/doytowin/goooqo/rdb v0.2.2
-	github.com/doytowin/goooqo/test v0.2.2
-	github.com/doytowin/goooqo/web v0.2.2
+	github.com/doytowin/goooqo/rdb v0.2.3
+	github.com/doytowin/goooqo/test v0.2.3
+	github.com/doytowin/goooqo/web v0.2.3
 	github.com/sirupsen/logrus v1.9.3
 	go.mongodb.org/mongo-driver v1.17.0
 )
@@ -26,4 +26,5 @@ require (
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
