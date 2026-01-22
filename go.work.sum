@@ -1,8 +1,5 @@
-github.com/doytowin/goooqo/core v0.2.3/go.mod h1:MVSy+3MNOP3lAvP7REvkFmoKdUZNrm0EOy6mONXJv3c=
-github.com/doytowin/goooqo/rdb v0.2.3/go.mod h1:RxNRbmpn7WiVV9oIIR15+7UtfYHCcruAvZOsv3L9c3c=
-github.com/doytowin/goooqo/test v0.2.3/go.mod h1:3o69FflbN/CeDkoqgg19njppAvchxFegmLMO3/QBojU=
-github.com/doytowin/goooqo/web v0.2.3/go.mod h1:SKcXsyN8H1Udmsf6bnx8YGf1Nn7hfCHPo5ey3Epfmg4=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/mattn/go-sqlite3 v1.14.23/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
 github.com/yuin/goldmark v1.4.13 h1:fVcFKWvrslecOb/tg+Cc05dkeYx540o0FuFt3nUVDoE=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
