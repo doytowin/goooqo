@@ -42,6 +42,14 @@ jobs:
       - name: Test
         run: go test -v -coverprofile=cov.out ./core ./rdb ./web ./gooogen ./mongodb
 
+      - name: Install goveralls
+        run: go install github.com/mattn/goveralls@latest
+
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goveralls -coverprofile=cov.out -service=github
+
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@v7
         env:
