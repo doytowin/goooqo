@@ -45,6 +45,10 @@ func TestConverter(t *testing.T) {
 				"Support *bool", true, func(a any) any { return *a.(*bool) },
 				args{typeName: reflect.PointerTo(reflect.TypeOf(true)), params: []string{"true"}},
 			},
+			{
+				"Support multiple parameters", "id;name", func(a any) any { return *a.(*string) },
+				args{typeName: reflect.PointerTo(reflect.TypeOf("")), params: []string{"id", "name"}},
+			},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {

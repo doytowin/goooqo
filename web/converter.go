@@ -64,7 +64,8 @@ func init() {
 	})
 
 	RegisterConverter(reflect.PointerTo(reflect.TypeOf("")), func(v []string) (any, error) {
-		return &v[0], nil
+		joined := strings.Join(v, ";")
+		return &joined, nil
 	})
 }
 
