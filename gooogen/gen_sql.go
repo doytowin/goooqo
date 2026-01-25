@@ -126,6 +126,11 @@ func (g *SqlGenerator) appendCondition(field *ast.Field, fieldName string) {
 		g.appendIfBody("cond, args0 := BuildConditions(q.%s, \"(\", \" OR \", \")\")", fieldName)
 		g.appendIfBody("conditions = append(conditions, cond)")
 		g.appendIfBody("args = append(args, args0...)")
+	} else if strings.HasSuffix(fieldName, "And") {
+		g.appendIfStartNil(fieldName)
+		g.appendIfBody("cond, args0 := BuildConditions(q.%s, \"\", \" AND \", \"\")", fieldName)
+		g.appendIfBody("conditions = append(conditions, cond)")
+		g.appendIfBody("args = append(args, args0...)")
 	} else if strings.HasSuffix(op.sign, "LIKE") {
 		g.writeInstruction("if q.%s != nil && *q.%s != \"\" {", fieldName, fieldName)
 		g.appendIfBody(op.format, column, op.sign)

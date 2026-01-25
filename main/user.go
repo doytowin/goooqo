@@ -43,6 +43,9 @@ type UserQuery struct {
 	MemoNotEnd     *string
 	MemoRx         *string
 
+	Or  *UserQuery
+	And *UserQuery
+
 	ScoreLtAvg *UserQuery `subquery:"select avg(score) from User"`
 	ScoreLtAny *UserQuery `subquery:"SELECT score FROM User"`
 	ScoreLtAll *UserQuery `subquery:"select score from User"`
