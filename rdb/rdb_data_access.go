@@ -13,7 +13,9 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"reflect"
+	"strings"
 
 	. "github.com/doytowin/goooqo/core"
 	log "github.com/sirupsen/logrus"
@@ -204,6 +206,9 @@ func (da *relationalDataAccess[E]) Delete(ctx context.Context, id any) (int64, e
 
 func (da *relationalDataAccess[E]) DeleteByQuery(ctx context.Context, query Query) (int64, error) {
 	sqlStr, args := da.em.buildDelete(query)
+	if strings.Index(sqlStr, "WHERE") == -1 {
+		return 0, errors.New("Deletion of all records is restricted")
+	}
 	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 

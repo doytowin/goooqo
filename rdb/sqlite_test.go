@@ -118,6 +118,14 @@ func TestSQLite(t *testing.T) {
 		}
 	})
 
+	t.Run("Delete by empty query is not allowed", func(t *testing.T) {
+		var userQuery = UserQuery{}
+		_, err := userDataAccess.DeleteByQuery(ctx, userQuery)
+		if err == nil {
+			t.Error("Error: ", err)
+		}
+	})
+
 	t.Run("Count By Query", func(t *testing.T) {
 		userQuery := UserQuery{ScoreLt: P(60)}
 		cnt, err := userDataAccess.Count(ctx, &userQuery)
