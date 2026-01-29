@@ -35,7 +35,7 @@ type relationalDataAccess[E Entity] struct {
 }
 
 func logSqlWithArgs(sqlStr string, args []any) (string, []any) {
-	log.WithFields(log.Fields{"SQL": sqlStr, "args": args}).Info("Executing")
+	log.WithField("args", args).Info("Executing SQL: " + sqlStr)
 	return sqlStr, args
 }
 
