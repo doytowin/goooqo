@@ -56,7 +56,7 @@ func (em *EntityMetadata[E]) buildSelect(query Query) (string, []any) {
 	s := "SELECT " + em.ColStr + " FROM " + em.TableName + whereClause
 	s += BuildSortClause(query.GetSort())
 	if query.NeedPaging() {
-		s = BuildPageClause(&s, query.CalcOffset(), query.GetPageSize())
+		s = Dialect.BuildPageClause(s, query.CalcOffset(), query.GetPageSize())
 	}
 	return s, args
 }

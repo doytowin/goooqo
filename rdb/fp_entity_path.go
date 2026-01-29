@@ -69,7 +69,7 @@ func (fp *fpEntityPath) buildQuery(query Query) (string, []any) {
 	and, args := BuildConditions(query, " AND ", " AND ", "")
 	s += and + BuildSortClause(query.GetSort())
 	if query.NeedPaging() {
-		s = BuildPageClause(&s, query.CalcOffset(), query.GetPageSize())
+		s = Dialect.BuildPageClause(s, query.CalcOffset(), query.GetPageSize())
 	}
 	return s, args
 }

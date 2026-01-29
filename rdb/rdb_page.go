@@ -11,15 +11,10 @@
 package rdb
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/doytowin/goooqo/core"
 )
-
-func BuildPageClause(sql *string, offset int, size int) string {
-	return fmt.Sprintf("%s LIMIT %d OFFSET %d", *sql, size, offset)
-}
 
 func BuildSortClause(sort *string) string {
 	if sort == nil {

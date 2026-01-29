@@ -33,6 +33,7 @@ func Connect(filenames ...string) *sql.DB {
 		password := os.Getenv("mysql_password")
 		url := os.Getenv("mysql_url")
 		dataSourceName = username + ":" + password + "@" + url
+		Dialect = &MySQLDialect{}
 	} else {
 		dataSourceName = os.Getenv("data_source")
 	}
