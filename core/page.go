@@ -11,35 +11,27 @@
 package core
 
 type PageQuery struct {
-	PageNumber *int    `json:"page,omitempty"`
-	PageSize   *int    `json:"size,omitempty"`
-	Sort       *string `json:"sort,omitempty"`
+	Page int    `json:"page,omitempty"`
+	Size int    `json:"size,omitempty"`
+	Sort string `json:"sort,omitempty"`
 }
 
-func (pageQuery PageQuery) GetPageNumber() int {
-	page := 0
-	if pageQuery.PageNumber != nil && *pageQuery.PageNumber > 1 {
-		page = *pageQuery.PageNumber - 1
-	}
-	return page
+func (pq PageQuery) GetPageNumber() int {
+	return Ternary(pq.Page > 1, pq.Page-1, 0)
 }
 
-func (pageQuery PageQuery) GetPageSize() int {
-	size := 10
-	if pageQuery.PageSize != nil && *pageQuery.PageSize > 0 {
-		size = *pageQuery.PageSize
-	}
-	return size
+func (pq PageQuery) GetPageSize() int {
+	return Ternary(pq.Size > 0, pq.Size, 10)
 }
 
-func (pageQuery PageQuery) CalcOffset() int {
-	return pageQuery.GetPageNumber() * pageQuery.GetPageSize()
+func (pq PageQuery) CalcOffset() int {
+	return pq.GetPageNumber() * pq.GetPageSize()
 }
 
-func (pageQuery PageQuery) GetSort() *string {
-	return pageQuery.Sort
+func (pq PageQuery) GetSort() string {
+	return pq.Sort
 }
 
-func (pageQuery PageQuery) NeedPaging() bool {
-	return pageQuery.PageSize != nil || pageQuery.PageNumber != nil
+func (pq PageQuery) NeedPaging() bool {
+	return pq.Size > 0 || pq.Page > 0
 }

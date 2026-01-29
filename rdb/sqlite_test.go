@@ -131,7 +131,7 @@ func TestSQLite(t *testing.T) {
 
 	t.Run("Page By Query", func(t *testing.T) {
 		userQuery := UserQuery{
-			PageQuery: PageQuery{PageSize: P(2)},
+			PageQuery: PageQuery{Size: 2},
 			ScoreLt:   P(80),
 		}
 		page, err := userDataAccess.Page(ctx, &userQuery)

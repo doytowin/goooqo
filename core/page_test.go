@@ -22,22 +22,22 @@ func TestBuildPageClause(t *testing.T) {
 			t.Errorf("\nExpected: %t\nBut got : %t", false, actual)
 		}
 	})
-	t.Run("When PageSize is set then should do paging", func(t *testing.T) {
-		pageQuery := PageQuery{PageSize: P(20)}
+	t.Run("When Size is set then should do paging", func(t *testing.T) {
+		pageQuery := PageQuery{Size: 20}
 		actual := pageQuery.NeedPaging()
 		if actual != true {
 			t.Errorf("\nExpected: %t\nBut got : %t", true, actual)
 		}
 	})
-	t.Run("When PageNumber is set then should do paging", func(t *testing.T) {
-		pageQuery := PageQuery{PageNumber: P(1)}
+	t.Run("When Page is set then should do paging", func(t *testing.T) {
+		pageQuery := PageQuery{Page: 1}
 		actual := pageQuery.NeedPaging()
 		if actual != true {
 			t.Errorf("\nExpected: %t\nBut got : %t", true, actual)
 		}
 	})
-	t.Run("When PageNumber and PageSize are set then should do paging", func(t *testing.T) {
-		pageQuery := PageQuery{PageNumber: P(1), PageSize: P(10)}
+	t.Run("When Page and Size are set then should do paging", func(t *testing.T) {
+		pageQuery := PageQuery{Page: 1, Size: 10}
 		actual := pageQuery.NeedPaging()
 		if actual != true {
 			t.Errorf("\nExpected: %t\nBut got : %t", true, actual)

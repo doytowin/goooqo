@@ -90,7 +90,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select with Page Clause", func(t *testing.T) {
-		query := UserQuery{PageQuery: PageQuery{PageNumber: P(1), PageSize: P(10)}}
+		query := UserQuery{PageQuery: PageQuery{Page: 1, Size: 10}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM t_user LIMIT 10 OFFSET 0"
 		if actual != expect {
@@ -102,7 +102,7 @@ func TestBuildStmt(t *testing.T) {
 	})
 
 	t.Run("Build Select with Sort Clause", func(t *testing.T) {
-		query := UserQuery{PageQuery: PageQuery{PageSize: P(5), Sort: P("id")}}
+		query := UserQuery{PageQuery: PageQuery{Size: 5, Sort: "id"}}
 		actual, args := em.buildSelect(&query)
 		expect := "SELECT id, score, memo FROM t_user ORDER BY id LIMIT 5 OFFSET 0"
 		if actual != expect {

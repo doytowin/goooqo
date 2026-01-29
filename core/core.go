@@ -35,7 +35,7 @@ type Query interface {
 	GetPageNumber() int
 	GetPageSize() int
 	CalcOffset() int
-	GetSort() *string
+	GetSort() string
 	NeedPaging() bool
 }
 

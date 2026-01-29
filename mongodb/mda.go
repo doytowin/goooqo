@@ -150,8 +150,8 @@ func buildPageOpt(query Query) *options.FindOptions {
 		pageOpt.Limit = PInt64(query.GetPageSize())
 		pageOpt.Skip = PInt64(query.CalcOffset())
 	}
-	if query.GetSort() != nil {
-		pageOpt.Sort = buildSort(*query.GetSort())
+	if query.GetSort() != "" {
+		pageOpt.Sort = buildSort(query.GetSort())
 	}
 	return pageOpt
 }

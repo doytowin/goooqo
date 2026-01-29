@@ -16,11 +16,11 @@ import (
 	"github.com/doytowin/goooqo/core"
 )
 
-func BuildSortClause(sort *string) string {
-	if sort == nil {
+func BuildSortClause(sort string) string {
+	if strings.TrimSpace(sort) == "" {
 		return ""
 	}
-	groups := core.SortRgx.FindAllStringSubmatch(*sort, -1)
+	groups := core.SortRgx.FindAllStringSubmatch(sort, -1)
 	var orderBy = make([]string, len(groups))
 	for i, group := range groups {
 		orderBy[i] = group[1]

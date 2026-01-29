@@ -37,7 +37,7 @@ func Test_fpEntityPath_buildQuery(t *testing.T) {
 		{
 			"Build SELECT FROM t_role with paging and sorting",
 			epField,
-			test.RoleQuery{PageQuery: PageQuery{P(10), P(5), P("role_name,desc")}, Valid: P(true)},
+			test.RoleQuery{PageQuery: PageQuery{10, 5, "role_name,desc"}, Valid: P(true)},
 			"SELECT id, role_name, role_code, create_user_id FROM t_role WHERE id IN (SELECT role_id FROM a_user_and_role WHERE user_id = ?) AND valid = ? ORDER BY role_name DESC LIMIT 5 OFFSET 45",
 			[]any{true},
 		},

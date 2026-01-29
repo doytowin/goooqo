@@ -18,39 +18,39 @@ import (
 
 func TestBuildPageClause(t *testing.T) {
 	t.Run("Build Page Clause", func(t *testing.T) {
-		pageQuery := PageQuery{PageNumber: P(3), PageSize: P(10)}
+		pageQuery := PageQuery{Page: 3, Size: 10}
 		actual := Dialect.BuildPageClause("", pageQuery.CalcOffset(), pageQuery.GetPageSize())
 		expect := " LIMIT 10 OFFSET 20"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
-	t.Run("Build Page Clause with PageNumber Only", func(t *testing.T) {
-		pageQuery := PageQuery{PageNumber: P(3)}
+	t.Run("Build Page Clause with Page Only", func(t *testing.T) {
+		pageQuery := PageQuery{Page: 3}
 		actual := Dialect.BuildPageClause("", pageQuery.CalcOffset(), pageQuery.GetPageSize())
 		expect := " LIMIT 10 OFFSET 20"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
-	t.Run("Build Page Clause with PageSize Only", func(t *testing.T) {
-		pageQuery := PageQuery{PageSize: P(20)}
+	t.Run("Build Page Clause with Size Only", func(t *testing.T) {
+		pageQuery := PageQuery{Size: 20}
 		actual := Dialect.BuildPageClause("", pageQuery.CalcOffset(), pageQuery.GetPageSize())
 		expect := " LIMIT 20 OFFSET 0"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
-	t.Run("Build Page Clause with PageNumber less than 1", func(t *testing.T) {
-		pageQuery := PageQuery{PageNumber: P(0)}
+	t.Run("Build Page Clause with Page less than 1", func(t *testing.T) {
+		pageQuery := PageQuery{Page: 0}
 		actual := Dialect.BuildPageClause("", pageQuery.CalcOffset(), pageQuery.GetPageSize())
 		expect := " LIMIT 10 OFFSET 0"
 		if actual != expect {
 			t.Errorf("\nExpected: %s\nBut got : %s", expect, actual)
 		}
 	})
-	t.Run("Build Page Clause with PageSize less than 0", func(t *testing.T) {
-		pageQuery := PageQuery{PageSize: P(-1)}
+	t.Run("Build Page Clause with Size less than 0", func(t *testing.T) {
+		pageQuery := PageQuery{Size: -1}
 		actual := Dialect.BuildPageClause("", pageQuery.CalcOffset(), pageQuery.GetPageSize())
 		expect := " LIMIT 10 OFFSET 0"
 		if actual != expect {
@@ -58,7 +58,7 @@ func TestBuildPageClause(t *testing.T) {
 		}
 	})
 	t.Run("Build Sort Clause", func(t *testing.T) {
-		pageQuery := PageQuery{Sort: P("id,desc;score,asc;memo")}
+		pageQuery := PageQuery{Sort: "id,desc;score,asc;memo"}
 		actual := BuildSortClause(pageQuery.GetSort())
 		expect := " ORDER BY id DESC, score ASC, memo"
 		if actual != expect {

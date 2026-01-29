@@ -39,7 +39,7 @@ func TestWeb(t *testing.T) {
 	t.Run("Should return empty array instead of null when no data found.", func(t *testing.T) {
 		tm.SubmitTransaction(ctx, func(tc core.TransactionContext) error {
 			writer := httptest.NewRecorder()
-			request := httptest.NewRequest("GET", "/user/?PageNumber=10", nil).WithContext(tc)
+			request := httptest.NewRequest("GET", "/user/?page=10", nil).WithContext(tc)
 
 			rs.ServeHTTP(writer, request)
 
@@ -53,13 +53,13 @@ func TestWeb(t *testing.T) {
 	})
 
 	tests := []struct{ method, url, expect string }{
-		{"Get", "/user/?PageNumber=1&PageSize=2", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":2,"score":40,"memo":"Bad"}],"total":4},"success":true}`},
-		{"Get", "/user/?ScoreLt=60&test=test", `{"data":{"list":[{"id":2,"score":40,"memo":"Bad"},{"id":3,"score":55,"memo":null}],"total":2},"success":true}`},
-		{"Get", "/user/?ScoreLt=60&Sort=id,desc", `{"data":{"list":[{"id":3,"score":55,"memo":null},{"id":2,"score":40,"memo":"Bad"}],"total":2},"success":true}`},
-		{"Get", "/user/?ScoreLt=60&MemoNull=true", `{"data":{"list":[{"id":3,"score":55,"memo":null}],"total":1},"success":true}`},
-		{"Get", "/user/?MemoLike=%25oo%25", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"}],"total":1},"success":true}`},
-		{"Get", "/user/?IdIn=1,4", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`},
-		{"Get", "/user/?IdIn=1&IdIn=4&IdIn=a5", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`},
+		{"Get", "/user/?page=1&size=2", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":2,"score":40,"memo":"Bad"}],"total":4},"success":true}`},
+		{"Get", "/user/?scoreLt=60&test=test", `{"data":{"list":[{"id":2,"score":40,"memo":"Bad"},{"id":3,"score":55,"memo":null}],"total":2},"success":true}`},
+		{"Get", "/user/?scoreLt=60&sort=id,desc", `{"data":{"list":[{"id":3,"score":55,"memo":null},{"id":2,"score":40,"memo":"Bad"}],"total":2},"success":true}`},
+		{"Get", "/user/?scoreLt=60&memoNull=true", `{"data":{"list":[{"id":3,"score":55,"memo":null}],"total":1},"success":true}`},
+		{"Get", "/user/?memoLike=%25oo%25", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"}],"total":1},"success":true}`},
+		{"Get", "/user/?idIn=1,4", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`},
+		{"Get", "/user/?idIn=1&idIn=4&idIn=a5", `{"data":{"list":[{"id":1,"score":85,"memo":"Good"},{"id":4,"score":62,"memo":"Well"}],"total":2},"success":true}`},
 		{"Get", "/user/1", `{"data":{"id":1,"score":85,"memo":"Good"},"success":true}`},
 		{"Get", "/user/100", `{"success":false,"error":"record not found. id: 100"}`},
 	}
@@ -132,11 +132,11 @@ func TestWeb(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE /user/?MemoNull=false", func(t *testing.T) {
+	t.Run("DELETE /user/?memoNull=false", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 		writer := httptest.NewRecorder()
-		request := httptest.NewRequest("DELETE", "/user/?MemoNull=false", nil).WithContext(tc)
+		request := httptest.NewRequest("DELETE", "/user/?memoNull=false", nil).WithContext(tc)
 
 		rs.ServeHTTP(writer, request)
 

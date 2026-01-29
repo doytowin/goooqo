@@ -49,12 +49,16 @@ func TestConverter(t *testing.T) {
 				"Support multiple parameters", "id;name", func(a any) any { return *a.(*string) },
 				args{typeName: reflect.PointerTo(reflect.TypeOf("")), params: []string{"id", "name"}},
 			},
+			{
+				"Support multiple parameters", "id;name", func(a any) any { return a.(string) },
+				args{typeName: reflect.TypeOf(""), params: []string{"id", "name"}},
+			},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				f := converterMap[tt.args.typeName]
 				if f == nil {
-					t.Fatal("Not support: ", tt.args.typeName)
+					t.Fatal("unsupported field type: ", tt.args.typeName)
 				}
 				actual, err := f(tt.args.params)
 				if err != nil {

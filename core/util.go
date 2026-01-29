@@ -76,3 +76,10 @@ var capitalizer = cases.Title(language.English, cases.NoLower)
 func Capitalize(str string) string {
 	return capitalizer.String(str)
 }
+
+func Ternary[T any](test bool, r1, r2 T) T {
+	if test {
+		return r1
+	}
+	return r2
+}

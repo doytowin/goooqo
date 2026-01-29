@@ -44,3 +44,20 @@ func TestToSnakeCase(t *testing.T) {
 		t.Errorf("ToSnakeCase() = %v, want %v", got, "user_entity")
 	}
 }
+
+func TestTernary(t *testing.T) {
+	t.Run("Ternary true", func(t *testing.T) {
+		expect := 10
+		actual := Ternary(true, expect, -1)
+		if actual != expect {
+			t.Errorf("\nExpected: %d\nBut got : %d", expect, actual)
+		}
+	})
+	t.Run("Ternary false", func(t *testing.T) {
+		expect := 10
+		actual := Ternary(false, -1, expect)
+		if actual != expect {
+			t.Errorf("\nExpected: %d\nBut got : %d", expect, actual)
+		}
+	})
+}

@@ -63,6 +63,11 @@ func init() {
 		return &v, nil
 	})
 
+	RegisterConverter(reflect.TypeOf(""), func(v []string) (any, error) {
+		joined := strings.Join(v, ";")
+		return joined, nil
+	})
+
 	RegisterConverter(reflect.PointerTo(reflect.TypeOf("")), func(v []string) (any, error) {
 		joined := strings.Join(v, ";")
 		return &joined, nil
@@ -101,10 +106,14 @@ func resolveParam(elem reflect.Value, fieldName string) reflect.Value {
 }
 
 func convertAndSet(field reflect.Value, v []string) {
-	log.Debug("field.Type: ", field.Type())
 	fieldType := field.Type()
-	v0, err := converterMap[fieldType](v)
-	if core.NoError(err) || v0 != nil {
-		field.Set(reflect.ValueOf(v0))
+	f := converterMap[fieldType]
+	if f != nil {
+		v0, err := f(v)
+		if core.NoError(err) || v0 != nil {
+			field.Set(reflect.ValueOf(v0))
+		}
+	} else {
+		log.Warning("unsupported field type: ", field.Type())
 	}
 }
