@@ -76,7 +76,7 @@ type TransactionContext interface {
 	RollbackTo(name string) error
 }
 
-type TxDataAccess[E Entity] interface {
+type TxDataAccess[E Entity] struct {
 	TransactionManager
 	DataAccess[E]
 }

@@ -29,7 +29,6 @@ type Connection interface {
 }
 
 type relationalDataAccess[E Entity] struct {
-	TransactionManager
 	conn Connection
 	em   EntityMetadata[E]
 }
@@ -39,11 +38,17 @@ func logSqlWithArgs(sqlStr string, args []any) (string, []any) {
 	return sqlStr, args
 }
 
-func NewTxDataAccess[E Entity](tm TransactionManager) TxDataAccess[E] {
+func NewDataAccess[E Entity](db Connection) DataAccess[E] {
 	return &relationalDataAccess[E]{
+		conn: db,
+		em:   buildEntityMetadata[E](),
+	}
+}
+
+func NewTxDataAccess[E Entity](tm TransactionManager) TxDataAccess[E] {
+	return TxDataAccess[E]{
 		TransactionManager: tm,
-		conn:               tm.GetClient().(Connection),
-		em:                 buildEntityMetadata[E](),
+		DataAccess:         NewDataAccess[E](tm.GetClient().(Connection)),
 	}
 }
 

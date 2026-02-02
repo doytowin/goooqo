@@ -46,7 +46,6 @@ func CombineConditions(connector string, a A) D {
 }
 
 type mongoDataAccess[E MongoEntity] struct {
-	TransactionManager
 	collection *mongo.Collection
 }
 
@@ -56,9 +55,9 @@ func NewMongoDataAccess[E MongoEntity](tm TransactionManager) TxDataAccess[E] {
 	collection := client.Database(entity.Database()).Collection(entity.Collection())
 	entityType := reflect.TypeOf(entity)
 	createIndex(entityType, collection)
-	return &mongoDataAccess[E]{
+	return TxDataAccess[E]{
 		TransactionManager: tm,
-		collection:         collection,
+		DataAccess:         &mongoDataAccess[E]{collection},
 	}
 }
 
