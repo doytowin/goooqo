@@ -259,4 +259,13 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got <nil>", expect)
 		}
 	})
+
+	t.Run("Error: Build DELETE without WHERE clause", func(t *testing.T) {
+		var userQuery = UserQuery{}
+		_, _, err := em.buildDelete(userQuery)
+		expect := "deletion of all records is restricted"
+		if err != nil && err.Error() != expect {
+			t.Errorf("\nExpected: %s\nBut got <nil>", expect)
+		}
+	})
 }

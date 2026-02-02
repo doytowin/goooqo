@@ -76,10 +76,13 @@ func (em *EntityMetadata[E]) buildDeleteById() string {
 	return "DELETE FROM " + em.TableName + whereId
 }
 
-func (em *EntityMetadata[E]) buildDelete(query any) (string, []any) {
+func (em *EntityMetadata[E]) buildDelete(query any) (string, []any, error) {
 	whereClause, args := BuildWhereClause(query)
+	if whereClause == "" {
+		return "", nil, errors.New("deletion of all records is restricted")
+	}
 	sqlStr := "DELETE FROM " + em.TableName + whereClause
-	return sqlStr, args
+	return sqlStr, args, nil
 }
 
 func (em *EntityMetadata[E]) buildCreate(entity E) (string, []any) {
