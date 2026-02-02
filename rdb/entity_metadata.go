@@ -11,6 +11,7 @@
 package rdb
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -144,14 +145,18 @@ func (em *EntityMetadata[E]) buildPatchById(entity Entity) (string, []any) {
 	return sqlStr, args
 }
 
-func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) (string, []any) {
+func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) (string, []any, error) {
 	whereClause, argsQ := BuildWhereClause(query)
 	patchClause, argsE := em.buildPatch(entity, len(argsQ))
+
+	if strings.HasSuffix(patchClause, "SET ") {
+		return "", nil, errors.New("at least one field should be updated")
+	}
 
 	args := append(argsE, argsQ...)
 	sqlStr := patchClause + whereClause
 
-	return sqlStr, args
+	return sqlStr, args, nil
 }
 
 func FormatTableByEntity(entity any) string {

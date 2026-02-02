@@ -241,4 +241,13 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("Args are not expected: %s", args)
 		}
 	})
+
+	t.Run("Error: Build UPDATE without SET columns", func(t *testing.T) {
+		entity := UserEntity{Score: nil}
+		_, _, err := em.buildPatchByQuery(entity, UserQuery{})
+		expect := "at least one field should be updated"
+		if err != nil && err.Error() != expect {
+			t.Errorf("\nExpected: %s\nBut got <nil>", expect)
+		}
+	})
 }

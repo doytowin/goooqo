@@ -259,7 +259,10 @@ func (da *relationalDataAccess[E]) Patch(ctx context.Context, entity Entity) (in
 }
 
 func (da *relationalDataAccess[E]) PatchByQuery(ctx context.Context, entity E, query Query) (int64, error) {
-	sqlStr, args := da.em.buildPatchByQuery(entity, query)
+	sqlStr, args, err := da.em.buildPatchByQuery(entity, query)
+	if HasError(err) {
+		return 0, err
+	}
 	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
