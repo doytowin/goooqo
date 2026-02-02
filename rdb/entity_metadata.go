@@ -152,6 +152,9 @@ func (em *EntityMetadata[E]) buildPatchByQuery(entity E, query Query) (string, [
 	if strings.HasSuffix(patchClause, "SET ") {
 		return "", nil, errors.New("at least one field should be updated")
 	}
+	if whereClause == "" {
+		return "", nil, errors.New("deletion of all records is restricted")
+	}
 
 	args := append(argsE, argsQ...)
 	sqlStr := patchClause + whereClause

@@ -250,4 +250,13 @@ func TestBuildStmt(t *testing.T) {
 			t.Errorf("\nExpected: %s\nBut got <nil>", expect)
 		}
 	})
+
+	t.Run("Error: Build UPDATE without WHERE clause", func(t *testing.T) {
+		entity := UserEntity{Score: P(90)}
+		_, _, err := em.buildPatchByQuery(entity, UserQuery{})
+		expect := "deletion of all records is restricted"
+		if err != nil && err.Error() != expect {
+			t.Errorf("\nExpected: %s\nBut got <nil>", expect)
+		}
+	})
 }
