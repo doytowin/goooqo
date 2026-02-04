@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	. "github.com/doytowin/goooqo/core"
+	log "github.com/sirupsen/logrus"
 )
 
 type restService[E Entity, Q Query] struct {
@@ -45,6 +46,7 @@ func BuildRestService[E Entity, Q Query](
 }
 
 func (s *restService[E, Q]) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	log.Debugf("Serving: %s %s", request.Method, request.URL.Path)
 	match := s.idRgx.FindStringSubmatch(request.URL.Path)
 	var data any
 	var err error
