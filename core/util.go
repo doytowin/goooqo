@@ -49,22 +49,11 @@ func ToSnakeCase(fieldName string) string {
 	return string(col)
 }
 
-func ReadError(err error) *string {
-	if err == nil {
-		return nil
-	}
-	return P(err.Error())
-}
-
 func NoError(err error) bool {
 	if err != nil {
-		log.Error("Error occurred! ", err)
+		log.Error("Error: ", err)
 	}
 	return err == nil
-}
-
-func HasError(err error) bool {
-	return !NoError(err)
 }
 
 func Close(db io.Closer) {

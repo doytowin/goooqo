@@ -39,7 +39,7 @@ func (t *rdbTransactionManager) StartTransaction(ctx context.Context) (Transacti
 		return tc, nil
 	}
 	tx, err := t.db.BeginTx(ctx, nil)
-	if HasError(err) {
+	if err != nil {
 		return nil, err
 	}
 	sn := t.fetchSn()
@@ -49,7 +49,7 @@ func (t *rdbTransactionManager) StartTransaction(ctx context.Context) (Transacti
 
 func (t *rdbTransactionManager) SubmitTransaction(ctx context.Context, callback func(tc TransactionContext) error) error {
 	tc, err := t.StartTransaction(ctx)
-	if NoError(err) {
+	if err == nil {
 		err = TransactionCallback(tc, callback)
 	}
 	return err

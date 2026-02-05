@@ -180,7 +180,7 @@ func (m *mongoDataAccess[E]) DeleteByQuery(ctx context.Context, query Query) (in
 	filter := buildFilter(query)
 	if query.NeedPaging() {
 		IDs, err := m.doQueryIds(ctx, query, filter)
-		if HasError(err) {
+		if err != nil {
 			return 0, err
 		}
 		filter = D{{MID, D{{"$in", IDs}}}}
@@ -307,7 +307,7 @@ func (m *mongoDataAccess[E]) PatchByQuery(ctx context.Context, entity E, query Q
 	filter := buildFilter(query)
 	if query.NeedPaging() {
 		IDs, err := m.doQueryIds(ctx, query, filter)
-		if HasError(err) {
+		if err != nil {
 			return 0, err
 		}
 		filter = D{{MID, D{{"$in", IDs}}}}

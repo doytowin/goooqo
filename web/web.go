@@ -12,7 +12,7 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -113,7 +113,7 @@ func (s *restService[E, Q]) process(request *http.Request, id string) (any, erro
 		var entity *E
 		entity, err = s.Get(request.Context(), id)
 		if entity == nil && NoError(err) {
-			err = fmt.Errorf("record not found. id: %s", id)
+			err = errors.New("record not found. id: " + id)
 		} else {
 			data = entity
 		}
@@ -133,4 +133,11 @@ func writeResult(writer http.ResponseWriter, err error, data any) {
 		writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_, _ = writer.Write(bytes)
 	}
+}
+
+func ReadError(err error) *string {
+	if err == nil {
+		return nil
+	}
+	return P(err.Error())
 }

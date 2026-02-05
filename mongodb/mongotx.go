@@ -52,7 +52,7 @@ func (tm *mongoTransactionManager) resolveCtx(ctx context.Context) (*mongoTransa
 	ssnCtx, ok := ctx.(*mongoTransactionContext)
 	if !ok {
 		sess, err := tm.client.StartSession()
-		if HasError(err) {
+		if err != nil {
 			return nil, err
 		}
 		ssnCtx = &mongoTransactionContext{

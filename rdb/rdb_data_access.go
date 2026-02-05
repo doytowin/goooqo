@@ -72,7 +72,7 @@ func (da *relationalDataAccess[E]) Get(ctx context.Context, id any) (*E, error) 
 func (da *relationalDataAccess[E]) Query(ctx context.Context, query Query) ([]E, error) {
 	sqlStr, args := da.em.buildSelect(query)
 	entities, err := da.doQuery(ctx, sqlStr, args, query.GetPageSize())
-	if NoError(err) && len(da.em.relationMetas) > 0 {
+	if err == nil && len(da.em.relationMetas) > 0 {
 		da.queryRelationEntities(ctx, entities, query)
 	}
 	return entities, err
@@ -86,11 +86,11 @@ func (da *relationalDataAccess[E]) doQuery(ctx context.Context, sqlStr string, a
 	entity := *new(E)
 
 	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
-	if NoError(err) {
+	if err == nil {
 		defer Close(stmt)
 		var rows *sql.Rows
 		rows, err = stmt.QueryContext(ctx, args...)
-		if NoError(err) {
+		if err == nil {
 			var pointers []any
 			if mapper, ok := any(entity).(EntityMapper); ok {
 				pointers = mapper.FieldsAddr()
@@ -145,11 +145,11 @@ func QueryRelated(ctx context.Context, conn Connection, sqlStr string, args []an
 
 	stmt, err := conn.PrepareContext(ctx, sqlStr)
 	result := reflect.MakeSlice(reflect.SliceOf(entityType), 0, 10)
-	if NoError(err) {
+	if err == nil {
 		defer Close(stmt)
 		var rows *sql.Rows
 		rows, err = stmt.QueryContext(ctx, args...)
-		if NoError(err) {
+		if err == nil {
 			var pointers []any
 			pEntity := reflect.New(entityType)
 			if mapper, ok := pEntity.Interface().(EntityMapper); ok {
@@ -185,7 +185,7 @@ func (da *relationalDataAccess[E]) Count(ctx context.Context, query Query) (int6
 	sqlStr, args := da.em.buildCount(query)
 	logSqlWithArgs(sqlStr, args)
 	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
-	if NoError(err) {
+	if err == nil {
 		defer Close(stmt)
 		row := stmt.QueryRowContext(ctx, args...)
 		err = row.Scan(&cnt)
@@ -196,7 +196,7 @@ func (da *relationalDataAccess[E]) Count(ctx context.Context, query Query) (int6
 func (da *relationalDataAccess[E]) Page(ctx context.Context, query Query) (PageList[E], error) {
 	var cnt int64
 	data, err := da.Query(ctx, query)
-	if NoError(err) {
+	if err == nil {
 		cnt, err = da.Count(ctx, query)
 	}
 	return PageList[E]{List: data, Total: cnt}, err
@@ -209,7 +209,7 @@ func (da *relationalDataAccess[E]) Delete(ctx context.Context, id any) (int64, e
 
 func (da *relationalDataAccess[E]) DeleteByQuery(ctx context.Context, query Query) (int64, error) {
 	sqlStr, args, err := da.em.buildDelete(query)
-	if HasError(err) {
+	if err != nil {
 		return 0, err
 	}
 	return parse(da.doUpdate(ctx, sqlStr, args))
@@ -218,7 +218,7 @@ func (da *relationalDataAccess[E]) DeleteByQuery(ctx context.Context, query Quer
 func (da *relationalDataAccess[E]) doUpdate(ctx context.Context, sqlStr string, args []any) (sql.Result, error) {
 	logSqlWithArgs(sqlStr, args)
 	stmt, err := da.getConn(ctx).PrepareContext(ctx, sqlStr)
-	if NoError(err) {
+	if err == nil {
 		defer Close(stmt)
 		return stmt.ExecContext(ctx, args...)
 	}
@@ -229,9 +229,9 @@ func (da *relationalDataAccess[E]) Create(ctx context.Context, entity *E) (int64
 	sqlStr, args := da.em.buildCreate(*entity)
 	result, err := da.doUpdate(ctx, sqlStr, args)
 	var id int64
-	if NoError(err) {
+	if err == nil {
 		id, err = result.LastInsertId()
-		if NoError(err) {
+		if err == nil {
 			err = (*entity).SetId(entity, id)
 		}
 	}
@@ -258,14 +258,14 @@ func (da *relationalDataAccess[E]) Patch(ctx context.Context, entity Entity) (in
 
 func (da *relationalDataAccess[E]) PatchByQuery(ctx context.Context, entity E, query Query) (int64, error) {
 	sqlStr, args, err := da.em.buildPatchByQuery(entity, query)
-	if HasError(err) {
+	if err != nil {
 		return 0, err
 	}
 	return parse(da.doUpdate(ctx, sqlStr, args))
 }
 
 func parse(result sql.Result, err error) (int64, error) {
-	if NoError(err) {
+	if err == nil {
 		return result.RowsAffected()
 	}
 	return 0, err
