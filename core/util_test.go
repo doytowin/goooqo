@@ -11,12 +11,19 @@
 package core
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 	"time"
 )
 
-func TestReadValue(t *testing.T) {
+func TestUtil(t *testing.T) {
+
+	t.Run("P *string", func(t *testing.T) {
+		if got := P("t_user"); *got != ("t_user") {
+			t.Errorf("P(any) = %v, want %v", *got, "t_user")
+		}
+	})
 
 	t.Run("Read time.Time", func(t *testing.T) {
 		expect := time.Now()
@@ -34,18 +41,29 @@ func TestReadValue(t *testing.T) {
 		}
 	})
 
-}
+	t.Run("ToSnakeCase: t_user", func(t *testing.T) {
+		if got := ToSnakeCase("t_user"); got != ("t_user") {
+			t.Errorf("ToSnakeCase() = %v, want %v", got, "t_user")
+		}
+	})
+	t.Run("ToSnakeCase: UserEntity", func(t *testing.T) {
+		if got := ToSnakeCase("UserEntity"); got != ("user_entity") {
+			t.Errorf("ToSnakeCase() = %v, want %v", got, "user_entity")
+		}
+	})
 
-func TestToSnakeCase(t *testing.T) {
-	if got := ToSnakeCase("t_user"); got != ("t_user") {
-		t.Errorf("ToSnakeCase() = %v, want %v", got, "t_user")
-	}
-	if got := ToSnakeCase("UserEntity"); got != ("user_entity") {
-		t.Errorf("ToSnakeCase() = %v, want %v", got, "user_entity")
-	}
-}
+	t.Run("NoError", func(t *testing.T) {
+		if NoError(errors.New("test")) {
+			t.Errorf("NoError() should return false")
+		}
+	})
 
-func TestTernary(t *testing.T) {
+	t.Run("Capitalize: userEntity", func(t *testing.T) {
+		if got := Capitalize("userEntity"); got != ("UserEntity") {
+			t.Errorf("Capitalize() = %v, want %v", got, "UserEntity")
+		}
+	})
+
 	t.Run("Ternary true", func(t *testing.T) {
 		expect := 10
 		actual := Ternary(true, expect, -1)

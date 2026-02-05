@@ -43,4 +43,18 @@ func TestBuildPageClause(t *testing.T) {
 			t.Errorf("\nExpected: %t\nBut got : %t", true, actual)
 		}
 	})
+	t.Run("CalcOffset", func(t *testing.T) {
+		pageQuery := PageQuery{Page: 1, Size: 10}
+		actual := pageQuery.CalcOffset()
+		expect := 0
+		if actual != expect {
+			t.Errorf("\nExpected: %d\nBut got : %d", expect, actual)
+		}
+	})
+	t.Run("CalcOffset", func(t *testing.T) {
+		pageQuery := PageQuery{Page: 1, Size: 10}
+		if pageQuery.GetSort() != "" {
+			t.Errorf("\nExpected: empty string\nBut got : %s", pageQuery.GetSort())
+		}
+	})
 }
