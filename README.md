@@ -34,7 +34,7 @@ Use `go mod init` to init the project and add GoooQo dependency:
 go get -u github.com/doytowin/goooqo/rdb
 ```
 
-Init the database connection and transaction manager:
+Init a database connection `db` and a transaction manager `tm`:
 
 ```go
 package main
@@ -67,6 +67,8 @@ Suppose we have the following user table in `test.db`:
 We define an entity object, a query object and a database access interface for this table:
 
 ```go
+package main
+
 import . "github.com/doytowin/goooqo/core"
 
 type UserEntity struct {
@@ -99,7 +101,7 @@ type UserQuery struct {
 var UserDataAccess TxDataAccess[UserEntity]
 ```
 
-After establishing a database connection and creating the transaction manager,
+After establishing a database connection and creating the transaction manager `tm`,
 initialize the `UserDataAccess` interface to perform CRUD operations:
 
 ```go
@@ -113,7 +115,7 @@ userQuery := UserQuery{ScoreLt: P(80)}
 users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score < ?" args="[80]"
 
-userQuery := UserQuery{PageQuery: PageQuery{PageSize: P(20), Sort: P("id,desc;score")}, MemoLike: P("Great")}
+userQuery := UserQuery{PageQuery: PageQuery{Size: 20, Sort: "id,desc;score"}, MemoLike: P("Great")}
 users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE memo LIKE ? ORDER BY id DESC, score LIMIT 20 OFFSET 0" args="[Great]"
 
@@ -168,7 +170,7 @@ Run the `go generate` command to generate the corresponding query construction m
 Use `TransactionManager#StartTransaction` to start a transaction, then manually commit or rollback the transaction:
 ```go
 tc, err := UserDataAccess.StartTransaction(ctx)
-userQuery := UserQuery{ScoreLt: PInt(80)}
+userQuery := UserQuery{ScoreLt: P(80)}
 cnt, err := UserDataAccess.DeleteByQuery(tc, userQuery)
 if err != nil {
 	err = tc.Rollback()

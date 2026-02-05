@@ -67,6 +67,8 @@ func main() {
 我们为该表定义一个实体对象和一个查询对象，以及一个用于执行数据库访问操作的`UserDataAccess`接口：
 
 ```go
+package main
+
 import . "github.com/doytowin/goooqo/core"
 
 type UserEntity struct {
@@ -99,7 +101,7 @@ type UserQuery struct {
 var UserDataAccess TxDataAccess[UserEntity]
 ```
 
-在建立数据库连接并创建事务管理器后，初始化`UserDataAccess`接口：
+在建立数据库连接并创建事务管理器`tm`后，初始化`UserDataAccess`接口：
 
 ```go
 UserDataAccess := rdb.NewTxDataAccess[UserEntity](tm)
@@ -143,7 +145,7 @@ userQuery := UserQuery{ScoreLt: P(80)}
 users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE score < ?" args="[80]"
 
-userQuery := UserQuery{PageQuery: PageQuery{PageSize: P(20), Sort: P("id,desc;score")}, MemoLike: P("Great")}
+userQuery := UserQuery{PageQuery: PageQuery{Size: 20, Sort: "id,desc;score"}, MemoLike: P("Great")}
 users, err := UserDataAccess.Query(ctx, userQuery)
 // SQL="SELECT id, name, score, memo, deleted FROM t_user WHERE memo LIKE ? ORDER BY id DESC, score LIMIT 20 OFFSET 0" args="[Great]"
 
@@ -167,7 +169,7 @@ users, err := UserDataAccess.Query(ctx, userQuery)
 使用`TransactionManager#StartTransaction`开启事务，手动提交或者回滚事务：
 ```go
 tc, err := UserDataAccess.StartTransaction(ctx)
-userQuery := UserQuery{ScoreLt: PInt(80)}
+userQuery := UserQuery{ScoreLt: P(80)}
 cnt, err := UserDataAccess.DeleteByQuery(tc, userQuery)
 if err != nil {
 	err = tc.Rollback()
