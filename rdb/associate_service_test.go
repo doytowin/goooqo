@@ -65,32 +65,32 @@ func TestAssociationSqlBuilder(t *testing.T) {
 	})
 }
 
-func TestJdbcAssociationService(t *testing.T) {
+func TestRdbAssociationService(t *testing.T) {
 	db := Connect()
 	InitDB(db)
 	defer Disconnect(db)
 	ctx := context.Background()
 	tm := NewTransactionManager(db)
 
-	service := NewJdbcAssociationService(tm, "user", "role", "create_user_id")
+	userRoleService := NewRdbAssociationService(tm, "user", "role", "create_user_id")
 
 	t.Run("testAssociate", func(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.Associate(tc, 1, 20)
+		ret, err := userRoleService.Associate(tc, 1, 20)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), ret)
 	})
 
 	t.Run("testQueryK1ByK2", func(t *testing.T) {
-		userIds, err := service.QueryK1ByK2(ctx, 2)
+		userIds, err := userRoleService.QueryK1ByK2(ctx, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, []int64{1, 4}, userIds)
 	})
 
 	t.Run("testQueryK2ByK1", func(t *testing.T) {
-		roleIds, err := service.QueryK2ByK1(ctx, 1)
+		roleIds, err := userRoleService.QueryK2ByK1(ctx, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, []int{1, 2}, roleIds)
 	})
@@ -99,7 +99,7 @@ func TestJdbcAssociationService(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.DeleteByK1(tc, 1)
+		ret, err := userRoleService.DeleteByK1(tc, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), ret)
 	})
@@ -108,7 +108,7 @@ func TestJdbcAssociationService(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.DeleteByK2(tc, 1)
+		ret, err := userRoleService.DeleteByK2(tc, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(3), ret)
 	})
@@ -117,11 +117,11 @@ func TestJdbcAssociationService(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.ReassociateForK1(tc, 1, []int{2, 3})
+		ret, err := userRoleService.ReassociateForK1(tc, 1, []int{2, 3})
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), ret)
 
-		roleIds, err := service.QueryK2ByK1(tc, 1)
+		roleIds, err := userRoleService.QueryK2ByK1(tc, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, []int{2, 3}, roleIds)
 	})
@@ -130,11 +130,11 @@ func TestJdbcAssociationService(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.ReassociateForK1(tc, 1, []int{})
+		ret, err := userRoleService.ReassociateForK1(tc, 1, []int{})
 		assert.NoError(t, err)
 		assert.Equal(t, int64(0), ret)
 
-		roleIds, err := service.QueryK2ByK1(tc, 1)
+		roleIds, err := userRoleService.QueryK2ByK1(tc, 1)
 		assert.NoError(t, err)
 		assert.Empty(t, roleIds)
 	})
@@ -144,11 +144,11 @@ func TestJdbcAssociationService(t *testing.T) {
 		defer tc.Rollback()
 
 		k1List := []int64{1, 2, 3, 4}
-		ret, err := service.ReassociateForK2(tc, 1, k1List)
+		ret, err := userRoleService.ReassociateForK2(tc, 1, k1List)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(4), ret)
 
-		userIds, err := service.QueryK1ByK2(tc, 1)
+		userIds, err := userRoleService.QueryK1ByK2(tc, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, k1List, userIds)
 	})
@@ -157,11 +157,11 @@ func TestJdbcAssociationService(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.ReassociateForK2(tc, 1, []int64{})
+		ret, err := userRoleService.ReassociateForK2(tc, 1, []int64{})
 		assert.NoError(t, err)
 		assert.Equal(t, int64(0), ret)
 
-		userIds, err := service.QueryK1ByK2(tc, 1)
+		userIds, err := userRoleService.QueryK1ByK2(tc, 1)
 		assert.NoError(t, err)
 		assert.Empty(t, userIds)
 	})
@@ -171,7 +171,7 @@ func TestJdbcAssociationService(t *testing.T) {
 		defer tc.Rollback()
 
 		keys := []UniqueKey{{K1: 1, K2: 2}, {K1: 1, K2: 3}, {K1: 1, K2: 4}}
-		ret, err := service.Count(tc, keys)
+		ret, err := userRoleService.Count(tc, keys)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), ret)
 	})
@@ -180,26 +180,26 @@ func TestJdbcAssociationService(t *testing.T) {
 		tc, _ := tm.StartTransaction(ctx)
 		defer tc.Rollback()
 
-		ret, err := service.Dissociate(tc, 1, 2)
+		ret, err := userRoleService.Dissociate(tc, 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), ret)
 
-		ret, err = service.Dissociate(tc, 1, 2)
+		ret, err = userRoleService.Dissociate(tc, 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(0), ret)
 	})
 
 	t.Run("testBuildUniqueKeys", func(t *testing.T) {
-		keys := service.BuildUniqueKeys(1, []any{2, 2, 3, 4})
+		keys := userRoleService.BuildUniqueKeys(1, []any{2, 2, 3, 4})
 		assert.Equal(t, []UniqueKey{{K1: 1, K2: 2}, {K1: 1, K2: 3}, {K1: 1, K2: 4}}, keys)
 	})
 
 	t.Run("testExists", func(t *testing.T) {
-		exists, err := service.Exists(ctx, 1, 2)
+		exists, err := userRoleService.Exists(ctx, 1, 2)
 		assert.NoError(t, err)
 		assert.True(t, exists)
 
-		exists, err = service.Exists(ctx, 1, 5)
+		exists, err = userRoleService.Exists(ctx, 1, 5)
 		assert.NoError(t, err)
 		assert.False(t, exists)
 	})

@@ -116,35 +116,35 @@ func (b *AssociationSqlBuilder) BuildInsertWithUser(keys []UniqueKey, userId int
 	return sql, args
 }
 
-type JdbcAssociationService struct {
+type RdbAssociationService struct {
 	builder AssociationSqlBuilder
 	tm      TransactionManager
 	conn    Connection
 }
 
-func NewJdbcAssociationService(tm TransactionManager, e1, e2, createUserColumn string) *JdbcAssociationService {
+func NewRdbAssociationService(tm TransactionManager, e1, e2, createUserColumn string) *RdbAssociationService {
 	builder := *NewAssociationSqlBuilder(e1, e2)
 	builder.WithCreateUserColumn(createUserColumn)
-	return &JdbcAssociationService{
+	return &RdbAssociationService{
 		builder: builder,
 		tm:      tm,
 		conn:    tm.GetClient().(Connection),
 	}
 }
 
-func (s *JdbcAssociationService) getConn(ctx context.Context) Connection {
+func (s *RdbAssociationService) getConn(ctx context.Context) Connection {
 	if tc, ok := ctx.(*rdbTransactionContext); ok {
 		return tc.tx
 	}
 	return s.conn
 }
 
-func (s *JdbcAssociationService) Associate(ctx context.Context, k1 any, k2 any) (int64, error) {
+func (s *RdbAssociationService) Associate(ctx context.Context, k1 any, k2 any) (int64, error) {
 	sql := s.builder.InsertSQL + "(?, ?)"
 	return parse(s.getConn(ctx).ExecContext(ctx, sql, k1, k2))
 }
 
-func (s *JdbcAssociationService) QueryK1ByK2(ctx context.Context, k2 int) ([]int64, error) {
+func (s *RdbAssociationService) QueryK1ByK2(ctx context.Context, k2 int) ([]int64, error) {
 	rows, err := s.getConn(ctx).QueryContext(ctx, s.builder.SelectK1ColumnByK2Id, k2)
 	if err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func (s *JdbcAssociationService) QueryK1ByK2(ctx context.Context, k2 int) ([]int
 	return k1List, nil
 }
 
-func (s *JdbcAssociationService) QueryK2ByK1(ctx context.Context, k1 int64) ([]int, error) {
+func (s *RdbAssociationService) QueryK2ByK1(ctx context.Context, k1 int64) ([]int, error) {
 	rows, err := s.getConn(ctx).QueryContext(ctx, s.builder.SelectK2ColumnByK1Id, k1)
 	if err != nil {
 		return nil, err
@@ -180,15 +180,15 @@ func (s *JdbcAssociationService) QueryK2ByK1(ctx context.Context, k1 int64) ([]i
 	return k2List, nil
 }
 
-func (s *JdbcAssociationService) DeleteByK1(ctx context.Context, k1 any) (int64, error) {
+func (s *RdbAssociationService) DeleteByK1(ctx context.Context, k1 any) (int64, error) {
 	return parse(s.getConn(ctx).ExecContext(ctx, s.builder.DeleteByK1, k1))
 }
 
-func (s *JdbcAssociationService) DeleteByK2(ctx context.Context, k2 any) (int64, error) {
+func (s *RdbAssociationService) DeleteByK2(ctx context.Context, k2 any) (int64, error) {
 	return parse(s.getConn(ctx).ExecContext(ctx, s.builder.DeleteByK2, k2))
 }
 
-func (s *JdbcAssociationService) ReassociateForK1(ctx context.Context, k1 int64, k2List []int) (int64, error) {
+func (s *RdbAssociationService) ReassociateForK1(ctx context.Context, k1 int64, k2List []int) (int64, error) {
 	if cnt, err := s.DeleteByK1(ctx, k1); err != nil {
 		return cnt, err
 	}
@@ -208,7 +208,7 @@ func (s *JdbcAssociationService) ReassociateForK1(ctx context.Context, k1 int64,
 	return parse(s.getConn(ctx).ExecContext(ctx, sql, args...))
 }
 
-func (s *JdbcAssociationService) ReassociateForK2(ctx context.Context, k2 any, k1List []int64) (int64, error) {
+func (s *RdbAssociationService) ReassociateForK2(ctx context.Context, k2 any, k1List []int64) (int64, error) {
 	if cnt, err := s.DeleteByK2(ctx, k2); err != nil {
 		return cnt, err
 	}
@@ -228,19 +228,19 @@ func (s *JdbcAssociationService) ReassociateForK2(ctx context.Context, k2 any, k
 	return parse(s.getConn(ctx).ExecContext(ctx, sql, args...))
 }
 
-func (s *JdbcAssociationService) Count(ctx context.Context, keys []UniqueKey) (int64, error) {
+func (s *RdbAssociationService) Count(ctx context.Context, keys []UniqueKey) (int64, error) {
 	sql, args := s.builder.BuildCount(keys)
 	var count int64
 	err := s.getConn(ctx).QueryRowContext(ctx, sql, args...).Scan(&count)
 	return count, err
 }
 
-func (s *JdbcAssociationService) Dissociate(ctx context.Context, k1 any, k2 any) (int64, error) {
+func (s *RdbAssociationService) Dissociate(ctx context.Context, k1 any, k2 any) (int64, error) {
 	sql := "DELETE FROM " + s.builder.tableName + " WHERE " + s.builder.k1Column + " = ? AND " + s.builder.k2Column + " = ?"
 	return parse(s.getConn(ctx).ExecContext(ctx, sql, k1, k2))
 }
 
-func (s *JdbcAssociationService) BuildUniqueKeys(k1 any, k2List []any) []UniqueKey {
+func (s *RdbAssociationService) BuildUniqueKeys(k1 any, k2List []any) []UniqueKey {
 	keys := make([]UniqueKey, 0)
 	seen := make(map[UniqueKey]struct{})
 
@@ -254,7 +254,7 @@ func (s *JdbcAssociationService) BuildUniqueKeys(k1 any, k2List []any) []UniqueK
 	return keys
 }
 
-func (s *JdbcAssociationService) Exists(ctx context.Context, k1 any, k2 any) (bool, error) {
+func (s *RdbAssociationService) Exists(ctx context.Context, k1 any, k2 any) (bool, error) {
 	sql := "SELECT COUNT(*) FROM " + s.builder.tableName + " WHERE " + s.builder.k1Column + " = ? AND " + s.builder.k2Column + " = ?"
 	var count int64
 	err := s.getConn(ctx).QueryRowContext(ctx, sql, k1, k2).Scan(&count)
