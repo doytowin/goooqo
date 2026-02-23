@@ -1,7 +1,7 @@
 /*
  * The Clear BSD License
  *
- * Copyright (c) 2026, DoytoWin, Inc.
+ * Copyright (c) 2024-2026, DoytoWin, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -23,7 +23,7 @@ type UserEntity struct {
 	Memo  *string `json:"memo"`
 
 	Roles   []RoleEntity `entitypath:"user,role" json:"roles,omitempty"`
-	Friends []UserEntity `entitypath:""user,friend,friend,friend"" json:"roles,omitempty"`
+	Friends []UserEntity `entitypath:"user,friend,friend,friend" json:"friends,omitempty"`
 }
 
 type RoleEntity struct {
@@ -48,6 +48,11 @@ func TestBuildFieldMetas(t *testing.T) {
 		expect := 5
 		if actual != expect {
 			t.Errorf("\nExpected: %d\n     Got: %d", expect, actual)
+		}
+
+		lenOfFriends := len(fieldMetas[4].EntityPath.Path)
+		if lenOfFriends != 4 {
+			t.Errorf("\nExpected: %d\n     Got: %d", 4, lenOfFriends)
 		}
 	})
 }
