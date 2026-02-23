@@ -34,9 +34,15 @@ var NewInt64Id = core.NewInt64Id
 
 var Config = core.Config
 
+var Close = core.Close
+var RegisterJoinTable = core.RegisterJoinTable
+var RegisterVirtualEntity = core.RegisterVirtualEntity
+
 func P[T any](t T) *T { return &t }
 
 type DataAccess[E Entity] core.DataAccess[E]
+
+type TxDataAccess[E Entity] core.TxDataAccess[E]
 
 type TransactionManager = core.TransactionManager
 
@@ -52,7 +58,7 @@ func NewDataAccess[E Entity](db rdb.Connection) DataAccess[E] {
 	return rdb.NewDataAccess[E](db)
 }
 
-func NewTxDataAccess[E Entity](tm core.TransactionManager) DataAccess[E] {
+func NewTxDataAccess[E Entity](tm core.TransactionManager) core.TxDataAccess[E] {
 	return rdb.NewTxDataAccess[E](tm)
 }
 
