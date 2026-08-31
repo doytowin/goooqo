@@ -5,7 +5,7 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "workflow", "mongodb" ]
+    branches: [ "main", "workflow", "mongodb", "features/**" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
