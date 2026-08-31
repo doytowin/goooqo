@@ -166,7 +166,7 @@ func TestSQLite(t *testing.T) {
 			t.Error("Error", err)
 			return
 		}
-		if !(cnt == 2) {
+		if cnt != 2 {
 			t.Errorf("\nExpected: %d\nBut got : %d", 2, cnt)
 		}
 		_ = tc.Rollback()

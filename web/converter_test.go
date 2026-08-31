@@ -63,7 +63,7 @@ func TestConverter(t *testing.T) {
 				actual, err := f(tt.args.params)
 				if err != nil {
 					t.Error(err)
-				} else if !(tt.expect == tt.val(actual)) {
+				} else if tt.expect != tt.val(actual) {
 					t.Errorf("Expected: %v, but got %v", tt.expect, tt.val(actual))
 				}
 			})
